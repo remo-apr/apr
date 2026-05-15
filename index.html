@@ -159,12 +159,21 @@ input, select, textarea, button {
   /* Top bar compacta */
   .bar-logo { font-size: 18px !important; }
   .bar-sub { font-size: 10px !important; }
-  
+  /* Ocultar texto do botão histórico em telas muito pequenas */
+  .hist-btn span { display: none; }
+
   /* Resumo mais legível */
   .res-grid { grid-template-columns: 1fr !important; }
-  
+
   /* Etapas de risco — nome da fase menor */
   .fase-risco-titulo { font-size: 12px !important; }
+
+  /* P×S — empilhar em 1 coluna */
+  .risco-ps { flex-direction: column; align-items: flex-start; gap: 6px; }
+
+  /* Seleção rápida — compactar */
+  .eq-quick { gap: 6px; }
+  .eq-qb { padding: 5px 9px; font-size: 11px; }
 }
 
 /* Tablet (600px–900px) — 2 colunas onde faz sentido */
@@ -411,6 +420,13 @@ input, select, textarea, button {
 /* ─── MÁQUINAS CHIPS ─── */
 .maq-list{margin-top:12px;display:none}
 .maq-list.show{display:block}
+/* ── Itens de máquina com controle de quantidade ── */
+.maq-item{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.maq-qty{display:none;align-items:center;gap:4px;background:var(--remo-field);border:1.5px solid var(--remo-navy);border-radius:20px;padding:2px 6px}
+.maq-qty-btn{background:none;border:none;cursor:pointer;font-size:16px;font-weight:700;color:var(--remo-navy);width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;line-height:1;padding:0}
+.maq-qty-btn:hover{background:rgba(27,62,107,.12)}
+.maq-qty-num{font-size:13px;font-weight:800;color:var(--remo-navy);min-width:18px;text-align:center}
+.maq-qty-label{font-size:10px;color:var(--remo-muted);font-weight:600}
 .maq-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .maq-chip{display:flex;align-items:center;gap:6px;cursor:pointer}
 .maq-chip input{display:none}
@@ -448,11 +464,11 @@ input, select, textarea, button {
 .sel-info{font-size:13px;color:var(--remo-muted);margin-bottom:14px}
 .sel-info strong{color:var(--remo-green);font-weight:700}
 .atv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.ac{border:2px solid var(--remo-line);border-radius:var(--radius);background:var(--remo-white);cursor:pointer;transition:all .2s}
+.ac{border:2px solid var(--remo-line);border-radius:var(--radius);background:var(--remo-white);cursor:pointer;transition:all .2s;display:flex;align-items:stretch;overflow:hidden}
 .ac:hover{border-color:#bbb;transform:translateY(-1px);box-shadow:0 3px 12px rgba(0,0,0,.06)}
 .ac.sel{border-color:var(--remo-green);background:var(--remo-green-lt)}
 .ac input{display:none}
-.ac-inner{padding:12px 14px;display:flex;gap:11px;align-items:flex-start}
+.ac-inner{padding:12px 14px;display:flex;gap:11px;align-items:flex-start;flex:1;min-width:0}
 .ac-chk{width:19px;height:19px;border:2px solid var(--remo-line);border-radius:3px;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .2s}
 .ac.sel .ac-chk{background:var(--remo-green);border-color:var(--remo-green-dk);color:#fff}
 .ac-num{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--remo-muted);margin-bottom:1px;font-family:'Barlow Condensed',sans-serif}
@@ -482,6 +498,84 @@ input, select, textarea, button {
   background:#fafafa;cursor:pointer;transition:all .18s;overflow:hidden}
 .risco-fase-card:hover{border-color:var(--remo-green);background:#f5fdf7}
 .risco-fase-card.sel{border-color:var(--remo-navy);background:#e8eef5}
+.risco-fase-card.editing{border-color:var(--remo-yellow);background:#fffdf0}
+
+/* ─── Botão EDITAR RISCO ─── */
+.rfc-btn-edit{
+  flex-shrink:0;margin-left:auto;padding:4px 9px;
+  border:1.5px solid var(--remo-line);border-radius:4px;
+  background:#fff;font-size:11px;font-weight:700;
+  color:var(--remo-muted);cursor:pointer;
+  font-family:'Barlow',sans-serif;letter-spacing:.3px;
+  transition:all .18s;line-height:1;white-space:nowrap}
+.rfc-btn-edit:hover{border-color:var(--remo-yellow);color:#856404;background:#fffdf0}
+.risco-fase-card.editing .rfc-btn-edit{
+  border-color:var(--remo-yellow);color:#856404;background:#fff8d0}
+
+/* ─── Formulário de EDIÇÃO inline ─── */
+.rfc-edit-form{display:none;padding:10px 0 0;border-top:1px dashed var(--remo-yellow);margin-top:8px}
+.risco-fase-card.editing .rfc-edit-form{display:block}
+.rfc-edit-label{font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;color:var(--remo-navy);margin-bottom:3px;margin-top:6px}
+.rfc-edit-label:first-child{margin-top:0}
+.rfc-edit-input,.rfc-edit-textarea{
+  width:100%;padding:7px 9px;border:1.5px solid var(--remo-yellow);
+  border-radius:4px;font-family:'Barlow',sans-serif;font-size:12px;
+  background:#fffdf0;color:#0d0d0d;outline:none;box-sizing:border-box;
+  transition:border-color .2s}
+.rfc-edit-input:focus,.rfc-edit-textarea:focus{border-color:#d4a000;background:#fff}
+.rfc-edit-textarea{resize:vertical;min-height:48px;line-height:1.4}
+.rfc-edit-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:8px}
+.rfc-edit-save{padding:7px 18px;border:none;border-radius:4px;
+  background:var(--remo-navy);color:#fff;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:'Barlow',sans-serif}
+.rfc-edit-save:hover{background:#0f2d52}
+.rfc-edit-cancel{padding:7px 13px;border:1.5px solid var(--remo-line);border-radius:4px;
+  background:#fff;font-size:12px;cursor:pointer;font-family:'Barlow',sans-serif;font-weight:600;color:var(--remo-muted)}
+
+/* ─── Badges EDITADO / NOVO ─── */
+.rfc-badge{font-size:8px;font-weight:900;letter-spacing:.5px;
+  padding:1px 5px;border-radius:3px;margin-left:5px;
+  vertical-align:middle;text-transform:uppercase}
+.rfc-badge-edit{background:#F5C400;color:#1B3E6B}
+.rfc-badge-novo{background:#00A651;color:#fff}
+
+/* ─── Botão INCLUIR RISCO ─── */
+.rfc-btn-incluir{
+  width:100%;margin-top:10px;padding:9px 14px;
+  border:2px dashed var(--remo-green);border-radius:6px;
+  background:transparent;font-family:'Barlow',sans-serif;
+  font-size:12px;font-weight:700;color:var(--remo-green);
+  cursor:pointer;display:flex;align-items:center;
+  gap:7px;justify-content:center;transition:all .2s}
+.rfc-btn-incluir:hover{background:var(--remo-green-lt);border-style:solid}
+
+/* ─── Formulário INCLUIR RISCO ─── */
+.rfc-incluir-form{
+  display:none;margin-top:8px;padding:14px;
+  background:#f0fdf5;border:1.5px solid var(--remo-green);
+  border-radius:6px}
+.rfc-incluir-form.show{display:block}
+.rfc-incluir-title{font-size:11px;font-weight:700;color:var(--remo-navy);
+  margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rfc-incluir-label{font-size:9px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;color:var(--remo-navy);margin-bottom:3px;margin-top:8px;display:block}
+.rfc-incluir-label:first-of-type{margin-top:0}
+.rfc-incluir-input,.rfc-incluir-textarea{
+  width:100%;padding:8px 10px;border:1.5px solid #b2dfca;
+  border-radius:4px;font-family:'Barlow',sans-serif;font-size:12px;
+  background:#fff;color:#0d0d0d;outline:none;box-sizing:border-box;
+  transition:border-color .2s}
+.rfc-incluir-input:focus,.rfc-incluir-textarea:focus{border-color:var(--remo-green)}
+.rfc-incluir-textarea{resize:vertical;min-height:52px;line-height:1.4}
+.rfc-incluir-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
+.rfc-incluir-save{padding:8px 20px;border:none;border-radius:4px;
+  background:var(--remo-green);color:#fff;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:'Barlow',sans-serif}
+.rfc-incluir-save:hover{background:var(--remo-green-dk)}
+.rfc-incluir-cancel{padding:8px 14px;border:1.5px solid #b2dfca;border-radius:4px;
+  background:#fff;font-size:12px;cursor:pointer;font-family:'Barlow',sans-serif;
+  font-weight:600;color:var(--remo-muted)}
 .rfc-head{display:flex;align-items:center;gap:9px;padding:9px 11px}
 .rfc-chk{width:18px;height:18px;border-radius:3px;border:2px solid var(--remo-line);
   flex-shrink:0;display:flex;align-items:center;justify-content:center;
@@ -601,6 +695,9 @@ input, select, textarea, button {
 .apr-mi:last-child{border-right:none}
 .apr-mi-l{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#1B3E6B;margin-bottom:3px}
 .apr-mi-v{font-size:13px;font-weight:700;color:#0d0d0d}
+/* Campo Atividade do Dia — destaque */
+.apr-mi-atv{background:#e8eef5}
+.apr-mi-atv-v{color:var(--remo-navy);font-size:12px;line-height:1.4}
 /* Blocos de atividade */
 .apr-bloco{border-bottom:3px solid var(--remo-gray)}
 .apr-bloco-title{background:var(--remo-navy);color:#fff;padding:10px 18px;display:flex;align-items:center;gap:10px}
@@ -686,19 +783,238 @@ input, select, textarea, button {
   .mrow input:nth-child(2){display:none}
   .risco-grid{grid-template-columns:1fr 1fr}
 }
+@page{margin:9mm 8mm}
 @media print{
-  body{background:#fff}
-  .bar,.prog,.step:not(#step-out),.out-actions{display:none!important}
-  .apr{box-shadow:none;border:none}
-  .apr-head-stripe{width:12px}
-  .risco-grid{grid-template-columns:1fr 1fr}
-  .ri-ctrl{font-size:9px}
-  .apr-table td,.apr-table th{padding:7px 10px;font-size:11px}
-  .cm-risco-ctrl,.cm-risco-comp{font-size:10px}
-  .cm-risco-num{font-size:10px}
-  .apr-bloco-title{padding:8px 14px}
-  @page{margin:15mm 12mm}
+  body{background:#fff;font-size:10px}
+
+  /* ── Ocultar UI ── */
+  .bar,.prog,.step:not(#step-out),.out-actions,.no-print{
+    display:none!important;visibility:hidden!important;
+    height:0!important;overflow:hidden!important;position:static!important}
+  /* Remover espaçamento do wrapper na impressão */
+  .wrap{padding:0!important;margin:0 auto!important;max-width:none!important}
+  #step-out{padding:0!important;margin:0!important}
+  .apr{box-shadow:none;border:none;border-radius:0}
+
+  /* ── Cabeçalho do documento ── */
+  .apr-head-stripe{width:7px}
+  .apr-head-body{padding:8px 14px}
+  .apr-head-t{font-size:15px;margin-bottom:1px}
+  .apr-head-s{font-size:8px}
+
+  /* ── Metadados — 4 colunas no print ── */
+  .apr-meta{grid-template-columns:repeat(4,1fr)}
+  .apr-mi{padding:5px 9px}
+  .apr-mi-l{font-size:7.5px;letter-spacing:1px;margin-bottom:1px}
+  .apr-mi-v{font-size:10.5px}
+
+  /* ── Seções de escopo / obs gerais ── */
+  .apr-secao{padding:5px 12px!important;font-size:11px!important}
+
+  /* ── Calendário semanal ── */
+  .apr-cal{padding:8px 12px!important}
+  .apr-cal > div:first-child{margin-bottom:6px!important;padding-bottom:4px!important;font-size:9px!important}
+  .apr-cal table{min-width:0!important}
+  .apr-cal th{padding:4px 3px!important;font-size:8px!important}
+  .apr-cal td{padding:5px 3px!important;font-size:10px!important}
+
+  /* ── Observações do Dia ── */
+  .apr-obs-dia{padding:7px 12px!important}
+  .apr-obs-dia > div:first-child{margin-bottom:5px!important;padding-bottom:4px!important;font-size:9px!important}
+  .apr-obs-dia > div:last-child{min-height:32px!important;padding:5px 8px!important}
+
+  /* ── Blocos de atividade ── */
+  .apr-bloco-title{padding:5px 12px}
+  .apr-badge{font-size:9px;padding:1px 6px}
+  .apr-bname{font-size:13px}
+  .apr-bnorm{font-size:9px}
+
+  /* ── Tabela de fases/riscos ── */
+  .apr-table th{padding:4px 7px;font-size:9px;letter-spacing:.8px}
+  .apr-table td{padding:4px 7px;font-size:10px;line-height:1.3}
+  .apr-table tr:nth-child(even) td{background:#f9f9f9}
+
+  /* ── Tags de risco na coluna ── */
+  .apr-risco-tag{font-size:9.5px;margin-bottom:1px;line-height:1.3}
+
+  /* ── Medidas de controle ── */
+  .apr-medidas-list{gap:3px}
+  .apr-medida-item{padding:3px 6px}
+  .apr-medida-num{font-size:9px;padding:1px 4px}
+  .apr-medida-nome{font-size:9.5px}
+  .apr-medida-ctrl{font-size:9.5px;line-height:1.25}
+  .apr-medida-comp{font-size:9px;padding:2px 5px;margin-top:2px}
+
+  /* ── Seção de riscos — 3 colunas ── */
+  .apr-riscos{padding:7px 12px;border-bottom:1px solid #ddd}
+  .apr-riscos-title{font-size:9px;margin-bottom:5px;padding-bottom:3px}
+  .risco-grid{grid-template-columns:repeat(3,1fr);gap:3px}
+  .risco-item{padding:3px 6px;border-radius:2px}
+  .ri-head strong{font-size:9.5px}
+  .ri-ctrl{font-size:8.5px;line-height:1.3;padding-left:10px}
+  .rn{font-size:9.5px}
+  .ri-comp{padding:2px 5px;font-size:8.5px;margin-top:2px}
+
+  /* ── Assinaturas ── */
+  .apr-ass-title{padding:6px 14px;font-size:10px}
+  .apr-ass p{display:none} /* ocultar parágrafo declaratório — ocupa linha */
+  .apr-ass-table th{padding:5px 8px;font-size:9px}
+  .apr-ass-table td{padding:6px 8px;font-size:10px}
+
+  /* ── Barra de rastreio ── */
+  .apr-rastreio-bar{padding:8px 14px!important}
+  .apr-rastreio-bar img{width:72px!important;height:72px!important}
+
+  /* ── Rodapé ── */
+  .apr-rodape{padding:6px 14px;font-size:10px}
+
+  /* ── Checklists — folha individual preservada ── */
+  .cl-bloco{page-break-before:always;padding:10px 14px}
+  .cl-header{padding:8px 14px}
+  .cl-table td,.cl-table th{font-size:9px;padding:4px 6px}
+  .cl-sig{margin-top:10px;gap:12px}
 }
+
+/* ═══════════════════════════════════════════════
+   ITEM 9 – MODO ESCURO
+═══════════════════════════════════════════════ */
+body.dark{--remo-bg:#0d1b2a;--remo-card:#162032;--remo-line:#243040;background:#0d1b2a;color:#d8e6f3}
+body.dark .wrap{background:#0d1b2a}
+body.dark .card{background:#162032;border-color:#243040}
+body.dark .card-title{color:#7ab3e0;border-color:#243040}
+body.dark .eyebrow{color:#7ab3e0}
+body.dark .h1{color:#d8e6f3}
+body.dark .sub{color:#8da8bf}
+body.dark .step{background:#0d1b2a}
+body.dark input:not([type=radio]):not([type=checkbox]),body.dark select,body.dark textarea{background:#162032;border-color:#243040;color:#d8e6f3}
+body.dark .ms-box{background:#162032;border-color:#243040;color:#d8e6f3}
+body.dark .ms-drop{background:#162032;border-color:#243040}
+body.dark .ms-opt{color:#d8e6f3}
+body.dark .ms-opt:hover{background:#1e2e42}
+body.dark .ms-opt.sel{background:#1a3a5c}
+body.dark .risco-fase-card{background:#162032;border-color:#243040;color:#d8e6f3}
+body.dark .risco-fase-card.sel{background:#0d2a40;border-color:var(--remo-green)}
+body.dark .rfc-ctrl{color:#8da8bf}
+body.dark .rfc-comp{background:#1a2a3c;border-color:#243040;color:#d8e6f3}
+body.dark .eq-card{background:#162032;border-color:#243040;color:#d8e6f3}
+body.dark .eq-card.sel{background:#0d2a40;border-color:var(--remo-green)}
+body.dark .ac{background:#162032;border-color:#243040;color:#d8e6f3}
+body.dark .ac.sel{background:#0d2a40;border-color:var(--remo-green)}
+body.dark .fav-btn{border-left-color:#243040}
+body.dark .ac-num{color:#7ab3e0}
+body.dark .hint{color:#8da8bf}
+body.dark .btn-back{background:#162032;border-color:#243040;color:#d8e6f3}
+body.dark .prog{background:#243040}
+body.dark .dot{background:#243040}
+body.dark .dot.on{background:var(--remo-navy)}
+body.dark .dot.done{background:var(--remo-green)}
+body.dark .res-block{color:#d8e6f3}
+body.dark .fase-risco-bloco{border-color:#243040}
+body.dark .fase-risco-header{background:#162032}
+body.dark .fase-risco-body{background:#0d1b2a}
+body.dark .rfc-incluir-form{background:#162032;border-color:#243040}
+body.dark .rfc-edit-form{background:#162032;border-color:#243040}
+.dark-toggle{background:none;border:1.5px solid rgba(255,255,255,.35);color:#fff;width:34px;height:34px;border-radius:7px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0}
+.dark-toggle:hover{background:rgba(255,255,255,.18)}
+
+/* ═══════════════════════════════════════════════
+   ITEM 14 – VERSÃO + BARRA AÇÕES
+═══════════════════════════════════════════════ */
+.ver-badge{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.5);padding:2px 7px;border:1px solid rgba(255,255,255,.2);border-radius:4px;white-space:nowrap;flex-shrink:0}
+.bar-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+
+/* ═══════════════════════════════════════════════
+   ITEM 8 – HISTÓRICO
+═══════════════════════════════════════════════ */
+.hist-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;padding:6px 10px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0}
+.hist-btn:hover{background:rgba(255,255,255,.22)}
+.hist-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9000;display:none;align-items:center;justify-content:center;padding:16px}
+.hist-overlay.open{display:flex}
+.hist-modal{background:#fff;border-radius:14px;width:100%;max-width:700px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.38)}
+body.dark .hist-modal{background:#162032;color:#d8e6f3}
+.hist-head{background:var(--remo-grad);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hist-head-title{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;letter-spacing:.5px}
+.hist-close{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;opacity:.8;line-height:1;padding:0 4px}
+.hist-close:hover{opacity:1}
+.hist-filters{padding:12px 18px;display:flex;gap:10px;flex-wrap:wrap;border-bottom:1px solid var(--remo-line)}
+.hist-filter-input{flex:1;min-width:130px;padding:7px 12px;border:1.5px solid var(--remo-line);border-radius:7px;font-family:Barlow,sans-serif;font-size:13px;background:#fff;color:#333}
+body.dark .hist-filter-input{background:#1e2e42;border-color:#243040;color:#d8e6f3}
+.hist-body{flex:1;overflow-y:auto;padding:14px 18px}
+.hist-empty{text-align:center;color:var(--remo-muted);padding:48px 20px;font-size:14px}
+.hist-item{border:1px solid var(--remo-line);border-radius:9px;padding:14px 16px;margin-bottom:10px;transition:border-color .2s,background .2s}
+.hist-item:hover{border-color:var(--remo-green);background:#f5fdf8}
+body.dark .hist-item{border-color:#243040}
+body.dark .hist-item:hover{background:#1a2e40}
+.hist-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:5px}
+.hist-item-num{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:1px;color:var(--remo-navy);word-break:break-all}
+body.dark .hist-item-num{color:#7ab3e0}
+.hist-item-date{font-size:11px;color:var(--remo-muted);white-space:nowrap}
+.hist-item-atv{font-size:13px;font-weight:600;color:var(--remo-navy);margin-bottom:3px}
+body.dark .hist-item-atv{color:#d8e6f3}
+.hist-item-det{font-size:11px;color:var(--remo-muted)}
+.hist-item-btns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hist-item-btn{padding:5px 13px;border-radius:6px;border:1.5px solid;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;transition:all .15s}
+.hist-item-btn.del{border-color:#dc3545;color:#dc3545;background:none}
+.hist-item-btn.del:hover{background:#dc3545;color:#fff}
+.hist-item-btn.view{border-color:var(--remo-navy);color:var(--remo-navy);background:none}
+.hist-item-btn.view:hover{background:var(--remo-navy);color:#fff}
+body.dark .hist-item-btn.view{border-color:#7ab3e0;color:#7ab3e0}
+.hist-footer{padding:12px 18px;border-top:1px solid var(--remo-line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.hist-count{font-size:12px;color:var(--remo-muted)}
+.hist-clear-btn{border:1.5px solid #dc3545;color:#dc3545;background:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;transition:all .15s}
+.hist-clear-btn:hover{background:#dc3545;color:#fff}
+
+/* ═══════════════════════════════════════════════
+   ITEM 11 – FAVORITOS
+═══════════════════════════════════════════════ */
+.fav-btn{flex-shrink:0;align-self:stretch;display:flex;align-items:center;justify-content:center;background:none;border:none;border-left:1px solid var(--remo-line);cursor:pointer;font-size:17px;line-height:1;opacity:.3;padding:0 12px;transition:opacity .2s,background .15s;color:var(--remo-yellow);min-width:40px}
+.fav-btn:hover{opacity:1;background:rgba(245,196,0,.08)}
+.fav-btn.ativo{opacity:1;background:rgba(245,196,0,.05)}
+
+/* ═══════════════════════════════════════════════
+   ITEM 5 – MATRIZ DE RISCO P×S
+═══════════════════════════════════════════════ */
+.risco-ps{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:#f8f9fa;border-top:1px dashed var(--remo-line);margin-top:6px;border-radius:0 0 6px 6px}
+body.dark .risco-ps{background:#1e2e42;border-top-color:#243040}
+.risco-ps-label{font-size:10px;color:var(--remo-muted);font-weight:700;letter-spacing:.3px;white-space:nowrap}
+.risco-ps select{padding:4px 7px;border:1.5px solid var(--remo-line);border-radius:5px;font-size:11px;font-family:Barlow,sans-serif;background:#fff;cursor:pointer;color:#333}
+body.dark .risco-ps select{background:#162032;border-color:#243040;color:#d8e6f3}
+.ps-nivel{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:800;letter-spacing:.4px;white-space:nowrap}
+.ps-nivel.baixo{background:#d4edda;color:#155724}
+.ps-nivel.medio{background:#fff3cd;color:#856404}
+.ps-nivel.alto{background:#ffe0b2;color:#6d4c00}
+.ps-nivel.critico{background:#f8d7da;color:#721c24}
+
+/* ═══════════════════════════════════════════════
+   ITEM 6 – SELEÇÃO RÁPIDA EQUIPE
+═══════════════════════════════════════════════ */
+.eq-quick{display:flex;gap:8px;flex-wrap:wrap;padding:10px 0 6px;border-bottom:1px solid var(--remo-line);margin-bottom:8px;align-items:center}
+.eq-qs-label{font-size:11px;font-weight:700;color:var(--remo-muted);white-space:nowrap}
+.eq-qb{padding:5px 13px;border-radius:7px;border:1.5px solid var(--remo-green);color:var(--remo-green);background:none;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;transition:all .15s;white-space:nowrap}
+.eq-qb:hover{background:var(--remo-green);color:#fff}
+.eq-qb.navy{border-color:var(--remo-navy);color:var(--remo-navy)}
+.eq-qb.navy:hover{background:var(--remo-navy);color:#fff}
+
+/* ═══════════════════════════════════════════════
+   ITEM 10 – COMPLETUDE POR ETAPA
+═══════════════════════════════════════════════ */
+.dot{position:relative}
+.dot.completo{background:var(--remo-green)!important}
+.dot.completo::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:900}
+
+/* ═══════════════════════════════════════════════
+   ITEM 13 – SINCRONIZAÇÃO
+═══════════════════════════════════════════════ */
+.sync-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;font-family:Barlow,sans-serif;flex-shrink:0}
+.sync-badge.ok{background:#d4edda;color:#155724}
+.sync-badge.fail{background:#f8d7da;color:#721c24}
+.sync-badge.ing{background:#fff3cd;color:#856404}
+.sync-config-box{margin-top:14px;padding:14px 16px;background:#f5f7fa;border-radius:9px;border:1px solid var(--remo-line)}
+body.dark .sync-config-box{background:#1e2e42;border-color:#243040}
+.sync-config-label{font-size:12px;font-weight:700;color:var(--remo-navy);display:block;margin-bottom:7px}
+body.dark .sync-config-label{color:#7ab3e0}
+.sync-url-input{width:100%;padding:8px 12px;border:1.5px solid var(--remo-line);border-radius:7px;font-family:Barlow,sans-serif;font-size:12px;box-sizing:border-box}
+body.dark .sync-url-input{background:#162032;border-color:#243040;color:#d8e6f3}
 </style>
 </head>
 <body>
@@ -719,6 +1035,11 @@ input, select, textarea, button {
     <div class="bar-obra">SE JAGUARA 345 kV · APR</div>
   </div>
   <div class="dots" id="dots"></div>
+  <div class="bar-actions" id="bar-actions">
+    <span class="ver-badge" id="ver-badge">v4.1</span>
+    <button class="hist-btn no-print" onclick="abrirHistorico()" title="Ver histórico de APRs geradas">📋 <span>Histórico</span></button>
+    <button class="dark-toggle no-print" id="dark-toggle" onclick="toggleDark()" title="Alternar modo escuro">🌙</button>
+  </div>
 </div>
 <div class="prog"><div class="prog-fill" id="prog" style="width:25%"></div></div>
 
@@ -1007,6 +1328,17 @@ input, select, textarea, button {
       <button class="eq-fb"     onclick="filtrarEquipe('Administrativo',this)">Administrativo</button>
     </div>
 
+    <!-- Seleção Rápida (Item 6) -->
+    <div class="eq-quick">
+      <span class="eq-qs-label">⚡ Seleção Rápida:</span>
+      <button class="eq-qb" onclick="selecionarEquipeRapido('Civil')">✚ Civil</button>
+      <button class="eq-qb" onclick="selecionarEquipeRapido('Elétrica')">✚ Elétrica</button>
+      <button class="eq-qb" onclick="selecionarEquipeRapido('Montagem')">✚ Montagem</button>
+      <button class="eq-qb" onclick="selecionarEquipeRapido('Administrativo')">✚ Administrativo</button>
+      <button class="eq-qb navy" onclick="selecionarEquipeRapido('TODAS')">✚ Todos</button>
+      <button class="eq-qb" style="border-color:#dc3545;color:#dc3545" onclick="limparEquipe()">✖ Limpar</button>
+    </div>
+
     <!-- Busca por nome -->
     <input type="search" class="eq-busca" id="eq-busca"
            placeholder="🔍  Buscar colaborador por nome ou cargo…"
@@ -1076,20 +1408,60 @@ input, select, textarea, button {
   </div>
 </div>
 
+<!-- MODAL HISTÓRICO (Item 8) -->
+<div class="hist-overlay" id="hist-overlay" onclick="fecharHistorico(event)">
+  <div class="hist-modal" onclick="event.stopPropagation()">
+    <div class="hist-head">
+      <span class="hist-head-title">📋 Histórico de APRs Geradas</span>
+      <button class="hist-close" onclick="fecharHistorico()">×</button>
+    </div>
+    <div class="hist-filters">
+      <input type="search" class="hist-filter-input" id="hist-busca"
+             placeholder="🔍 Buscar por atividade, rastreio, elaborador…"
+             oninput="renderHistorico()">
+      <input type="date" class="hist-filter-input" id="hist-data-ini"
+             style="flex:0 0 145px" title="Data inicial" onchange="renderHistorico()">
+      <input type="date" class="hist-filter-input" id="hist-data-fim"
+             style="flex:0 0 145px" title="Data final" onchange="renderHistorico()">
+    </div>
+    <div class="hist-body" id="hist-body">
+      <div class="hist-empty">Nenhum registro encontrado.</div>
+    </div>
+    <div class="hist-footer">
+      <span class="hist-count" id="hist-count">0 registros</span>
+      <button class="hist-clear-btn" onclick="limparHistoricoConfirm()">🗑 Limpar tudo</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════
      OUTPUT – APR GERADA
 ══════════════════════════════════════════ -->
 <div class="step" id="step-out">
-  <div class="eyebrow">APR Gerada</div>
-  <div class="h1">APR do Dia</div>
-  <div class="sub">Imprima ou exporte como PDF (Ctrl+P → Salvar como PDF).</div>
+  <div class="eyebrow no-print">APR Gerada</div>
+  <div class="h1 no-print">APR do Dia</div>
+  <div class="sub no-print">Imprima ou exporte como PDF (Ctrl+P → Salvar como PDF).</div>
   <div class="out-actions">
     <button class="btn-act prim" onclick="window.print()">🖨 Imprimir / PDF</button>
     <button class="btn-act" onclick="nova()">↩ Nova APR</button>
-    <button class="btn-act" id="btn-exportar-novas" onclick="exportarNovasAPRs()" 
+    <button class="btn-act" id="btn-exportar-novas" onclick="exportarNovasAPRs()"
       style="display:none;background:var(--remo-green);border-color:var(--remo-green);color:#fff">
       ⬇ Exportar Nova(s) APR(s)
     </button>
+    <span class="sync-badge" id="sync-status" style="display:none"></span>
+  </div>
+  <!-- Configuração de Sincronização (Item 13) -->
+  <div class="sync-config-box" id="sync-config-box" style="display:none">
+    <label class="sync-config-label">🔗 Sincronização Google Sheets (opcional)</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="url" class="sync-url-input" id="sync-url-input"
+             placeholder="Cole aqui a URL do Google Apps Script Web App…"
+             style="flex:1;min-width:200px">
+      <button class="btn-act" onclick="salvarSyncURL()" style="white-space:nowrap">💾 Salvar URL</button>
+    </div>
+    <div style="font-size:11px;color:var(--remo-muted);margin-top:6px">
+      A APR será enviada automaticamente após ser gerada. Deixe em branco para desativar.
+    </div>
   </div>
   <div class="apr" id="apr-out"></div>
 </div>
@@ -1097,6 +1469,23 @@ input, select, textarea, button {
 </div><!-- /wrap -->
 
 <script>
+// ═══════════════════════════════════════════════════
+// VERSÃO + CONSTANTES GLOBAIS
+// ═══════════════════════════════════════════════════
+const APP_VERSAO = 'v4.1';
+
+// Item 11 – Favoritos de atividade (persistidos em localStorage)
+const FAV_ATIVS = new Set(JSON.parse(localStorage.getItem('apr_favs') || '[]').map(Number));
+
+// Item 5 – Matriz P×S por risco/fase  Map("atvId_faseIdx_riscoNum" → {p,s})
+const riscoPSFase = new Map();
+
+// Quantidade de unidades por máquina  Map(nomeMáquina → quantidade)
+const SEL_M_QTD = new Map();
+
+// Item 13 – URL de sincronização
+const SYNC_URL_KEY = 'apr_sync_url';
+
 // ═══════════════════════════════════════════════════
 // DADOS FIXOS
 // ═══════════════════════════════════════════════════
@@ -1232,52 +1621,52 @@ const APROVADORES_EMAIL = CREDENCIADOS.filter(c=>c.aprovador).map(c=>c.email);
 
 // ─── EQUIPE DE CAMPO (46 colaboradores) ───
 const EQUIPE_CAMPO = [
-  {num:1, nome:"ADRIANO AUGUSTO LINO",                      cargo:"OPERADOR DE BETONEIRA",        equipe:"Civil"},
-  {num:2, nome:"ALBERT KAIK FRANCISCO DE SOUZA",            cargo:"ENCARREGADO DE TURMA",         equipe:"Civil"},
-  {num:3, nome:"ALEXANDRE A DA SILVA LINO",                 cargo:"TECNICO DE QUALIDADE",         equipe:"Administrativo"},
-  {num:4, nome:"ALEXANDRE FIRMINO PEREIRA",                 cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
-  {num:5, nome:"ALISSON MATEUS FERREIRA SEIXAS",            cargo:"AUXILIAR ADMINISTRATIVO",      equipe:"Administrativo"},
-  {num:6, nome:"ANDRE JOSE DA SILVA",                       cargo:"ENCARREGADO FORCA E CONTROLE", equipe:"Elétrica"},
-  {num:7, nome:"ANTONIO ALBINO DOS SANTOS",                 cargo:"CARPINTEIRO",                  equipe:"Civil"},
-  {num:8, nome:"ANTONIO HENRIQUE FERRAO",                   cargo:"ELETRICISTA FORCA CONTROLE",   equipe:"Elétrica"},
-  {num:9, nome:"BRUNO CESAR BARROS DE SOUZA",               cargo:"PEDREIRO",                     equipe:"Civil"},
-  {num:10,nome:"CARLOS EDUARDO DE OLIVEIRA RUFINO",         cargo:"AUXILIAR DE ALMOXARIFADO",     equipe:"Administrativo"},
-  {num:11,nome:"DANIEL BERNARDINO DE ALMEIDA FILHO",        cargo:"ANALISTA DE PLANEJAMENTO",     equipe:"Administrativo"},
-  {num:12,nome:"DANIEL DE LIMA DA SILVA",                   cargo:"ARMADOR",                      equipe:"Civil"},
-  {num:13,nome:"EDUARDO DUARTE COSTA",                      cargo:"ELETRICISTA FORCA CONTROLE",   equipe:"Elétrica"},
-  {num:14,nome:"EDUARDO PEGO OLIVEIRA",                     cargo:"MONTADOR DE EQUIP ELETRICOS",  equipe:"Montagem"},
-  {num:15,nome:"ELIZANDRA V DE F DOS SANTOS",               cargo:"AUX DE SEGURANCA DO TRABALHO", equipe:"Administrativo"},
-  {num:16,nome:"ELSA CRISTINA SILVA CARNEIRO",              cargo:"AUXILIAR DE SERVICOS GERAIS",  equipe:"Administrativo"},
-  {num:17,nome:"EVERTON PEREIRA DE MENEZES SILVA",          cargo:"MONTADOR DE EQUIP ELETRICOS",  equipe:"Montagem"},
-  {num:18,nome:"GISLAINE PEREIRA DO NASCIMENTO",            cargo:"TECNICO SEGURANCA DO TRABALHO",equipe:"Administrativo"},
-  {num:19,nome:"GUSTAVO HENRIQUE DA SILVA MIRANDA",         cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
-  {num:20,nome:"JHONY DOS REIS BORGES",                     cargo:"OPERADOR DE MAQUINAS",         equipe:"Montagem"},
-  {num:21,nome:"JOEDSON DOS SANTOS SILVA",                  cargo:"PEDREIRO AL",                  equipe:"Civil"},
-  {num:22,nome:"JONIVAL JAIR ALVES",                        cargo:"OPERADOR DE BETONEIRA",        equipe:"Civil"},
-  {num:23,nome:"JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR",    cargo:"ENCARREGADO GERAL",            equipe:"Civil"},
-  {num:24,nome:"JOSE LOPES SILVA",                          cargo:"CARPINTEIRO",                  equipe:"Civil"},
-  {num:25,nome:"JOSE MARIO DOS SANTOS FILHO",               cargo:"OPERADOR DE MAQUINAS",         equipe:"Montagem"},
-  {num:26,nome:"JOSE MODESTO DE FREITAS",                   cargo:"ELETRICISTA FORCA CONTROLE",   equipe:"Elétrica"},
-  {num:27,nome:"JOSE RODOLFO FELICIANO RODRIGUES",          cargo:"ALMOXARIFE",                   equipe:"Administrativo"},
-  {num:28,nome:"JURANDY DIAS CARVALHO JUNIOR",              cargo:"MONTADOR SOLDADOR",            equipe:"Montagem"},
-  {num:29,nome:"LEANDRA MARIA BORGES",                      cargo:"AUXILIAR DE SERVICOS GERAIS",  equipe:"Administrativo"},
-  {num:30,nome:"LEANDRO SILVA FERREIRA",                    cargo:"ENC. MONT. ELETROMECANICA",    equipe:"Montagem"},
-  {num:31,nome:"LUCAS TIAGO SILVA OLIVEIRA",                cargo:"MONTADOR SOLDADOR",            equipe:"Montagem"},
-  {num:32,nome:"LUIS FELLYPE CARVALHO SILVA",               cargo:"ELETRICISTA FORCA CONTROLE",   equipe:"Elétrica"},
-  {num:33,nome:"MAYCON DOUGLAS LELES DIAS",                 cargo:"MONTADOR DE EQUIP ELETRICOS",  equipe:"Montagem"},
-  {num:34,nome:"NATAN DA SILVA DE S MOREIRA",               cargo:"ABASTECEDOR LUBRIFICADOR",     equipe:"Civil"},
-  {num:35,nome:"PAULO DA SILVA CRUZ",                       cargo:"MONTADOR DE SUBESTACAO",       equipe:"Montagem"},
-  {num:36,nome:"REINALDO PINHEIRO DOS SANTOS SOUSA",        cargo:"CARPINTEIRO",                  equipe:"Civil"},
-  {num:37,nome:"RENATO FORTUNATO ALVES",                    cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
-  {num:38,nome:"ROMILTON RAFAEL R DE MORAIS BRANQUINHO",    cargo:"ADMINISTRATIVO",               equipe:"Administrativo"},
-  {num:39,nome:"RUBESMAR FELICIO",                          cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
-  {num:40,nome:"RYAN COUTINHO FARIA",                       cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
-  {num:41,nome:"THALYS CARDOSO BORGES",                     cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
-  {num:42,nome:"VITOR HUGO GOMES DO NASCIMENTO",            cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
-  {num:43,nome:"WESLEY HENRIQUE DA SILVA ANDRADE",          cargo:"PEDREIRO",                     equipe:"Civil"},
-  {num:44,nome:"WESLEY HENRIQUE VENANCIO DE ALMEIDA",       cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
-  {num:45,nome:"WILLIAN RODRIGUES DE MORAIS",               cargo:"MONTADOR SOLDADOR",            equipe:"Montagem"},
-  {num:46,nome:"WINDER MACEDO ALVES DOS SANTOS",            cargo:"AJUDANTE DE OBRA",             equipe:"Civil"},
+  // Fonte: APR_BancoDados_REMO_v3.xlsx — aba EQUIPE DE CAMPO (atualizado 2026-05)
+  {num:1, nome:"ADRIANO AUGUSTO LINO",                          cargo:"OPERADOR DE BETONEIRA",          equipe:"Civil"},
+  {num:2, nome:"ALBERT KAIK FRANCISCO DE SOUZA",                cargo:"ENCARREGADO DE TURMA",           equipe:"Civil"},
+  {num:3, nome:"ALEXANDRE A DA SILVA LINO",                     cargo:"TECNICO DE QUALIDADE",           equipe:"Administrativo"},
+  {num:4, nome:"ALEXANDRE FIRMINO PEREIRA",                     cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
+  {num:5, nome:"ALISSON MATEUS FERREIRA SEIXAS",                cargo:"AUXILIAR ADMINISTRATIVO",        equipe:"Administrativo"},
+  {num:6, nome:"ANDRE JOSE DA SILVA",                           cargo:"ENCARREGADO FORCA E CONTROLE",   equipe:"Elétrica"},
+  {num:7, nome:"ANTONIO ALBINO DOS SANTOS",                     cargo:"CARPINTEIRO",                    equipe:"Civil"},
+  {num:8, nome:"ANTONIO HENRIQUE FERRAO",                       cargo:"ELETRICISTA FORCA CONTROLE",     equipe:"Elétrica"},
+  {num:9, nome:"CAUA CARDOSO BORGES",                           cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
+  {num:10,nome:"DANIEL BERNARDINO DE ALMEIDA FILHO",            cargo:"ANALISTA DE PLANEJAMENTO",       equipe:"Administrativo"},
+  {num:11,nome:"DANIEL DE LIMA DA SILVA",                       cargo:"ARMADOR AL",                     equipe:"Civil"},
+  {num:12,nome:"EDUARDO DUARTE COSTA",                          cargo:"ELETRICISTA FORCA CONTROLE",     equipe:"Elétrica"},
+  {num:13,nome:"EDUARDO PEGO OLIVEIRA",                         cargo:"MONTADOR DE EQUIP ELETRICOS",    equipe:"Montagem"},
+  {num:14,nome:"ELIZANDRA V DE F DOS SANTOS",                   cargo:"AUX DE SEGURANCA DO TRABALHO",   equipe:"Administrativo"},
+  {num:15,nome:"ELSA CRISTINA SILVA CARNEIRO",                  cargo:"AUXILIAR DE SERVICOS GERAIS",    equipe:"Administrativo"},
+  {num:16,nome:"EVERTON PEREIRA DE MENEZES SILVA",              cargo:"MONTADOR DE EQUIP ELETRICOS",    equipe:"Montagem"},
+  {num:17,nome:"GABRIELA MARTINS",                              cargo:"AUXILIAR ADMINISTRATIVO",        equipe:"Administrativo"},
+  {num:18,nome:"GILBERTO DE SOUZA SILVA",                       cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
+  {num:19,nome:"GISLAINE PEREIRA DO NASCIMENTO",                cargo:"TECNICO SEGURANCA DO TRABALHO",  equipe:"Administrativo"},
+  {num:20,nome:"JHONY DOS REIS BORGES",                         cargo:"OPERADOR DE MAQUINAS",           equipe:"Montagem"},
+  {num:21,nome:"JOEDSON DOS SANTOS SILVA",                      cargo:"PEDREIRO AL",                    equipe:"Civil"},
+  {num:22,nome:"JONIVAL JAIR ALVES",                            cargo:"OPERADOR DE BETONEIRA",          equipe:"Civil"},
+  {num:23,nome:"JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR",        cargo:"ENCARREGADO GERAL",              equipe:"Civil"},
+  {num:24,nome:"JOSE LOPES SILVA",                              cargo:"CARPINTEIRO",                    equipe:"Civil"},
+  {num:25,nome:"JOSE MARIO DOS SANTOS FILHO",                   cargo:"OPERADOR DE MAQUINAS",           equipe:"Civil"},
+  {num:26,nome:"JOSE MODESTO DE FREITAS",                       cargo:"ELETRICISTA FORCA CONTROLE",     equipe:"Elétrica"},
+  {num:27,nome:"JOSE RODOLFO FELICIANO RODRIGUES",              cargo:"ALMOXARIFE",                     equipe:"Administrativo"},
+  {num:28,nome:"JURANDY DIAS CARVALHO JUNIOR",                  cargo:"MONTADOR SOLDADOR",              equipe:"Montagem"},
+  {num:29,nome:"LEANDRA MARIA BORGES",                          cargo:"AUXILIAR DE SERVICOS GERAIS",    equipe:"Administrativo"},
+  {num:30,nome:"LEANDRO MARTINS BORGES",                        cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
+  {num:31,nome:"LEANDRO SILVA FERREIRA",                        cargo:"ENC. MONT. ELETROMECANICA",      equipe:"Montagem"},
+  {num:32,nome:"LUCAS TIAGO SILVA OLIVEIRA",                    cargo:"MONTADOR SOLDADOR",              equipe:"Montagem"},
+  {num:33,nome:"LUIS FELLYPE CARVALHO SILVA",                   cargo:"ELETRICISTA FORCA CONTROLE",     equipe:"Elétrica"},
+  {num:34,nome:"MATEUS GABRIEL DE CAMPOS",                      cargo:"AUXILIAR DE ALMOXARIFADO",       equipe:"Administrativo"},
+  {num:35,nome:"NATAN DA SILVA DE S MOREIRA",                   cargo:"ABASTECEDOR LUBRIFICADOR",       equipe:"Civil"},
+  {num:36,nome:"OSVALDO PEREIRA NETO",                          cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
+  {num:37,nome:"PAULO DA SILVA CRUZ",                           cargo:"MONTADOR DE SUBESTACAO",         equipe:"Montagem"},
+  {num:38,nome:"REINALDO PINHEIRO DOS SANTOS SOUSA",            cargo:"CARPINTEIRO",                    equipe:"Civil"},
+  {num:39,nome:"RENATO FORTUNATO ALVES",                        cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
+  {num:40,nome:"ROMILTON RAFAEL RODRIGUES DE MORAIS BRANQUINHO",cargo:"ADMINISTRATIVO",                 equipe:"Administrativo"},
+  {num:41,nome:"RUBESMAR FELICIO",                              cargo:"CARPINTEIRO",                    equipe:"Civil"},
+  {num:42,nome:"RYAN COUTINHO FARIA",                           cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
+  {num:43,nome:"THALYS CARDOSO BORGES",                         cargo:"PEDREIRO",                       equipe:"Civil"},
+  {num:44,nome:"VITOR HUGO GOMES DO NASCIMENTO",                cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
+  {num:45,nome:"WESLEY HENRIQUE DA SILVA ANDRADE",              cargo:"PEDREIRO AL",                    equipe:"Civil"},
 ];
 
 // ─── EPIs cadastrados (banco de dados, uso futuro) ───
@@ -1328,7 +1717,7 @@ const RISCOS = [
   {n:17, r:"Incêndio / Explosões",            c:"Manter extintor de incêndio próximo. Verificar ausência de materiais inflamáveis na área."},
   {n:18, r:"Exposição a Poeiras",             c:"Uso obrigatório de máscara PFF2 para proteção de poeira."},
   {n:19, r:"Levantamento Manual de Peso",     c:"Evitar levantar peso excessivo sozinho. Técnica correta: coluna ereta, força das pernas. Máx. 23 kg."},
-  {n:20, r:"Prensamento de Membros",          c:"Manter o corpo fora do raio de ação da ponteira do martelete/broca."},
+  {n:20, r:"Prensamento de Membros",          c:"Manter o corpo fora do raio de ação do equipamento."},
   {n:21, r:"Colisões / Abalroamento",         c:"Transitar apenas nos locais destinados à tarefa. Delimitar área com cones, cordas e acessórios."},
   {n:22, r:"Iluminação Inadequada",           c:"Garantir iluminação adequada no local de trabalho antes de iniciar atividades noturnas ou em ambientes fechados."},
   {n:23, r:"Exposição a Gases/Vapores",       c:"Armazenar combustível somente em local autorizado. Extintor de incêndio no local dentro do prazo."},
@@ -1606,6 +1995,26 @@ document.addEventListener('DOMContentLoaded', () => {
   // Data de hoje
   document.getElementById('f-data').value = new Date().toISOString().slice(0,10);
 
+  // Item 14 – Versão
+  const vb = document.getElementById('ver-badge');
+  if(vb) vb.textContent = APP_VERSAO;
+
+  // Item 9 – Restaurar modo escuro salvo
+  if(localStorage.getItem('apr_dark')==='1'){
+    document.body.classList.add('dark');
+    const dt = document.getElementById('dark-toggle');
+    if(dt) dt.textContent = '☀️';
+  }
+
+  // Item 13 – Restaurar URL de sync
+  const savedUrl = localStorage.getItem(SYNC_URL_KEY) || '';
+  const syncInput = document.getElementById('sync-url-input');
+  if(syncInput) syncInput.value = savedUrl;
+  if(savedUrl){
+    const scb = document.getElementById('sync-config-box');
+    if(scb) scb.style.display = 'block';
+  }
+
   // Dots (5 etapas)
   const dc = document.getElementById('dots');
   for(let i=1;i<=5;i++){
@@ -1623,14 +2032,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Máquinas grid
+  // Máquinas grid — chip + controle de quantidade
   const mg = document.getElementById('maq-grid');
   MAQUINAS.forEach(m=>{
-    const lbl = document.createElement('label');
-    lbl.className='maq-chip';
-    const id = 'maq-'+m.replace(/\s/g,'-');
-    lbl.innerHTML=`<input type="checkbox" id="${id}" value="${m}" onchange="toggleMaqItem('${m}',this)"><span>${m}</span>`;
-    mg.appendChild(lbl);
+    const safeId = 'maq-'+m.replace(/[\s/]/g,'-');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'maq-item';
+    wrapper.innerHTML = `
+      <label class="maq-chip">
+        <input type="checkbox" id="${safeId}" value="${m}" onchange="toggleMaqItem('${m}',this,'${safeId}')">
+        <span>${m}</span>
+      </label>
+      <div class="maq-qty" id="maq-qty-${safeId}">
+        <button class="maq-qty-btn" onclick="mudarQtdMaq('${m}','${safeId}',-1)" title="Diminuir">−</button>
+        <span class="maq-qty-num" id="maq-qty-num-${safeId}">1</span>
+        <button class="maq-qty-btn" onclick="mudarQtdMaq('${m}','${safeId}',1)" title="Aumentar">＋</button>
+        <span class="maq-qty-label">un.</span>
+      </div>`;
+    mg.appendChild(wrapper);
   });
 
   // Atividades
@@ -1688,6 +2107,7 @@ function ir(n){
 
   if(n===3) renderRiscosSel();
   if(n===5) renderResumo();
+  atualizarCompletude();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1727,8 +2147,28 @@ function toggleMaq(){
   document.getElementById('maq-list').classList.toggle('show',sim);
   if(!sim) SEL_M.clear();
 }
-function toggleMaqItem(m,cb){
-  if(cb.checked) SEL_M.add(m); else SEL_M.delete(m);
+function toggleMaqItem(m, cb, safeId){
+  const qtyDiv = document.getElementById('maq-qty-' + safeId);
+  if(cb.checked){
+    SEL_M.add(m);
+    if(!SEL_M_QTD.has(m)) SEL_M_QTD.set(m, 1);
+    if(qtyDiv) qtyDiv.style.display = 'flex';
+  } else {
+    SEL_M.delete(m);
+    SEL_M_QTD.delete(m);
+    if(qtyDiv){ qtyDiv.style.display = 'none'; }
+    // Resetar contador visual para 1
+    const numSpan = document.getElementById('maq-qty-num-' + safeId);
+    if(numSpan) numSpan.textContent = '1';
+  }
+}
+
+function mudarQtdMaq(m, safeId, delta){
+  const cur = SEL_M_QTD.get(m) || 1;
+  const novo = Math.max(1, Math.min(10, cur + delta));
+  SEL_M_QTD.set(m, novo);
+  const numSpan = document.getElementById('maq-qty-num-' + safeId);
+  if(numSpan) numSpan.textContent = novo;
 }
 
 // ═══════════════════════════════════════════════════
@@ -1890,9 +2330,17 @@ function renderAtv(){
   g.innerHTML='';
   const discEnc=getDiscEncarregados();
 
-  ATIVIDADES.forEach(a=>{
+  // Item 11: ordenar — favoritos no topo
+  const sorted = [...ATIVIDADES].sort((a,b)=>{
+    const fa = FAV_ATIVS.has(a.id)?0:1;
+    const fb = FAV_ATIVS.has(b.id)?0:1;
+    return fa - fb;
+  });
+
+  sorted.forEach(a=>{
     const cls = a.disc.includes('Montagem')?'montagem-c':a.disc.includes('Elétrica')?'eletrica-c':'civil-c';
     const novaBadge = a._nova ? '<span class="nova-badge">NOVA</span>' : '';
+    const isFav = FAV_ATIVS.has(a.id);
     const visivel = discEnc.size===0 || a.disc.some(d=>discEnc.has(d));
     const isSel = SEL.has(a.id);
 
@@ -1901,17 +2349,18 @@ function renderAtv(){
     card.dataset.disc=a.disc.join(',');
     card.style.display=visivel?'':'none';
     card.innerHTML=`
-      <input type="radio" name="atv_sel" value="${a.id}" ${isSel?'checked':''} onchange="toggleAtv('${a.id}',this)">
-      <div class="ac-inner">
+      <input type="radio" name="atv_sel" id="atv-rb-${a.id}" value="${a.id}" ${isSel?'checked':''} onchange="toggleAtv('${a.id}',this)">
+      <div class="ac-inner" style="flex:1;min-width:0">
         <div class="ac-chk">${isSel?'✓':''}</div>
-        <div>
-          <div class="ac-num">APR-${a.id}</div>
+        <div style="min-width:0;flex:1">
+          <div class="ac-num">APR-${a.id}${novaBadge}</div>
           <div class="ac-nome">${a.nome}</div>
           <div class="ac-tags">
             <span class="ac-tag">${a.normas||'—'}</span>
           </div>
         </div>
-      </div>`;
+      </div>
+      <button class="fav-btn${isFav?' ativo':''}" onclick="toggleFav(${a.id},event)" title="${isFav?'Adicionar aos favoritos':'Remover dos favoritos'}">${isFav?'★':'☆'}</button>`;
     g.appendChild(card);
   });
   atualizarContador();
@@ -1962,6 +2411,11 @@ function filtrar(disc, btn){
 // ═══════════════════════════════════════════════════
 // Estrutura: Map("ativId_faseIdx" → Map(riscoNum → complementoTexto))
 const SEL_RISCOS = new Map();
+// Riscos customizados por fase: Map(faseKey → [{n, r, c, _custom:true}])
+const customRiscosFase = new Map();
+// Edições locais por fase: Map(faseKey → Map(riscoNum → {r, c}))
+const editRiscosFase = new Map();
+let _nextCId = 1000; // IDs de riscos customizados começam em 1000
 
 // Chave de fase
 function faseKey(atvId, fIdx){ return `${+atvId}_${fIdx}`; }
@@ -1990,21 +2444,111 @@ function renderRiscosSel(){
     if(!atv) return;
 
     atv.fases.forEach((fase, fIdx)=>{
+      const k    = faseKey(atvId, fIdx);
       const mapa = getMapFase(atvId, fIdx);
       const nSel = mapa.size;
 
-      // Riscos desta fase: extrair nomes de f.p e cruzar com array RISCOS
+      // ── Filtro de riscos da fase ──
       const nomesNaFase = (fase.p||'').split(';').map(s=>s.trim()).filter(Boolean);
-      const riscosDisponiveis = RISCOS.filter(r=>
-        nomesNaFase.some(n => n.toLowerCase().includes(r.r.toLowerCase().substring(0,10)))
-      );
-      // Fallback: se nenhum cruzou, mostrar todos os riscos
-      const riscosParaFase = riscosDisponiveis.length > 0 ? riscosDisponiveis : RISCOS;
+      const _norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+      const riscosDisponiveis = RISCOS.filter(r => {
+        const rN = _norm(r.r);
+        return nomesNaFase.some(n => {
+          const nN = _norm(n);
+          const MIN = 5;
+          return nN === rN ||
+                 (rN.length >= MIN && nN.includes(rN)) ||
+                 (nN.length >= MIN && rN.includes(nN));
+        });
+      });
+      const riscosBase = riscosDisponiveis.length > 0 ? riscosDisponiveis : RISCOS;
+      // Adicionar riscos customizados da fase
+      const customs = customRiscosFase.get(k) || [];
+      const riscosParaFase = [...riscosBase, ...customs];
+      // Edições locais
+      const edits = editRiscosFase.get(k) || new Map();
+
+      // ── Gerar HTML de um card de risco ──
+      const cardHTML = r => {
+        const isSel   = mapa.has(r.n);
+        const comp    = mapa.get(r.n) || '';
+        const ed      = edits.get(r.n);
+        const nomeFinal = ed?.r ?? r.r;
+        const ctrlFinal = ed?.c ?? r.c;
+        const badgeEdit = ed  ? `<span class="rfc-badge rfc-badge-edit">EDITADO</span>` : '';
+        const badgeNovo = r._custom ? `<span class="rfc-badge rfc-badge-novo">NOVO</span>` : '';
+        // Item 5 – P×S
+        const psKey = `${atvId}_${fIdx}_${r.n}`;
+        const psVal = riscoPSFase.get(psKey) || {p:'',s:''};
+        const psNivel = calcPS(psVal.p, psVal.s);
+        const psNivelHtml = psNivel
+          ? `<span class="ps-nivel ${psNivel.cls}">${psNivel.icon} ${psNivel.label}</span>`
+          : '';
+        return `<div class="risco-fase-card${isSel?' sel':''}"
+                    id="rfc-${atvId}-${fIdx}-${r.n}"
+                    onclick="toggleRiscoFase('${atvId}',${fIdx},${r.n},this)">
+          <div class="rfc-head">
+            <div class="rfc-chk">${isSel?'✓':''}</div>
+            <div class="rfc-info" style="min-width:0;flex:1">
+              <div class="rfc-num">Risco ${r._custom?'✦':r.n}${badgeNovo}${badgeEdit}</div>
+              <div class="rfc-nome" id="rfc-nome-txt-${atvId}-${fIdx}-${r.n}">${nomeFinal}</div>
+            </div>
+            <button class="rfc-btn-edit" onclick="abrirEditarRisco('${atvId}',${fIdx},${r.n},event)" title="Editar risco">✏ Editar</button>
+          </div>
+          <div class="rfc-expand">
+            <!-- Vista normal -->
+            <div id="rfc-view-${atvId}-${fIdx}-${r.n}">
+              <div class="rfc-ctrl-label">Medida de controle</div>
+              <div class="rfc-ctrl" id="rfc-ctrl-txt-${atvId}-${fIdx}-${r.n}">${ctrlFinal}</div>
+              <textarea class="rfc-comp"
+                id="rfc-comp-${atvId}-${fIdx}-${r.n}"
+                placeholder="Complemento opcional para esta fase…"
+                oninput="atualizarCompFase('${atvId}',${fIdx},${r.n},this.value)"
+                onclick="event.stopPropagation()">${comp}</textarea>
+              <!-- Item 5: Matriz P×S -->
+              <div class="risco-ps" onclick="event.stopPropagation()">
+                <span class="risco-ps-label">Matriz P×S:</span>
+                <label class="risco-ps-label" style="margin-left:4px">Probabilidade</label>
+                <select onchange="atualizarPS('${atvId}',${fIdx},${r.n},'p',this.value)">
+                  <option value="">—</option>
+                  <option value="1"${psVal.p==='1'?' selected':''}>Baixa</option>
+                  <option value="2"${psVal.p==='2'?' selected':''}>Média</option>
+                  <option value="3"${psVal.p==='3'?' selected':''}>Alta</option>
+                </select>
+                <label class="risco-ps-label">Severidade</label>
+                <select onchange="atualizarPS('${atvId}',${fIdx},${r.n},'s',this.value)">
+                  <option value="">—</option>
+                  <option value="1"${psVal.s==='1'?' selected':''}>Leve</option>
+                  <option value="2"${psVal.s==='2'?' selected':''}>Moderada</option>
+                  <option value="3"${psVal.s==='3'?' selected':''}>Grave</option>
+                  <option value="4"${psVal.s==='4'?' selected':''}>Crítica</option>
+                </select>
+                <span id="ps-nivel-${atvId}-${fIdx}-${r.n}">${psNivelHtml}</span>
+              </div>
+            </div>
+            <!-- Formulário de edição (oculto até clicar em Editar) -->
+            <div class="rfc-edit-form" id="rfc-edit-${atvId}-${fIdx}-${r.n}" onclick="event.stopPropagation()">
+              <div class="rfc-edit-label">Nome do risco</div>
+              <input class="rfc-edit-input" type="text"
+                id="rfc-edit-nome-${atvId}-${fIdx}-${r.n}"
+                value="${nomeFinal.replace(/"/g,'&quot;')}"
+                placeholder="Nome do risco">
+              <div class="rfc-edit-label">Medida de controle</div>
+              <textarea class="rfc-edit-textarea"
+                id="rfc-edit-ctrl-${atvId}-${fIdx}-${r.n}"
+                placeholder="Descreva a medida de controle…">${ctrlFinal}</textarea>
+              <div class="rfc-edit-actions">
+                <button class="rfc-edit-cancel" onclick="cancelarEdicaoRisco('${atvId}',${fIdx},${r.n})">Cancelar</button>
+                <button class="rfc-edit-save" onclick="salvarEdicaoRisco('${atvId}',${fIdx},${r.n})">✔ Salvar edição</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      };
 
       const bloco = document.createElement('div');
       bloco.className = 'fase-risco-bloco';
       bloco.id = `fase-bloco-${atvId}-${fIdx}`;
-
       bloco.innerHTML = `
         <div class="fase-risco-header">
           <div>
@@ -2017,32 +2561,33 @@ function renderRiscosSel(){
         </div>
         <div class="fase-risco-body">
           <div class="hint" style="margin-bottom:10px;font-size:11px">
-            Selecione os riscos desta fase. O texto de controle será exibido na APR.
+            Selecione os riscos desta fase. Use <strong>Editar</strong> para ajustar um risco existente ou <strong>Incluir Risco</strong> para adicionar um novo.
           </div>
           <div class="risco-fase-grid" id="grid-${atvId}-${fIdx}">
-            ${riscosParaFase.map(r => {
-              const isSel = mapa.has(r.n);
-              const comp  = mapa.get(r.n) || '';
-              return `<div class="risco-fase-card${isSel?' sel':''}"
-                          id="rfc-${atvId}-${fIdx}-${r.n}"
-                          onclick="toggleRiscoFase('${atvId}',${fIdx},${r.n},this)">
-                <div class="rfc-head">
-                  <div class="rfc-chk">${isSel?'✓':''}</div>
-                  <div class="rfc-info">
-                    <div class="rfc-num">Risco ${r.n}</div>
-                    <div class="rfc-nome">${r.r}</div>
-                  </div>
-                </div>
-                <div class="rfc-expand">
-                  <div class="rfc-ctrl-label">Medida de controle padrão</div>
-                  <div class="rfc-ctrl">${r.c}</div>
-                  <textarea class="rfc-comp"
-                    id="rfc-comp-${atvId}-${fIdx}-${r.n}"
-                    placeholder="Complemento opcional para esta fase…"
-                    oninput="atualizarCompFase('${atvId}',${fIdx},${r.n},this.value)">${comp}</textarea>
-                </div>
-              </div>`;
-            }).join('')}
+            ${riscosParaFase.map(cardHTML).join('')}
+          </div>
+          <!-- INCLUIR RISCO -->
+          <button class="rfc-btn-incluir" id="btn-inc-${atvId}-${fIdx}"
+                  onclick="abrirIncluirRisco('${atvId}',${fIdx})">
+            ＋ Incluir Risco
+          </button>
+          <div class="rfc-incluir-form" id="form-inc-${atvId}-${fIdx}">
+            <div class="rfc-incluir-title">
+              <span style="font-size:14px">➕</span> Novo Risco Personalizado — Fase ${fIdx+1}
+            </div>
+            <label class="rfc-incluir-label">Nome do risco *</label>
+            <input class="rfc-incluir-input" type="text"
+              id="inc-nome-${atvId}-${fIdx}"
+              placeholder="Ex: Exposição a produto químico"
+              maxlength="120">
+            <label class="rfc-incluir-label">Medida de controle</label>
+            <textarea class="rfc-incluir-textarea"
+              id="inc-ctrl-${atvId}-${fIdx}"
+              placeholder="Descreva a medida de controle para este risco…"></textarea>
+            <div class="rfc-incluir-actions">
+              <button class="rfc-incluir-cancel" onclick="cancelarIncluirRisco('${atvId}',${fIdx})">Cancelar</button>
+              <button class="rfc-incluir-save" onclick="salvarRiscoCustom('${atvId}',${fIdx})">✔ Adicionar Risco</button>
+            </div>
           </div>
         </div>`;
       container.appendChild(bloco);
@@ -2084,32 +2629,170 @@ function atualizarCompFase(atvId, fIdx, rNum, val){
 
 function limparRiscos(){
   SEL_RISCOS.clear();
+  customRiscosFase.clear();
+  editRiscosFase.clear();
   renderRiscosSel();
 }
 
-// Retorna riscos selecionados para uma fase específica
+// Retorna riscos selecionados para uma fase (inclui custom + edições)
 function getRiscosFase(atvId, fIdx){
   const k = faseKey(+atvId, +fIdx);
   const mapa = SEL_RISCOS.get(k);
   if(!mapa || mapa.size===0) return [];
+  const edits   = editRiscosFase.get(k)   || new Map();
+  const customs = customRiscosFase.get(k) || [];
   return [...mapa.entries()].map(([n, comp])=>{
-    const r = RISCOS.find(x=>x.n===n);
-    return r ? {...r, comp} : null;
+    let r = RISCOS.find(x=>x.n===n) || customs.find(x=>x.n===n);
+    if(!r) return null;
+    const ed = edits.get(n);
+    return ed ? {...r, ...ed, comp} : {...r, comp};
   }).filter(Boolean);
 }
 
-// Compatibilidade com funções que usam getRiscosParaAPR (seção rodapé)
+// Todos os riscos selecionados para o rodapé da APR
 function getRiscosParaAPR(){
   const todos = [];
-  SEL_RISCOS.forEach((mapa)=>{
+  SEL_RISCOS.forEach((mapa, k)=>{
+    const edits   = editRiscosFase.get(k)   || new Map();
+    const customs = customRiscosFase.get(k) || [];
     mapa.forEach((comp, n)=>{
       if(!todos.find(x=>x.n===n)){
-        const r = RISCOS.find(x=>x.n===n);
-        if(r) todos.push({...r, comp});
+        let r = RISCOS.find(x=>x.n===n) || customs.find(x=>x.n===n);
+        if(r){
+          const ed = edits.get(n);
+          todos.push(ed ? {...r, ...ed, comp} : {...r, comp});
+        }
       }
     });
   });
   return todos.sort((a,b)=>a.n-b.n);
+}
+
+// ═══════════════════════════════════════════════════
+// INCLUIR RISCO CUSTOMIZADO POR FASE
+// ═══════════════════════════════════════════════════
+function abrirIncluirRisco(atvId, fIdx){
+  const form = document.getElementById(`form-inc-${atvId}-${fIdx}`);
+  const btn  = document.getElementById(`btn-inc-${atvId}-${fIdx}`);
+  if(!form) return;
+  const aberto = form.classList.toggle('show');
+  if(aberto){
+    btn.textContent = '✕ Cancelar inclusão';
+    btn.style.borderStyle = 'solid';
+    btn.style.color = 'var(--remo-red)';
+    btn.style.borderColor = 'var(--remo-red)';
+    setTimeout(()=>{ document.getElementById(`inc-nome-${atvId}-${fIdx}`)?.focus(); }, 80);
+  } else {
+    _resetIncluirForm(atvId, fIdx);
+  }
+}
+
+function cancelarIncluirRisco(atvId, fIdx){
+  const form = document.getElementById(`form-inc-${atvId}-${fIdx}`);
+  if(form) form.classList.remove('show');
+  _resetIncluirForm(atvId, fIdx);
+}
+
+function _resetIncluirForm(atvId, fIdx){
+  const btn = document.getElementById(`btn-inc-${atvId}-${fIdx}`);
+  if(btn){ btn.textContent='＋ Incluir Risco'; btn.style.cssText=''; }
+  const nome = document.getElementById(`inc-nome-${atvId}-${fIdx}`);
+  const ctrl = document.getElementById(`inc-ctrl-${atvId}-${fIdx}`);
+  if(nome) nome.value='';
+  if(ctrl) ctrl.value='';
+}
+
+function salvarRiscoCustom(atvId, fIdx){
+  atvId = +atvId; fIdx = +fIdx;
+  const nomeEl = document.getElementById(`inc-nome-${atvId}-${fIdx}`);
+  const ctrlEl = document.getElementById(`inc-ctrl-${atvId}-${fIdx}`);
+  const nome = nomeEl?.value.trim();
+  if(!nome){ nomeEl?.focus(); nomeEl?.style && (nomeEl.style.borderColor='var(--remo-red)'); return; }
+
+  const k = faseKey(atvId, fIdx);
+  if(!customRiscosFase.has(k)) customRiscosFase.set(k, []);
+  const id = _nextCId++;
+  customRiscosFase.get(k).push({
+    n: id,
+    r: nome,
+    c: ctrlEl?.value.trim() || 'Aplicar medidas de controle específicas conforme orientação técnica.',
+    _custom: true
+  });
+
+  // Auto-selecionar o risco recém-criado
+  const mapa = getMapFase(atvId, fIdx);
+  mapa.set(id, '');
+
+  // Re-renderizar a fase para mostrar o novo card
+  renderRiscosSel();
+
+  // Focar no card novo após renderização
+  setTimeout(()=>{
+    const card = document.getElementById(`rfc-${atvId}-${fIdx}-${id}`);
+    card?.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }, 100);
+}
+
+// ═══════════════════════════════════════════════════
+// EDITAR RISCO POR FASE
+// ═══════════════════════════════════════════════════
+function abrirEditarRisco(atvId, fIdx, rNum, event){
+  event.stopPropagation();
+  const card     = document.getElementById(`rfc-${atvId}-${fIdx}-${rNum}`);
+  const editForm = document.getElementById(`rfc-edit-${atvId}-${fIdx}-${rNum}`);
+  if(!card || !editForm) return;
+
+  // Fechar outros cards em edição na mesma fase
+  document.querySelectorAll(`#fase-bloco-${atvId}-${fIdx} .risco-fase-card.editing`).forEach(c=>{
+    if(c.id !== card.id) c.classList.remove('editing');
+  });
+
+  const entrando = card.classList.toggle('editing');
+  if(entrando){
+    // Garantir que o card está expandido (selecionar se necessário para ver o form)
+    const mapa = getMapFase(atvId, fIdx);
+    if(!mapa.has(+rNum)){
+      // Marcar visualmente como selecionado para expandir (sem gravar na seleção)
+      card.classList.add('sel');
+    }
+    setTimeout(()=>{
+      document.getElementById(`rfc-edit-nome-${atvId}-${fIdx}-${rNum}`)?.focus();
+    }, 80);
+  }
+}
+
+function salvarEdicaoRisco(atvId, fIdx, rNum){
+  atvId=+atvId; fIdx=+fIdx; rNum=+rNum;
+  const nomeEl = document.getElementById(`rfc-edit-nome-${atvId}-${fIdx}-${rNum}`);
+  const ctrlEl = document.getElementById(`rfc-edit-ctrl-${atvId}-${fIdx}-${rNum}`);
+  const nome = nomeEl?.value.trim();
+  const ctrl = ctrlEl?.value.trim();
+  if(!nome){ nomeEl?.focus(); return; }
+
+  const k = faseKey(atvId, fIdx);
+  if(!editRiscosFase.has(k)) editRiscosFase.set(k, new Map());
+  editRiscosFase.get(k).set(rNum, { r: nome, c: ctrl });
+
+  // Atualizar textos visíveis no card sem re-renderizar tudo
+  const nomeTxt = document.getElementById(`rfc-nome-txt-${atvId}-${fIdx}-${rNum}`);
+  const ctrlTxt = document.getElementById(`rfc-ctrl-txt-${atvId}-${fIdx}-${rNum}`);
+  if(nomeTxt) nomeTxt.textContent = nome;
+  if(ctrlTxt) ctrlTxt.textContent = ctrl;
+
+  // Adicionar badge EDITADO se ainda não existe
+  const numEl = document.querySelector(`#rfc-${atvId}-${fIdx}-${rNum} .rfc-num`);
+  if(numEl && !numEl.querySelector('.rfc-badge-edit')){
+    numEl.insertAdjacentHTML('beforeend', `<span class="rfc-badge rfc-badge-edit">EDITADO</span>`);
+  }
+
+  // Fechar modo edição
+  const card = document.getElementById(`rfc-${atvId}-${fIdx}-${rNum}`);
+  card?.classList.remove('editing');
+}
+
+function cancelarEdicaoRisco(atvId, fIdx, rNum){
+  const card = document.getElementById(`rfc-${atvId}-${fIdx}-${rNum}`);
+  card?.classList.remove('editing');
 }
 
 // renderRiscosSel também deve ser chamado ao ir para step-3
@@ -2212,7 +2895,9 @@ function renderResumo(){
   const m=getMembros();
   const etapaApr=document.querySelector('input[name="etapa_apr"]:checked')?.value||'—';
   const clima=document.querySelector('input[name="clima"]:checked')?.value||'Não informado';
-  const maqs=SEL_M.size?[...SEL_M].join(', '):'Nenhuma';
+  const maqs=SEL_M.size
+    ? [...SEL_M].map(m=>{ const q=SEL_M_QTD.get(m)||1; return q>1?`${m} ×${q}`:m; }).join(', ')
+    : 'Nenhuma';
   const usomaq=document.getElementById('maq-sim').checked?'SIM':'NÃO';
 
   document.getElementById('resumo').innerHTML=`
@@ -2267,13 +2952,23 @@ function renderResumo(){
 // GERAR APR
 // ═══════════════════════════════════════════════════
 function gerarAPR(){
+  const numRastreio = gerarNumRastreio();
   const membros=getMembros();
   const etapaApr=document.querySelector('input[name="etapa_apr"]:checked')?.value||'—';
   const clima=document.querySelector('input[name="clima"]:checked')?.value||'Não informado';
   const usomaq=document.getElementById('maq-sim').checked;
-  const maqs=usomaq&&SEL_M.size?[...SEL_M].join(', '):'—';
+  const maqs=usomaq&&SEL_M.size
+    ? [...SEL_M].map(m=>{ const q=SEL_M_QTD.get(m)||1; return q>1?`${m} ×${q}`:m; }).join(', ')
+    : '—';
   const escopo=[...SEL_ESC][0]||'';
   const obs=v('f-obs');
+
+  // Atividade selecionada (single-select)
+  const _atvSel = SEL.size > 0 ? ATIVIDADES.find(x=>x.id===[...SEL][0]) : null;
+  const atvLabel = _atvSel
+    ? `APR-${String(_atvSel.id).padStart(2,'0')} &mdash; ${_atvSel.nome}`
+    : '—';
+  const equipeLabel = _atvSel ? _atvSel.disc.join(' · ') : '—';
 
   // Riscos selecionados (todos, para o rodapé)
   const riscosParaAPR = getRiscosParaAPR();
@@ -2300,15 +2995,21 @@ function gerarAPR(){
 
           // Coluna MEDIDAS DE CONTROLE: apenas os riscos selecionados com controle + complemento
           const colunaMedidas = riscosFase.length > 0
-            ? `<div class="apr-medidas-list">${riscosFase.map(r=>`
+            ? `<div class="apr-medidas-list">${riscosFase.map(r=>{
+                const psKey = `${id}_${i}_${r.n}`;
+                const psVal = riscoPSFase.get(psKey)||{p:'',s:''};
+                const psN   = calcPS(psVal.p, psVal.s);
+                const psTag = psN ? `<span style="display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:800;background:${psN.bg};color:${psN.fg};margin-left:5px">${psN.icon} ${psN.label}</span>` : '';
+                return `
                 <div class="apr-medida-item">
                   <div class="apr-medida-head">
                     <span class="apr-medida-num">R${r.n}</span>
-                    <strong class="apr-medida-nome">${r.r}</strong>
+                    <strong class="apr-medida-nome">${r.r}</strong>${psTag}
                   </div>
                   <div class="apr-medida-ctrl">${r.c}</div>
                   ${r.comp ? `<div class="apr-medida-comp">📝 ${r.comp}</div>` : ''}
-                </div>`).join('')}
+                </div>`;
+              }).join('')}
               </div>`
             : f.m; // fallback: texto original se nenhum risco foi selecionado
 
@@ -2342,8 +3043,8 @@ function gerarAPR(){
 
   // Assinaturas — ordem: fixos (Engenheiro + Técnico de Segurança) → Encarregado(s) selecionado(s) → equipe de campo
   const ASSINATURAS_FIXAS = [
-    {nome:"Leandro Pizani",    func:"Engenheiro Residente"},
-    {nome:"Gislaine Nascimento", func:"Técnico de Segurança"},
+    {nome:"Leandro Pizani",      func:"Engenheiro Residente",   fone:"(31) 99223-7798"},
+    {nome:"Gislaine Nascimento", func:"Técnico de Segurança",   fone:"(34) 98408-3585"},
   ];
 
   // Encarregado(s) selecionados na Etapa 1
@@ -2352,6 +3053,7 @@ function gerarAPR(){
     return `<tr style="background:#fff8f3">
       <td><strong>${nome}</strong></td>
       <td>${enc?enc.funcao:'Encarregado'}</td>
+      <td></td>
       <td style="min-width:120px"></td>
     </tr>`;
   }).join('');
@@ -2361,19 +3063,20 @@ function gerarAPR(){
     <tr style="background:#f5f2ed">
       <td><strong>${f.nome}</strong></td>
       <td>${f.func}</td>
+      <td style="white-space:nowrap">${f.fone||''}</td>
       <td style="min-width:120px"></td>
     </tr>`).join('');
 
   // Equipe de campo (digitada na Etapa 3)
   const equipe3 = getEquipe();
   const equipeRows = equipe3.length
-    ? equipe3.map(c=>`<tr><td style="font-weight:600">${c.nome}</td><td style="color:#555">${c.cargo}</td><td style="min-width:120px"></td></tr>`).join('')
-    : Array(6).fill(`<tr><td style="height:28px"></td><td></td><td style="min-width:120px"></td></tr>`).join('');
+    ? equipe3.map(c=>`<tr><td style="font-weight:600">${c.nome}</td><td style="color:#555">${c.cargo}</td><td></td><td style="min-width:120px"></td></tr>`).join('')
+    : Array(6).fill(`<tr><td style="height:28px"></td><td></td><td></td><td style="min-width:120px"></td></tr>`).join('');
 
   // Separadores visuais
-  const sepEnc = SEL_E.size ? `<tr><td colspan="3" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#00A651;background:#e6f7ed;border:1px solid var(--line)">Encarregado(s) Responsável(is)</td></tr>` : '';
-  const sepEquipe = `<tr><td colspan="3" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:#f5f2ed;border:1px solid var(--line)">Equipe de Campo</td></tr>`;
-  const sepFixos = `<tr><td colspan="3" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1B3E6B;background:#e8eef5;border:1px solid var(--remo-line)">Responsáveis Técnicos</td></tr>`;
+  const sepEnc = SEL_E.size ? `<tr><td colspan="4" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#00A651;background:#e6f7ed;border:1px solid var(--line)">Encarregado(s) Responsável(is)</td></tr>` : '';
+  const sepEquipe = `<tr><td colspan="4" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:#f5f2ed;border:1px solid var(--line)">Equipe de Campo</td></tr>`;
+  const sepFixos = `<tr><td colspan="4" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1B3E6B;background:#e8eef5;border:1px solid var(--remo-line)">Responsáveis Técnicos</td></tr>`;
 
   // ── Calendário semanal a partir da data da APR ──────────────────────────
   const dataStr = v('f-data'); // YYYY-MM-DD
@@ -2410,7 +3113,7 @@ function gerarAPR(){
     }
 
     calHtml = `
-    <div style="padding:18px;background:#fff;border-bottom:3px solid var(--remo-gray)">
+    <div class="apr-cal" style="padding:18px;background:#fff;border-bottom:3px solid var(--remo-gray)">
       <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1B3E6B;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #00A651">Calendário Semanal de Execução</div>
       <div style="overflow-x:auto">
         <table style="width:100%;border-collapse:collapse;min-width:500px">
@@ -2441,30 +3144,23 @@ function gerarAPR(){
 
     <!-- METADADOS -->
     <div class="apr-meta">
-      <div class="apr-mi"><div class="apr-mi-l">Empresa</div><div class="apr-mi-v">${v('f-empresa')}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">Obra / Projeto</div><div class="apr-mi-v">${v('f-obra')}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">PT Nº</div><div class="apr-mi-v">${v('f-pt')||'—'}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">Data</div><div class="apr-mi-v">${fmtDate(v('f-data'))}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">Elaborado por</div><div class="apr-mi-v">${v('f-elaborador')||'—'}</div></div>
+      <div class="apr-mi apr-mi-atv"><div class="apr-mi-l">Atividade do Dia</div><div class="apr-mi-v apr-mi-atv-v">${atvLabel}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Local / Frente de Serviço</div><div class="apr-mi-v">${[...SEL_L].join('; ')||'—'}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">PT Nº</div><div class="apr-mi-v">${v('f-pt')||'—'}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">Equipe</div><div class="apr-mi-v">${equipeLabel}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">Encarregado(s)</div><div class="apr-mi-v">${[...SEL_E].join(', ')||'—'}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Etapa da APR</div><div class="apr-mi-v" style="display:inline-block;background:${etapaApr==="Pré Atividade"?"#e8eef5":etapaApr==="Durante Atividade"?"#e6f7ed":"#fff3cd"};color:${etapaApr==="Pré Atividade"?"var(--remo-navy)":etapaApr==="Durante Atividade"?"var(--remo-green)":"#856404"};font-weight:900;padding:2px 10px;border-radius:4px;font-size:12px">${etapaApr}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Condição Climática</div><div class="apr-mi-v">${clima}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">Elaborado por</div><div class="apr-mi-v">${v('f-elaborador')||'—'}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">Encarregado(s)</div><div class="apr-mi-v">${[...SEL_E].join(', ')||'—'}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Uso de Máquinas Manuais</div><div class="apr-mi-v">${usomaq?maqs:'NÃO'}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">Atividades</div><div class="apr-mi-v">${SEL.size} selecionada${SEL.size>1?'s':''}</div></div>
     </div>
 
-    ${escopo?`<div style="padding:14px 18px;background:#f5f2ed;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Escopo:</b> ${escopo}</div>`:''}
-    ${obs?`<div style="padding:14px 18px;background:#fffbf5;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Observações:</b> ${obs}</div>`:''}
+    ${escopo?`<div class="apr-secao" style="padding:14px 18px;background:#f5f2ed;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Escopo:</b> ${escopo}</div>`:''}
+    ${obs?`<div class="apr-secao" style="padding:14px 18px;background:#fffbf5;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Observações:</b> ${obs}</div>`:''}
 
     <!-- CALENDÁRIO SEMANAL -->
     ${calHtml}
 
-    <!-- OBSERVAÇÕES DO DIA – bloco separado -->
-    <div style="padding:18px;background:#fff;border-bottom:3px solid var(--remo-gray)">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1B3E6B;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #00A651">Observações do Dia</div>
-      <div style="min-height:80px;border:1px solid #ddd;border-radius:6px;padding:10px;background:#faf9f7;font-size:13px;color:var(--muted);font-style:italic"></div>
-    </div>
 
     <!-- ATIVIDADES -->
     ${atvHtml}
@@ -2480,9 +3176,9 @@ function gerarAPR(){
     <!-- ASSINATURAS -->
     <div class="apr-ass">
       <div class="apr-ass-title">Declaração de Ciência – Assinaturas da Equipe</div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Declaro que li, compreendi e me comprometo a cumprir todas as medidas de controle desta APR antes do início das atividades.</p>
+      <p class="apr-ass" style="font-size:12px;color:var(--muted);margin-bottom:12px">Declaro que li, compreendi e me comprometo a cumprir todas as medidas de controle desta APR antes do início das atividades.</p>
       <table class="apr-ass-table">
-        <thead><tr><th>Nome Completo</th><th>Função / Cargo</th><th>Assinatura</th></tr></thead>
+        <thead><tr><th>Nome Completo</th><th>Função / Cargo</th><th>Telefone</th><th>Assinatura</th></tr></thead>
         <tbody>
           ${sepEnc}
           ${encarregadosRows}
@@ -2492,22 +3188,81 @@ function gerarAPR(){
           ${fixosRows}
         </tbody>
       </table>
+      <div style="margin-top:8px;padding:7px 11px;background:#fff3cd;border:1px solid #ffc107;border-radius:5px;font-size:9.5px;font-weight:600;color:#5a3e00;letter-spacing:.3px">
+        CASO NECESSÁRIO, ENTRAR EM CONTATO COM OS RESPONSÁVEIS TÉCNICOS.&ensp;
+        <span style="white-space:nowrap">SAMU: <strong>192</strong></span>&ensp;·&ensp;
+        <span style="white-space:nowrap">CORPO DE BOMBEIROS: <strong>193</strong></span>
+      </div>
       </div>
     </div>
 
-    <div class="apr-rodape">⚠ Regras de Ouro: Chuva com raios → PARALISAR IMEDIATAMENTE &nbsp;|&nbsp; APR obrigatória antes de iniciar &nbsp;|&nbsp; EPI básico obrigatório em todas as frentes</div>
+    <!-- BARRA DE RASTREIO + QR CODE -->
+    <div class="apr-rastreio-bar" style="display:flex;align-items:center;justify-content:space-between;gap:16px;
+                padding:12px 22px;background:#1B3E6B;color:#fff;page-break-inside:avoid">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:9px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+                    opacity:.7;margin-bottom:3px">Número de Rastreio</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;
+                    letter-spacing:2px;white-space:nowrap">${numRastreio}</div>
+        <div style="font-size:10px;opacity:.6;margin-top:3px">
+          Gerado em ${new Date().toLocaleString('pt-BR')} · NR-10 / NR-18 / NR-35
+        </div>
+      </div>
+      <!-- QR Code (online: imagem via API; offline: caixa de texto) -->
+      <div style="flex-shrink:0;background:#fff;padding:5px;border-radius:5px;text-align:center">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&margin=1&data=${encodeURIComponent(numRastreio)}"
+             alt="QR ${numRastreio}" width="90" height="90"
+             style="display:block"
+             onerror="this.parentElement.innerHTML='<div style=\\'font-family:monospace;font-size:7px;color:#1B3E6B;padding:4px;text-align:center;line-height:1.4;width:90px\\'><strong>RASTREIO</strong><br>${numRastreio.replace(/-/g,'-&#8203;')}</div>'">
+      </div>
+    </div>
+    <div class="apr-rodape">⚠ Regras de Ouro: Chuva com raios → PARALISAR IMEDIATAMENTE &nbsp;|&nbsp; APR obrigatória antes de iniciar &nbsp;|&nbsp; EPI básico obrigatório em todas as frentes &nbsp;|&nbsp; <span style="opacity:.6">APR Sistema ${APP_VERSAO}</span></div>
     ${gerarChecklistsHTML()}`;
 
   ir('out');
   // Mostrar botão exportar se há novas APRs
   const btnExp = document.getElementById('btn-exportar-novas');
   if(btnExp) btnExp.style.display = ATIVIDADES.some(a=>a._nova) ? 'inline-flex' : 'none';
+
+  // Item 8 – Salvar no histórico local
+  salvarHistoricoLocal({
+    num: numRastreio,
+    data: v('f-data'),
+    geradoEm: new Date().toISOString(),
+    atividade: _atvSel ? `APR-${String(_atvSel.id).padStart(2,'0')} — ${_atvSel.nome}` : '—',
+    elaborador: v('f-elaborador'),
+    etapa: etapaApr,
+    equipeCount: getEquipe().length,
+  });
+
+  // Item 13 – Auto-sincronizar com Google Sheets
+  const syncUrl = localStorage.getItem(SYNC_URL_KEY) || '';
+  if(syncUrl) autoSync(syncUrl, {
+    rastreio: numRastreio,
+    data: v('f-data'),
+    atividade: _atvSel ? `APR-${String(_atvSel.id).padStart(2,'0')} — ${_atvSel.nome}` : '—',
+    elaborador: v('f-elaborador'),
+    etapa: etapaApr,
+    clima: clima,
+    local: [...SEL_L].join('; ') || '—',
+    pt: v('f-pt'),
+    encarregados: [...SEL_E].join(', ') || '—',
+    equipe: getEquipe().map(c=>`${c.nome} (${c.cargo})`).join('; '),
+    maquinas: usomaq ? maqs : 'NÃO',
+    riscos: riscosParaAPR.length,
+    versao: APP_VERSAO,
+  });
+
+  // Item 13 – Mostrar botão de configuração de sync
+  const scb = document.getElementById('sync-config-box');
+  if(scb) scb.style.display = 'block';
 }
 
 function nova(){
   // Remover atividades criadas na sessão
   while(ATIVIDADES.length > 0 && ATIVIDADES[ATIVIDADES.length-1]._nova) ATIVIDADES.pop();
   SEL.clear(); SEL_L.clear(); SEL_E.clear(); SEL_M.clear(); SEL_ESC.clear(); SEL_EQUIPE.clear(); SEL_RISCOS.clear();
+  customRiscosFase.clear(); editRiscosFase.clear(); riscoPSFase.clear(); SEL_M_QTD.clear(); _nextCId = 1000;
 
   // Limpar radio de atividade
   document.querySelectorAll('input[name="atv_sel"]').forEach(r=>r.checked=false);
@@ -2520,6 +3275,8 @@ function nova(){
   document.getElementById('maq-nao').checked=true;
   document.getElementById('maq-list').classList.remove('show');
   document.querySelectorAll('.maq-chip input').forEach(cb=>cb.checked=false);
+  document.querySelectorAll('.maq-qty').forEach(el=>{ el.style.display='none'; });
+  document.querySelectorAll('.maq-qty-num').forEach(el=>{ el.textContent='1'; });
   SEL_M.clear();
   // Limpar campos de texto livres
   document.getElementById('f-pt').value='';
@@ -2560,7 +3317,7 @@ function nova(){
 
   document.getElementById('f-data').value = new Date().toISOString().slice(0,10);
   document.getElementById('apr-out').innerHTML = '';
-  renderAtv(); syncCampos(); ir(1);
+  renderAtv(); syncCampos(); ir(1); atualizarCompletude();
 }
 
 
@@ -2605,57 +3362,65 @@ function gerarChecklistsHTML(){
     const itens = CHECKLISTS[nomeMaq];
     if(!itens || itens.length === 0) return;
 
-    const linhas = itens.map((item, idx) => `
-      <tr>
-        <td class="num">${idx+1}</td>
-        <td style="min-width:260px">${item}</td>
-        <td class="dia" style="text-align:center;font-weight:700;color:#1B3E6B">C</td>
-        <td class="dia" style="text-align:center;font-weight:700;color:#c62828">NC</td>
-        <td class="dia" style="text-align:center;color:#555">NA</td>
-        ${diasCells}
-      </tr>`).join('');
+    const qty = SEL_M_QTD.get(nomeMaq) || 1; // quantas folhas/unidades
 
-    html += `
-    <div class="cl-bloco">
-      <div class="cl-header">
-        <div class="cl-header-title">Lista de Verificações — ${nomeMaq}</div>
-        <div class="cl-header-sub">REMO ENGENHARIA &nbsp;·&nbsp; SE JAGUARA 345 kV &nbsp;·&nbsp; Verificação Diária</div>
-      </div>
-      <div class="cl-meta">
-        <div class="cl-meta-cell"><span class="cl-meta-label">Nome do Operador</span>&nbsp;</div>
-        <div class="cl-meta-cell"><span class="cl-meta-label">Data</span>&nbsp;</div>
-        <div class="cl-meta-cell"><span class="cl-meta-label">Função</span>&nbsp;</div>
-        <div class="cl-meta-cell"><span class="cl-meta-label">TAG do Equipamento</span>&nbsp;</div>
-        <div class="cl-meta-cell"><span class="cl-meta-label">Local</span>&nbsp;&nbsp;<em style="font-size:10px">( &nbsp;) Interno &nbsp;&nbsp;&nbsp;( &nbsp;) Externo</em></div>
-        <div class="cl-meta-cell"><span class="cl-meta-label">Obra</span>${obra}</div>
-        <div class="cl-meta-cell" style="grid-column:1/3"><span class="cl-meta-label">Turno</span>&nbsp;&nbsp;&nbsp;<em style="font-size:10px">( &nbsp;) Diurno &nbsp;&nbsp;&nbsp;&nbsp;( &nbsp;) Noturno</em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cl-meta-label" style="display:inline">Empresa:</span> ${empresa}</div>
-      </div>
-      <table class="cl-table">
-        <thead>
-          <tr>
-            <th style="width:28px">Nº</th>
-            <th>Itens Verificados</th>
-            <th style="width:28px;text-align:center;color:#4CAF50">C</th>
-            <th style="width:28px;text-align:center;color:#f44336">NC</th>
-            <th style="width:28px;text-align:center">NA</th>
-            ${diasHeader}
-          </tr>
-        </thead>
-        <tbody>${linhas}</tbody>
-      </table>
-      <div class="cl-sig">
-        <div class="cl-sig-box"><span class="cl-sig-label">Assinatura do Operador Responsável</span></div>
-        <div class="cl-sig-box"><span class="cl-sig-label">Assinatura do Encarregado</span></div>
-        <div class="cl-sig-box"><span class="cl-sig-label">Observação / Setor de Manutenção</span></div>
-      </div>
-      <div class="cl-legenda">
-        <strong>LEGENDA:</strong> &nbsp;
-        <strong style="color:#1B3E6B">C</strong> = Conforme &nbsp;·&nbsp;
-        <strong style="color:#c62828">NC</strong> = Não Conforme &nbsp;·&nbsp;
-        <strong>NA</strong> = Não se Aplica &nbsp;·&nbsp;
-        <em>¹ Itens que deverão ser adequados imediatamente, antes de iniciar a atividade.</em>
-      </div>
-    </div>`;
+    for(let unidade = 1; unidade <= qty; unidade++){
+      const unidadeTag = qty > 1
+        ? `&nbsp;<span style="background:#1B3E6B;color:#fff;font-size:10px;font-weight:800;padding:2px 8px;border-radius:4px;letter-spacing:.5px">Unidade ${unidade} / ${qty}</span>`
+        : '';
+
+      const linhas = itens.map((item, idx) => `
+        <tr>
+          <td class="num">${idx+1}</td>
+          <td style="min-width:260px">${item}</td>
+          <td class="dia" style="text-align:center;font-weight:700;color:#1B3E6B">C</td>
+          <td class="dia" style="text-align:center;font-weight:700;color:#c62828">NC</td>
+          <td class="dia" style="text-align:center;color:#555">NA</td>
+          ${diasCells}
+        </tr>`).join('');
+
+      html += `
+      <div class="cl-bloco">
+        <div class="cl-header">
+          <div class="cl-header-title">Lista de Verificações — ${nomeMaq}${unidadeTag}</div>
+          <div class="cl-header-sub">REMO ENGENHARIA &nbsp;·&nbsp; SE JAGUARA 345 kV &nbsp;·&nbsp; Verificação Diária</div>
+        </div>
+        <div class="cl-meta">
+          <div class="cl-meta-cell"><span class="cl-meta-label">Nome do Operador</span>&nbsp;</div>
+          <div class="cl-meta-cell"><span class="cl-meta-label">Data</span>&nbsp;</div>
+          <div class="cl-meta-cell"><span class="cl-meta-label">Função</span>&nbsp;</div>
+          <div class="cl-meta-cell"><span class="cl-meta-label">TAG do Equipamento</span>&nbsp;</div>
+          <div class="cl-meta-cell"><span class="cl-meta-label">Local</span>&nbsp;&nbsp;<em style="font-size:10px">( &nbsp;) Interno &nbsp;&nbsp;&nbsp;( &nbsp;) Externo</em></div>
+          <div class="cl-meta-cell"><span class="cl-meta-label">Obra</span>${obra}</div>
+          <div class="cl-meta-cell" style="grid-column:1/3"><span class="cl-meta-label">Turno</span>&nbsp;&nbsp;&nbsp;<em style="font-size:10px">( &nbsp;) Diurno &nbsp;&nbsp;&nbsp;&nbsp;( &nbsp;) Noturno</em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cl-meta-label" style="display:inline">Empresa:</span> ${empresa}</div>
+        </div>
+        <table class="cl-table">
+          <thead>
+            <tr>
+              <th style="width:28px">Nº</th>
+              <th>Itens Verificados</th>
+              <th style="width:28px;text-align:center;color:#4CAF50">C</th>
+              <th style="width:28px;text-align:center;color:#f44336">NC</th>
+              <th style="width:28px;text-align:center">NA</th>
+              ${diasHeader}
+            </tr>
+          </thead>
+          <tbody>${linhas}</tbody>
+        </table>
+        <div class="cl-sig">
+          <div class="cl-sig-box"><span class="cl-sig-label">Assinatura do Operador Responsável</span></div>
+          <div class="cl-sig-box"><span class="cl-sig-label">Assinatura do Encarregado</span></div>
+          <div class="cl-sig-box"><span class="cl-sig-label">Observação / Setor de Manutenção</span></div>
+        </div>
+        <div class="cl-legenda">
+          <strong>LEGENDA:</strong> &nbsp;
+          <strong style="color:#1B3E6B">C</strong> = Conforme &nbsp;·&nbsp;
+          <strong style="color:#c62828">NC</strong> = Não Conforme &nbsp;·&nbsp;
+          <strong>NA</strong> = Não se Aplica &nbsp;·&nbsp;
+          <em>¹ Itens que deverão ser adequados imediatamente, antes de iniciar a atividade.</em>
+        </div>
+      </div>`;
+    }
   });
 
   return html;
@@ -3022,6 +3787,235 @@ function exportarNovasAPRs(){
 // ─── helpers ───
 function v(id){return document.getElementById(id)?.value.trim()||''}
 function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`}
+
+// ── Número de Rastreio ───────────────────────────────────────────────────
+function gerarNumRastreio(){
+  const n=new Date();
+  const d=n.getFullYear().toString()+
+    String(n.getMonth()+1).padStart(2,'0')+
+    String(n.getDate()).padStart(2,'0');
+  const t=String(n.getHours()).padStart(2,'0')+
+    String(n.getMinutes()).padStart(2,'0')+
+    String(n.getSeconds()).padStart(2,'0');
+  const r=Math.random().toString(36).substring(2,6).toUpperCase();
+  return`REMO-${d}-${t}-${r}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ITEM 9 – MODO ESCURO
+// ═══════════════════════════════════════════════════════════════════════
+function toggleDark(){
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('apr_dark', isDark ? '1' : '0');
+  const btn = document.getElementById('dark-toggle');
+  if(btn) btn.textContent = isDark ? '☀️' : '🌙';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ITEM 11 – FAVORITOS DE ATIVIDADE
+// ═══════════════════════════════════════════════════════════════════════
+function toggleFav(id, evt){
+  evt.preventDefault(); evt.stopPropagation();
+  id = +id;
+  if(FAV_ATIVS.has(id)) FAV_ATIVS.delete(id); else FAV_ATIVS.add(id);
+  localStorage.setItem('apr_favs', JSON.stringify([...FAV_ATIVS]));
+  renderAtv();
+  // Restaurar seleção após re-render
+  if(SEL.size){
+    const selId = [...SEL][0];
+    const rb = document.getElementById(`atv-rb-${selId}`);
+    if(rb && !rb.checked){ rb.checked = true; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ITEM 5 – MATRIZ DE RISCO P×S
+// ═══════════════════════════════════════════════════════════════════════
+function calcPS(p, s){
+  if(!p || !s) return null;
+  const nivel = +p * +s;
+  if(nivel <= 2) return {label:'Baixo',   cls:'baixo',   icon:'🟢', bg:'#d4edda', fg:'#155724'};
+  if(nivel <= 4) return {label:'Médio',   cls:'medio',   icon:'🟡', bg:'#fff3cd', fg:'#856404'};
+  if(nivel <= 8) return {label:'Alto',    cls:'alto',    icon:'🟠', bg:'#ffe0b2', fg:'#6d4c00'};
+               return {label:'Crítico', cls:'critico', icon:'🔴', bg:'#f8d7da', fg:'#721c24'};
+}
+
+function atualizarPS(atvId, fIdx, rNum, campo, val){
+  const k = `${atvId}_${fIdx}_${rNum}`;
+  const cur = riscoPSFase.get(k) || {p:'', s:''};
+  cur[campo] = val;
+  riscoPSFase.set(k, cur);
+  // Atualizar badge de nível
+  const span = document.getElementById(`ps-nivel-${atvId}-${fIdx}-${rNum}`);
+  if(span){
+    const psN = calcPS(cur.p, cur.s);
+    span.innerHTML = psN
+      ? `<span class="ps-nivel ${psN.cls}">${psN.icon} ${psN.label}</span>`
+      : '';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ITEM 6 – SELEÇÃO RÁPIDA DE EQUIPE
+// ═══════════════════════════════════════════════════════════════════════
+function selecionarEquipeRapido(disc){
+  document.querySelectorAll('.eq-card').forEach(card=>{
+    // Ignorar cards ocultos pelo filtro de busca
+    if(card.classList.contains('oculto') || card.style.display==='none') return;
+    const cardEquipe = card.dataset.equipe || '';
+    const match = disc==='TODAS' || cardEquipe === disc;
+    if(match && !card.classList.contains('sel')){
+      const num = +card.dataset.num;
+      SEL_EQUIPE.add(num);
+      card.classList.add('sel');
+      const chk = card.querySelector('.eq-chk');
+      if(chk) chk.textContent = '✓';
+    }
+  });
+  atualizarInfoEquipe();
+  atualizarCompletude();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ITEM 10 – INDICADOR DE COMPLETUDE
+// ═══════════════════════════════════════════════════════════════════════
+function atualizarCompletude(){
+  // Etapa 1: campos obrigatórios preenchidos
+  const e1 = !!(
+    document.getElementById('f-elaborador')?.value &&
+    document.getElementById('f-data')?.value &&
+    document.querySelector('input[name="etapa_apr"]:checked') &&
+    SEL_E.size > 0
+  );
+  // Etapa 2: atividade selecionada
+  const e2 = SEL.size > 0;
+  // Etapa 3: ao menos um risco selecionado em alguma fase
+  const e3 = SEL_RISCOS.size > 0 && [...SEL_RISCOS.values()].some(m=>m.size>0);
+  // Etapa 4: ao menos um colaborador selecionado
+  const e4 = SEL_EQUIPE.size > 0;
+  // Etapa 5: tudo completo
+  const e5 = e1 && e2 && e4;
+
+  [e1, e2, e3, e4, e5].forEach((ok, i)=>{
+    const d = document.getElementById(`dot-${i+1}`);
+    if(d) d.classList.toggle('completo', ok);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ITEM 8 – HISTÓRICO LOCAL
+// ═══════════════════════════════════════════════════════════════════════
+const HIST_KEY = 'apr_historico';
+
+function salvarHistoricoLocal(entry){
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
+  hist.unshift(entry); // mais recente no topo
+  // Manter apenas os últimos 100 registros
+  if(hist.length > 100) hist.splice(100);
+  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+}
+
+function abrirHistorico(){
+  document.getElementById('hist-overlay').classList.add('open');
+  renderHistorico();
+}
+
+function fecharHistorico(evt){
+  if(evt && evt.target !== document.getElementById('hist-overlay')) return;
+  document.getElementById('hist-overlay').classList.remove('open');
+}
+
+function renderHistorico(){
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
+  const busca = (document.getElementById('hist-busca')?.value || '').toLowerCase();
+  const dataIni = document.getElementById('hist-data-ini')?.value || '';
+  const dataFim = document.getElementById('hist-data-fim')?.value || '';
+
+  let filtrado = hist.filter(h=>{
+    const txt = (h.num + ' ' + h.atividade + ' ' + h.elaborador).toLowerCase();
+    if(busca && !txt.includes(busca)) return false;
+    if(dataIni && h.data < dataIni) return false;
+    if(dataFim && h.data > dataFim) return false;
+    return true;
+  });
+
+  const body = document.getElementById('hist-body');
+  const count = document.getElementById('hist-count');
+  if(count) count.textContent = `${filtrado.length} registro${filtrado.length!==1?'s':''}`;
+
+  if(!filtrado.length){
+    body.innerHTML = `<div class="hist-empty">📭 Nenhum registro encontrado.<br><span style="font-size:12px;opacity:.7">Gere uma APR para ela aparecer aqui.</span></div>`;
+    return;
+  }
+
+  body.innerHTML = filtrado.map((h)=>{
+    const dataFmt = h.data ? fmtDate(h.data) : '—';
+    const geradoFmt = h.geradoEm ? new Date(h.geradoEm).toLocaleString('pt-BR') : '—';
+    const realIdx = hist.indexOf(h); // índice real no array completo
+    return `<div class="hist-item">
+      <div class="hist-item-head">
+        <div class="hist-item-num">${h.num||'—'}</div>
+        <div class="hist-item-date">${geradoFmt}</div>
+      </div>
+      <div class="hist-item-atv">${h.atividade||'—'}</div>
+      <div class="hist-item-det">
+        📅 ${dataFmt} &nbsp;|&nbsp; 👤 ${h.elaborador||'—'} &nbsp;|&nbsp; 🏷 ${h.etapa||'—'} &nbsp;|&nbsp; 👥 ${h.equipeCount||0} colaboradores
+      </div>
+      <div class="hist-item-btns">
+        <button class="hist-item-btn del" onclick="excluirHistoricoItem(${realIdx})">🗑 Excluir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function excluirHistoricoItem(idx){
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
+  hist.splice(idx, 1);
+  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  renderHistorico();
+}
+
+function limparHistoricoConfirm(){
+  if(confirm('Deseja apagar todo o histórico de APRs? Esta ação não pode ser desfeita.')) {
+    localStorage.removeItem(HIST_KEY);
+    renderHistorico();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ITEM 13 – SINCRONIZAÇÃO AUTOMÁTICA
+// ═══════════════════════════════════════════════════════════════════════
+function salvarSyncURL(){
+  const input = document.getElementById('sync-url-input');
+  const url = (input?.value||'').trim();
+  localStorage.setItem(SYNC_URL_KEY, url);
+  const badge = document.getElementById('sync-status');
+  if(badge){
+    badge.style.display = 'inline';
+    badge.className = 'sync-badge ok';
+    badge.textContent = url ? '✅ URL salva' : '⬜ Sync desativado';
+    setTimeout(()=>{ badge.style.display='none'; }, 3000);
+  }
+}
+
+function autoSync(url, dados){
+  if(!url) return;
+  const badge = document.getElementById('sync-status');
+  if(badge){ badge.style.display='inline'; badge.className='sync-badge ing'; badge.textContent='🔄 Enviando…'; }
+
+  fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(dados),
+    mode: 'no-cors'
+  })
+  .then(()=>{
+    if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Sincronizado'; }
+  })
+  .catch(()=>{
+    if(badge){ badge.className='sync-badge fail'; badge.textContent='❌ Falha no envio'; }
+  });
+}
 </script>
 <script>
 
@@ -3056,43 +4050,103 @@ function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/
 })();
 
 
-// ── Service Worker inline para PWA offline ────────────────────────────────
-if('serviceWorker' in navigator){
-  const swCode = `
-    const CACHE = 'apr-remo-v1';
-    self.addEventListener('install', e => {
-      e.waitUntil(
-        caches.open(CACHE).then(c => c.add('/'))
-          .catch(()=>{}) // não falhar se offline
-      );
-      self.skipWaiting();
+// ── PWA: Indicador offline + prompt de instalação ────────────────────────
+(function(){
+  // ── Banner offline/online ──────────────────────────────────────────────
+  const banner = document.createElement('div');
+  banner.id = 'offline-banner';
+  banner.style.cssText = [
+    'position:fixed','bottom:0','left:0','right:0','z-index:9999',
+    'padding:10px 20px','text-align:center',
+    'font-family:Barlow,sans-serif','font-size:13px','font-weight:700',
+    'display:none','align-items:center','justify-content:center','gap:10px',
+    'transition:transform .3s ease'
+  ].join(';');
+  document.body.appendChild(banner);
+
+  function atualizarOnline(){
+    if(navigator.onLine){
+      banner.style.background='#00A651';
+      banner.style.color='#fff';
+      banner.innerHTML='✅ Conexão restabelecida — app funcionando normalmente';
+      banner.style.display='flex';
+      setTimeout(()=>{ banner.style.display='none'; }, 3000);
+    } else {
+      banner.style.background='#c62828';
+      banner.style.color='#fff';
+      banner.innerHTML='📴 Sem conexão — o app continua funcionando offline normalmente';
+      banner.style.display='flex';
+    }
+  }
+  window.addEventListener('online',  atualizarOnline);
+  window.addEventListener('offline', atualizarOnline);
+
+  // ── Ocultar UI antes de imprimir (beforeprint cobre Ctrl+P e botão) ─────
+  const PRINT_HIDE_SEL = '.bar,.prog,.out-actions,.no-print';
+  window.addEventListener('beforeprint', ()=>{
+    document.querySelectorAll(PRINT_HIDE_SEL).forEach(el=>{
+      el.dataset._ph = el.style.cssText;
+      el.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;position:static!important';
     });
-    self.addEventListener('activate', e => {
-      e.waitUntil(caches.keys().then(keys =>
-        Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
-      ));
-      self.clients.claim();
+    const wrap = document.querySelector('.wrap');
+    if(wrap){ wrap.dataset._pw = wrap.style.cssText; wrap.style.padding='0'; wrap.style.margin='0'; }
+    const so = document.getElementById('step-out');
+    if(so){ so.dataset._ps = so.style.cssText; so.style.padding='0'; so.style.margin='0'; }
+  });
+  window.addEventListener('afterprint', ()=>{
+    document.querySelectorAll(PRINT_HIDE_SEL).forEach(el=>{
+      el.style.cssText = el.dataset._ph || ''; delete el.dataset._ph;
     });
-    self.addEventListener('fetch', e => {
-      e.respondWith(
-        caches.match(e.request).then(r => r || fetch(e.request)
-          .then(res => {
-            if(res && res.status === 200){
-              const clone = res.clone();
-              caches.open(CACHE).then(c => c.put(e.request, clone));
+    const wrap = document.querySelector('.wrap');
+    if(wrap){ wrap.style.cssText = wrap.dataset._pw || ''; delete wrap.dataset._pw; }
+    const so = document.getElementById('step-out');
+    if(so){ so.style.cssText = so.dataset._ps || ''; delete so.dataset._ps; }
+  });
+
+  // ── Botão "Instalar App" ───────────────────────────────────────────────
+  let deferredInstall = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstall = e;
+    // Mostrar botão de instalação na barra superior
+    const bar = document.querySelector('.bar-actions') || document.querySelector('.bar');
+    if(!bar) return;
+    const btn = document.createElement('button');
+    btn.id = 'btn-instalar-app';
+    btn.title = 'Instalar como aplicativo';
+    btn.style.cssText = 'background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.4);color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;font-family:Barlow,sans-serif';
+    btn.innerHTML = '📲 Instalar App';
+    btn.onclick = ()=>{
+      if(!deferredInstall) return;
+      deferredInstall.prompt();
+      deferredInstall.userChoice.then(()=>{ btn.remove(); deferredInstall=null; });
+    };
+    bar.appendChild(btn);
+  });
+
+  // ── Service Worker (funciona apenas quando servido via HTTPS / gh-pages) ─
+  if('serviceWorker' in navigator && location.protocol === 'https:'){
+    // SW externo no mesmo origin — funciona no GitHub Pages
+    // Se não houver sw.js, falha silenciosamente (app já é single-file offline)
+    navigator.serviceWorker.register('./sw.js', {scope: './'})
+      .then(reg => {
+        reg.addEventListener('updatefound', ()=>{
+          const nw = reg.installing;
+          if(!nw) return;
+          nw.addEventListener('statechange', ()=>{
+            if(nw.state==='installed' && navigator.serviceWorker.controller){
+              const b=document.createElement('div');
+              b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#F5C400;color:#1B3E6B;padding:10px 20px;text-align:center;font-weight:700;font-size:13px;cursor:pointer';
+              b.innerHTML='🔄 Nova versão disponível — <u>clique para atualizar</u>';
+              b.onclick=()=>{ nw.postMessage({type:'SKIP_WAITING'}); location.reload(); };
+              document.body.prepend(b);
             }
-            return res;
-          })
-          .catch(() => caches.match('/'))
-        )
-      );
-    });
-  `;
-  const blob = new Blob([swCode], {type:'text/javascript'});
-  const swURL = URL.createObjectURL(blob);
-  navigator.serviceWorker.register(swURL, {scope: '/'})
-    .catch(()=>{}); // falhar silenciosamente se bloqueado por protocolo
-}
+          });
+        });
+      })
+      .catch(()=>{}); // falhar silenciosamente se sw.js não existir
+  }
+})();
 
 </script>
 </body>
