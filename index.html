@@ -192,18 +192,36 @@ input, select, textarea, button {
 }
 
 
-/* ─── ELABORADOR / CREDENCIADO ─── */
-.elab-select{width:100%;padding:10px 14px;border:1.5px solid var(--remo-line);
-  border-radius:var(--radius);font-family:'Barlow',sans-serif;font-size:14px;
-  background:var(--remo-field);outline:none;transition:border-color .2s;color:#0d0d0d;
-  appearance:none;-webkit-appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%231B3E6B' stroke-width='2' fill='none'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
-.elab-select:focus{border-color:var(--remo-navy);background-color:#fff}
+/* ─── ELABORADOR / LOGIN ─── */
+.elab-login-wrap{border:1.5px solid var(--remo-line);border-radius:var(--radius);
+  background:var(--remo-field);overflow:hidden;transition:border-color .2s}
+.elab-login-wrap:focus-within{border-color:var(--remo-navy)}
+.elab-login-form{display:flex;gap:6px;padding:8px 10px;align-items:center;flex-wrap:wrap}
+.elab-login-input{flex:1;min-width:110px;padding:8px 10px;border:1.5px solid var(--remo-line);
+  border-radius:var(--radius);font-family:'Barlow',sans-serif;font-size:13px;
+  background:#fff;outline:none;transition:border-color .2s;color:#0d0d0d}
+.elab-login-input:focus{border-color:var(--remo-navy)}
+.elab-login-btn{padding:8px 16px;background:var(--remo-navy);color:#fff;border:none;
+  border-radius:var(--radius);font-family:'Barlow Condensed',sans-serif;font-size:14px;
+  font-weight:700;cursor:pointer;white-space:nowrap;letter-spacing:.3px;transition:background .2s}
+.elab-login-btn:hover{background:#0f2a4d}
+.elab-login-err{padding:0 10px 8px;color:var(--remo-red);font-size:11px;font-weight:600;display:none}
+.elab-logged-card{display:flex;align-items:center;gap:12px;padding:10px 14px;
+  background:var(--remo-green-lt);border-left:4px solid var(--remo-green)}
+.elab-logged-nome{font-weight:700;font-size:13px;color:var(--remo-navy)}
+.elab-logged-cargo{font-size:11px;color:var(--remo-muted);margin-top:2px}
+.elab-logout-btn{margin-left:auto;padding:5px 12px;background:none;
+  border:1.5px solid var(--remo-muted);color:var(--remo-muted);border-radius:var(--radius);
+  font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.elab-logout-btn:hover{border-color:var(--remo-red);color:var(--remo-red)}
 .elab-info{margin-top:6px;font-size:12px;color:var(--remo-muted);
   display:flex;align-items:center;gap:6px}
 .elab-cargo-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;
   background:var(--remo-green-lt);color:var(--remo-green)}
+/* Dark mode login */
+body.dark .elab-login-wrap{border-color:#243040;background:#162032}
+body.dark .elab-login-input{background:#0d1b2a;border-color:#243040;color:#d8e6f3}
+body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-green)}
 
 /* ─── BOTÃO ENVIAR EMAIL ─── */
 .btn-email{padding:13px 28px;border:2px solid var(--remo-navy);border-radius:var(--radius);
@@ -1066,12 +1084,36 @@ body.dark .sync-url-input{background:#162032;border-color:#243040;color:#d8e6f3}
       </div>
       <div class="f">
         <label>Elaborado por <span class="req">*</span></label>
-        <select id="f-elaborador" class="elab-select" onchange="onElaboradorChange()">
-          <option value="">— Selecionar elaborador —</option>
-        </select>
-        <div class="elab-info" id="elab-info" style="display:none">
-          <span id="elab-cargo-badge" class="elab-cargo-badge"></span>
+        <!-- Painel de login do elaborador -->
+        <div class="elab-login-wrap" id="elab-login-wrap">
+          <!-- Estado: não logado -->
+          <div id="elab-logged-out-panel">
+            <div class="elab-login-form">
+              <input type="text" id="elab-user-input" class="elab-login-input"
+                     placeholder="👤 Usuário" autocomplete="username" spellcheck="false"
+                     onkeydown="if(event.key==='Enter')document.getElementById('elab-pass-input').focus()">
+              <input type="password" id="elab-pass-input" class="elab-login-input"
+                     placeholder="🔒 Senha" autocomplete="current-password"
+                     onkeydown="if(event.key==='Enter')loginElaborador()">
+              <button class="elab-login-btn" onclick="loginElaborador()">🔐 Entrar</button>
+            </div>
+            <div id="elab-login-err" class="elab-login-err">⚠️ Usuário ou senha incorretos.</div>
+          </div>
+          <!-- Estado: logado -->
+          <div id="elab-logged-in-panel" style="display:none">
+            <div class="elab-logged-card">
+              <div style="flex:1;min-width:0">
+                <div class="elab-logged-nome" id="elab-logged-nome"></div>
+                <div class="elab-logged-cargo" id="elab-logged-cargo"></div>
+              </div>
+              <button class="elab-logout-btn" onclick="logoutElaborador()">↩ Sair</button>
+            </div>
+          </div>
         </div>
+        <!-- Select oculto para compatibilidade com o restante do sistema -->
+        <select id="f-elaborador" style="display:none" aria-hidden="true">
+          <option value=""></option>
+        </select>
       </div>
       <div class="f">
         <label>PT Nº <span class="req">*</span></label>
@@ -1486,6 +1528,9 @@ const SEL_M_QTD = new Map();
 // Item 13 – URL de sincronização
 const SYNC_URL_KEY = 'apr_sync_url';
 
+// Chave de sessão do elaborador (sessionStorage — expira ao fechar a aba)
+const ELAB_SESSION_KEY = 'apr_elab_session';
+
 // ═══════════════════════════════════════════════════
 // DADOS FIXOS
 // ═══════════════════════════════════════════════════
@@ -1607,14 +1652,15 @@ const SEL_ESC = new Set();
 
 
 // ─── CREDENCIADOS (elaboradores de APR) ───────────────────────────────────
+// user: nome de usuário para login | senha: senha de acesso
 const CREDENCIADOS = [
-  {n:1, nome:"ALBERT KAIK FRANCISCO DE SOUZA",       cargo:"ENCARREGADO DE TURMA",          aprovador:false, email:""},
-  {n:2, nome:"ANDRE JOSE DA SILVA",                   cargo:"ENCARREGADO FORCA E CONTROLE",  aprovador:false, email:""},
-  {n:3, nome:"ELIZANDRA V DE F DOS SANTOS",           cargo:"AUX DE SEGURANCA DO TRABALHO",  aprovador:true,  email:"elizandra.santos@remo.com.br"},
-  {n:4, nome:"GISLAINE PEREIRA DO NASCIMENTO",        cargo:"TECNICO SEGURANCA DO TRABALHO", aprovador:true,  email:"gislaine.nascimento@remo.com.br"},
-  {n:5, nome:"JHONY DOS REIS BORGES",                 cargo:"OPERADOR DE MAQUINAS",           aprovador:false, email:""},
-  {n:6, nome:"JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR",cargo:"ENCARREGADO GERAL",              aprovador:false, email:""},
-  {n:7, nome:"LEANDRO SILVA FERREIRA",                cargo:"ENC. MONT. ELETROMECANICA",      aprovador:false, email:""},
+  {n:1, nome:"ALBERT KAIK FRANCISCO DE SOUZA",        cargo:"ENCARREGADO DE TURMA",          aprovador:false, email:"",                                  user:"albert",    senha:"APR@2026"},
+  {n:2, nome:"ANDRE JOSE DA SILVA",                    cargo:"ENCARREGADO FORCA E CONTROLE",  aprovador:false, email:"",                                  user:"andre",     senha:"APR@2026"},
+  {n:3, nome:"ELIZANDRA V DE F DOS SANTOS",            cargo:"AUX DE SEGURANCA DO TRABALHO",  aprovador:true,  email:"elizandra.santos@remo.com.br",       user:"elizandra", senha:"APR@2026"},
+  {n:4, nome:"GISLAINE PEREIRA DO NASCIMENTO",         cargo:"TECNICO SEGURANCA DO TRABALHO", aprovador:true,  email:"gislaine.nascimento@remo.com.br",    user:"gislaine",  senha:"APR@2026"},
+  {n:5, nome:"JHONY DOS REIS BORGES",                  cargo:"OPERADOR DE MAQUINAS",           aprovador:false, email:"",                                  user:"jhony",     senha:"APR@2026"},
+  {n:6, nome:"JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR", cargo:"ENCARREGADO GERAL",              aprovador:false, email:"",                                  user:"jose",      senha:"APR@2026"},
+  {n:7, nome:"LEANDRO SILVA FERREIRA",                 cargo:"ENC. MONT. ELETROMECANICA",      aprovador:false, email:"",                                  user:"leandro",   senha:"APR@2026"},
 ];
 // Emails dos aprovadores (destinatários fixos do envio)
 const APROVADORES_EMAIL = CREDENCIADOS.filter(c=>c.aprovador).map(c=>c.email);
@@ -1697,42 +1743,44 @@ const EPIS_CADASTRO = [
 const SEL_EQUIPE = new Set(); // Set de nums dos colaboradores selecionados
 
 // Riscos completos do arquivo (35 riscos)
+// p = Probabilidade padrão (1=Baixa 2=Média 3=Alta)
+// s = Severidade padrão   (1=Leve  2=Moderada 3=Grave 4=Crítica)
 const RISCOS = [
-  {n:1,  r:"Cansaço Físico/Mental",          c:"Verificar condições físicas e psicológicas dos integrantes da equipe através do emociograma do DSS."},
-  {n:2,  r:"Uso de Adorno",                   c:"É proibido executar atividades portando adornos (anéis, brincos, aliança, colar, celular)."},
-  {n:3,  r:"Impacto Ambiental",               c:"Todos os resíduos gerados devem ser descartados corretamente. Área deve estar limpa e organizada."},
-  {n:4,  r:"Uso de Ferramentas Inadequadas",  c:"Não improvisar ferramentas. Realizar checklist antes do uso. Nunca utilizar ferramentas danificadas."},
-  {n:5,  r:"Procedimentos Técnicos Incorretos",c:"Comunicação direta e simplificada. Direcionar função por colaborador. Recolher assinaturas ao término."},
-  {n:6,  r:"Picadas de Animais Peçonhentos",  c:"Verificar presença de animais peçonhentos antes de iniciar atividades em escavações."},
-  {n:7,  r:"Trabalho próx. a Circuitos Energizados",c:"Manter distâncias de segurança dos pontos energizados."},
-  {n:8,  r:"Retorno de Tensão",               c:"Certificar liberação do equipamento. Aterramento provisório. Teste de ausência de tensão. LOTO."},
-  {n:9,  r:"Indução Elétrica",                c:"Utilizar aterramento provisório. Inspecionar cabos de aterramento. Apresentar distâncias de segurança."},
-  {n:10, r:"Trip Acidental",                  c:"Seguir procedimento de bloqueio e etiquetagem conforme NR-10."},
-  {n:11, r:"Choque Elétrico",                 c:"Proibido materiais metálicos próx. a SEP. Inspecionar extensões/cabos. Proibido trenas metálicas."},
-  {n:12, r:"Exposição a Ruído",               c:"Fazer uso de protetor auricular tipo plug ou concha."},
-  {n:13, r:"Exposição à Radiação",            c:"Usar protetor solar e reaplicar a cada 2 horas. Manter hidratação. Máscara contra UV para solda."},
-  {n:14, r:"Queda em Altura",                 c:"Treinamento NR-35 obrigatório. Cinto paraquedista com dois talabartes acima de 2 m. PT necessária."},
-  {n:15, r:"Exposição a Vibrações",           c:"Rodízio entre profissionais: 25 min trabalhados / 10 min descanso. Luva anti-vibração."},
-  {n:16, r:"Exposição a Fumos Metálicos",     c:"Usar máscara de proteção adequada para fumos e ventilação no local."},
-  {n:17, r:"Incêndio / Explosões",            c:"Manter extintor de incêndio próximo. Verificar ausência de materiais inflamáveis na área."},
-  {n:18, r:"Exposição a Poeiras",             c:"Uso obrigatório de máscara PFF2 para proteção de poeira."},
-  {n:19, r:"Levantamento Manual de Peso",     c:"Evitar levantar peso excessivo sozinho. Técnica correta: coluna ereta, força das pernas. Máx. 23 kg."},
-  {n:20, r:"Prensamento de Membros",          c:"Manter o corpo fora do raio de ação do equipamento."},
-  {n:21, r:"Colisões / Abalroamento",         c:"Transitar apenas nos locais destinados à tarefa. Delimitar área com cones, cordas e acessórios."},
-  {n:22, r:"Iluminação Inadequada",           c:"Garantir iluminação adequada no local de trabalho antes de iniciar atividades noturnas ou em ambientes fechados."},
-  {n:23, r:"Exposição a Gases/Vapores",       c:"Armazenar combustível somente em local autorizado. Extintor de incêndio no local dentro do prazo."},
-  {n:24, r:"Atropelamento",                   c:"Atentar ao trajeto perante veículos e máquinas. Contato visual com motorista e sinaleiro."},
-  {n:25, r:"Máquinas sem Proteção",           c:"Verificar proteções de máquinas conforme NR-12 antes de operar. Nunca remover proteções."},
-  {n:26, r:"Contato com Produtos Químicos",   c:"Uso obrigatório de luvas nitrílicas e máscara PFF2. Consultar FISPQ dos produtos manuseados."},
-  {n:27, r:"Manobra ou Operação Indevida",    c:"Operação somente por profissionais autorizados. Rádio de comunicação. Área sinalizada e isolada."},
-  {n:28, r:"Escoriações / Cortes / Pancadas", c:"Utilizar luvas de vaqueta. Delimitar área de trabalho com cones e cordas."},
-  {n:29, r:"Projeção de Partículas",          c:"Uso obrigatório de óculos de proteção durante todo o processo."},
-  {n:30, r:"Falha / Falta de Comunicação",    c:"Repassar perigos e controles. Comunicação clara e objetiva. Sanar dúvidas antes de iniciar."},
-  {n:31, r:"Condições Meteorológicas Adversas",c:"Suspender atividades em caso de raios e trovadas. Seguir fluxo de comunicação de acidentes (PAE)."},
-  {n:32, r:"Desmoronamento / Soterramento",   c:"Avaliar condições do solo. Proibir permanência na base do talude sem proteção. Sinalizar e isolar área de risco."},
-  {n:33, r:"Queda de Materiais e Ferramentas",c:"Manter ferramentas próximas ao local de trabalho. Área limpa e organizada continuamente."},
-  {n:34, r:"Queda de Pessoas",                c:"Executar limpeza contínua. Não acumular entulho em circulação. Comunicar áreas já limpas."},
-  {n:35, r:"Queimaduras",                     c:"Não se aproximar de partes quentes com a máquina ligada. Luvas de vaqueta e avental para solda."},
+  {n:1,  p:'2',s:'2', r:"Cansaço Físico/Mental",               c:"Verificar condições físicas e psicológicas dos integrantes da equipe através do emociograma do DSS."},
+  {n:2,  p:'2',s:'3', r:"Uso de Adorno",                        c:"É proibido executar atividades portando adornos (anéis, brincos, aliança, colar, celular)."},
+  {n:3,  p:'2',s:'2', r:"Impacto Ambiental",                    c:"Todos os resíduos gerados devem ser descartados corretamente. Área deve estar limpa e organizada."},
+  {n:4,  p:'2',s:'2', r:"Uso de Ferramentas Inadequadas",       c:"Não improvisar ferramentas. Realizar checklist antes do uso. Nunca utilizar ferramentas danificadas."},
+  {n:5,  p:'2',s:'3', r:"Procedimentos Técnicos Incorretos",    c:"Comunicação direta e simplificada. Direcionar função por colaborador. Recolher assinaturas ao término."},
+  {n:6,  p:'2',s:'2', r:"Picadas de Animais Peçonhentos",       c:"Verificar presença de animais peçonhentos antes de iniciar atividades em escavações."},
+  {n:7,  p:'3',s:'4', r:"Trabalho próx. a Circuitos Energizados",c:"Manter distâncias de segurança dos pontos energizados."},
+  {n:8,  p:'2',s:'4', r:"Retorno de Tensão",                    c:"Certificar liberação do equipamento. Aterramento provisório. Teste de ausência de tensão. LOTO."},
+  {n:9,  p:'3',s:'3', r:"Indução Elétrica",                     c:"Utilizar aterramento provisório. Inspecionar cabos de aterramento. Apresentar distâncias de segurança."},
+  {n:10, p:'2',s:'3', r:"Trip Acidental",                       c:"Seguir procedimento de bloqueio e etiquetagem conforme NR-10."},
+  {n:11, p:'2',s:'4', r:"Choque Elétrico",                      c:"Proibido materiais metálicos próx. a SEP. Inspecionar extensões/cabos. Proibido trenas metálicas."},
+  {n:12, p:'3',s:'2', r:"Exposição a Ruído",                    c:"Fazer uso de protetor auricular tipo plug ou concha."},
+  {n:13, p:'3',s:'1', r:"Exposição à Radiação",                 c:"Usar protetor solar e reaplicar a cada 2 horas. Manter hidratação. Máscara contra UV para solda."},
+  {n:14, p:'2',s:'4', r:"Queda em Altura",                      c:"Treinamento NR-35 obrigatório. Cinto paraquedista com dois talabartes acima de 2 m. PT necessária."},
+  {n:15, p:'2',s:'2', r:"Exposição a Vibrações",                c:"Rodízio entre profissionais: 25 min trabalhados / 10 min descanso. Luva anti-vibração."},
+  {n:16, p:'2',s:'2', r:"Exposição a Fumos Metálicos",          c:"Usar máscara de proteção adequada para fumos e ventilação no local."},
+  {n:17, p:'2',s:'4', r:"Incêndio / Explosões",                 c:"Manter extintor de incêndio próximo. Verificar ausência de materiais inflamáveis na área."},
+  {n:18, p:'3',s:'1', r:"Exposição a Poeiras",                  c:"Uso obrigatório de máscara PFF2 para proteção de poeira."},
+  {n:19, p:'3',s:'2', r:"Levantamento Manual de Peso",          c:"Evitar levantar peso excessivo sozinho. Técnica correta: coluna ereta, força das pernas. Máx. 23 kg."},
+  {n:20, p:'2',s:'3', r:"Prensamento de Membros",               c:"Manter o corpo fora do raio de ação do equipamento."},
+  {n:21, p:'2',s:'3', r:"Colisões / Abalroamento",              c:"Transitar apenas nos locais destinados à tarefa. Delimitar área com cones, cordas e acessórios."},
+  {n:22, p:'1',s:'2', r:"Iluminação Inadequada",                c:"Garantir iluminação adequada no local de trabalho antes de iniciar atividades noturnas ou em ambientes fechados."},
+  {n:23, p:'2',s:'3', r:"Exposição a Gases/Vapores",            c:"Armazenar combustível somente em local autorizado. Extintor de incêndio no local dentro do prazo."},
+  {n:24, p:'2',s:'3', r:"Atropelamento",                        c:"Atentar ao trajeto perante veículos e máquinas. Contato visual com motorista e sinaleiro."},
+  {n:25, p:'2',s:'3', r:"Máquinas sem Proteção",                c:"Verificar proteções de máquinas conforme NR-12 antes de operar. Nunca remover proteções."},
+  {n:26, p:'2',s:'2', r:"Contato com Produtos Químicos",        c:"Uso obrigatório de luvas nitrílicas e máscara PFF2. Consultar FISPQ dos produtos manuseados."},
+  {n:27, p:'2',s:'4', r:"Manobra ou Operação Indevida",         c:"Operação somente por profissionais autorizados. Rádio de comunicação. Área sinalizada e isolada."},
+  {n:28, p:'3',s:'2', r:"Escoriações / Cortes / Pancadas",      c:"Utilizar luvas de vaqueta. Delimitar área de trabalho com cones e cordas."},
+  {n:29, p:'2',s:'2', r:"Projeção de Partículas",               c:"Uso obrigatório de óculos de proteção durante todo o processo."},
+  {n:30, p:'2',s:'3', r:"Falha / Falta de Comunicação",         c:"Repassar perigos e controles. Comunicação clara e objetiva. Sanar dúvidas antes de iniciar."},
+  {n:31, p:'2',s:'3', r:"Condições Meteorológicas Adversas",    c:"Suspender atividades em caso de raios e trovadas. Seguir fluxo de comunicação de acidentes (PAE)."},
+  {n:32, p:'2',s:'3', r:"Desmoronamento / Soterramento",        c:"Avaliar condições do solo. Proibir permanência na base do talude sem proteção. Sinalizar e isolar área de risco."},
+  {n:33, p:'2',s:'3', r:"Queda de Materiais e Ferramentas",     c:"Manter ferramentas próximas ao local de trabalho. Área limpa e organizada continuamente."},
+  {n:34, p:'2',s:'2', r:"Queda de Pessoas",                     c:"Executar limpeza contínua. Não acumular entulho em circulação. Comunicar áreas já limpas."},
+  {n:35, p:'2',s:'3', r:"Queimaduras",                          c:"Não se aproximar de partes quentes com a máquina ligada. Luvas de vaqueta e avental para solda."},
 ];
 
 // Atividades reais do arquivo (32 atividades)
@@ -2479,7 +2527,12 @@ function renderRiscosSel(){
         const badgeNovo = r._custom ? `<span class="rfc-badge rfc-badge-novo">NOVO</span>` : '';
         // Item 5 – P×S
         const psKey = `${atvId}_${fIdx}_${r.n}`;
-        const psVal = riscoPSFase.get(psKey) || {p:'',s:''};
+        // Inicializar com defaults do risco se ainda não preenchido
+        if(!riscoPSFase.has(psKey)){
+          const rBase = RISCOS.find(rr=>rr.n===r.n)||r;
+          riscoPSFase.set(psKey, {p:rBase.p||'', s:rBase.s||''});
+        }
+        const psVal = riscoPSFase.get(psKey);
         const psNivel = calcPS(psVal.p, psVal.s);
         const psNivelHtml = psNivel
           ? `<span class="ps-nivel ${psNivel.cls}">${psNivel.icon} ${psNivel.label}</span>`
@@ -2997,7 +3050,8 @@ function gerarAPR(){
           const colunaMedidas = riscosFase.length > 0
             ? `<div class="apr-medidas-list">${riscosFase.map(r=>{
                 const psKey = `${id}_${i}_${r.n}`;
-                const psVal = riscoPSFase.get(psKey)||{p:'',s:''};
+                // Usa valor definido pelo usuário; se não houver, usa default do risco
+                const psVal = riscoPSFase.get(psKey) || {p: r.p||'', s: r.s||''};
                 const psN   = calcPS(psVal.p, psVal.s);
                 const psTag = psN ? `<span style="display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:800;background:${psN.bg};color:${psN.fg};margin-left:5px">${psN.icon} ${psN.label}</span>` : '';
                 return `
@@ -3013,10 +3067,21 @@ function gerarAPR(){
               </div>`
             : f.m; // fallback: texto original se nenhum risco foi selecionado
 
+          // Nível médio de risco da fase
+          const faseRiscosNivel = riscosFase.length > 0 ? riscosFase : getRiscosFromFaseStr(f.p);
+          const faseNivel = calcFaseNivel(faseRiscosNivel, id, i);
+          const faseNivelTag = faseNivel
+            ? `<div style="margin-top:5px;display:inline-flex;align-items:center;gap:3px;
+                           padding:2px 8px;border-radius:4px;font-size:8.5px;font-weight:800;
+                           letter-spacing:.3px;background:${faseNivel.bg};color:${faseNivel.fg}">
+                 ${faseNivel.icon} ${faseNivel.label}
+               </div>`
+            : '';
+
           return`
           <tr>
             <td class="cn">${i+1}</td>
-            <td class="cf">${f.f}</td>
+            <td class="cf">${f.f}${faseNivelTag}</td>
             <td class="cp">${colunaRiscos}</td>
             <td class="cm">${colunaMedidas}</td>
             <td class="ce">${f.e}</td>
@@ -3282,8 +3347,8 @@ function nova(){
   document.getElementById('f-pt').value='';
   document.getElementById('f-pt').disabled=false;
   document.getElementById('btn-na').classList.remove('ativo');
-  document.getElementById('f-elaborador').value='';
-  document.getElementById('elab-info').style.display='none';
+  // Manter elaborador logado na nova APR (mesma sessão)
+  checkElaboradorSession();
   document.getElementById('f-obs').value='';
 
   // Resetar riscos por fase — limpar o container (será reconstruído ao ir para Etapa 3)
@@ -3428,32 +3493,94 @@ function gerarChecklistsHTML(){
 
 
 // ═══════════════════════════════════════════════════
-// CREDENCIADOS — popular select de elaborador
+// CREDENCIADOS — Login de elaborador
 // ═══════════════════════════════════════════════════
 function popularElaborador(){
+  // Adiciona opções no select oculto para compatibilidade
   const sel = document.getElementById('f-elaborador');
   if(!sel) return;
   CREDENCIADOS.forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.nome;
     opt.textContent = c.nome;
-    opt.dataset.cargo = c.cargo;
     sel.appendChild(opt);
   });
+  // Verificar se há sessão ativa
+  checkElaboradorSession();
 }
 
-function onElaboradorChange(){
-  const sel = document.getElementById('f-elaborador');
-  const info = document.getElementById('elab-info');
-  const badge = document.getElementById('elab-cargo-badge');
-  const selected = CREDENCIADOS.find(c => c.nome === sel.value);
-  if(selected){
-    badge.textContent = selected.cargo;
-    info.style.display = 'flex';
-  } else {
-    info.style.display = 'none';
+function loginElaborador(){
+  const userInput = (document.getElementById('elab-user-input').value || '').trim().toLowerCase();
+  const passInput = document.getElementById('elab-pass-input').value || '';
+  const errEl     = document.getElementById('elab-login-err');
+
+  // Buscar credencial correspondente
+  const cred = CREDENCIADOS.find(c =>
+    c.user && c.user.toLowerCase() === userInput && c.senha === passInput
+  );
+
+  if(!cred){
+    errEl.style.display = 'block';
+    document.getElementById('elab-pass-input').value = '';
+    document.getElementById('elab-pass-input').focus();
+    // Shake visual no wrap
+    const wrap = document.getElementById('elab-login-wrap');
+    wrap.style.borderColor = 'var(--remo-red)';
+    setTimeout(() => wrap.style.borderColor = '', 1800);
+    return;
   }
+
+  errEl.style.display = 'none';
+  // Salvar sessão (expira ao fechar aba)
+  sessionStorage.setItem(ELAB_SESSION_KEY, JSON.stringify({n:cred.n, nome:cred.nome, cargo:cred.cargo}));
+  aplicarLoginElaborador(cred);
 }
+
+function aplicarLoginElaborador(cred){
+  // Preencher select oculto
+  const sel = document.getElementById('f-elaborador');
+  if(sel) sel.value = cred.nome;
+
+  // Exibir painel logado
+  document.getElementById('elab-logged-out-panel').style.display = 'none';
+  document.getElementById('elab-logged-in-panel').style.display  = 'block';
+  document.getElementById('elab-logged-nome').textContent  = cred.nome;
+  document.getElementById('elab-logged-cargo').textContent = cred.cargo;
+
+  // Limpar campos de entrada
+  const ui = document.getElementById('elab-user-input');
+  const pi = document.getElementById('elab-pass-input');
+  if(ui) ui.value = '';
+  if(pi) pi.value = '';
+
+  atualizarCompletude();
+}
+
+function logoutElaborador(){
+  sessionStorage.removeItem(ELAB_SESSION_KEY);
+  const sel = document.getElementById('f-elaborador');
+  if(sel) sel.value = '';
+
+  document.getElementById('elab-logged-out-panel').style.display = 'block';
+  document.getElementById('elab-logged-in-panel').style.display  = 'none';
+  document.getElementById('elab-login-err').style.display        = 'none';
+  document.getElementById('elab-login-wrap').style.borderColor   = '';
+
+  setTimeout(() => document.getElementById('elab-user-input')?.focus(), 50);
+  atualizarCompletude();
+}
+
+function checkElaboradorSession(){
+  try{
+    const sess = sessionStorage.getItem(ELAB_SESSION_KEY);
+    if(!sess) return;
+    const data = JSON.parse(sess);
+    const cred = CREDENCIADOS.find(c => c.n === data.n);
+    if(cred) aplicarLoginElaborador(cred);
+  } catch(e){}
+}
+
+function onElaboradorChange(){ /* mantido para compatibilidade */ }
 
 // ═══════════════════════════════════════════════════
 // EMAIL — modal e envio via mailto
@@ -3838,6 +3965,36 @@ function calcPS(p, s){
   if(nivel <= 4) return {label:'Médio',   cls:'medio',   icon:'🟡', bg:'#fff3cd', fg:'#856404'};
   if(nivel <= 8) return {label:'Alto',    cls:'alto',    icon:'🟠', bg:'#ffe0b2', fg:'#6d4c00'};
                return {label:'Crítico', cls:'critico', icon:'🔴', bg:'#f8d7da', fg:'#721c24'};
+}
+
+// Converte valor numérico P×S direto para nível (para cálculo de média)
+function calcNivelFromNum(n){
+  if(!n || n <= 0) return null;
+  if(n <= 2) return {label:'Baixo',   cls:'baixo',   icon:'🟢', bg:'#d4edda', fg:'#155724'};
+  if(n <= 4) return {label:'Médio',   cls:'medio',   icon:'🟡', bg:'#fff3cd', fg:'#856404'};
+  if(n <= 8) return {label:'Alto',    cls:'alto',    icon:'🟠', bg:'#ffe0b2', fg:'#6d4c00'};
+             return {label:'Crítico', cls:'critico', icon:'🔴', bg:'#f8d7da', fg:'#721c24'};
+}
+
+// Busca riscos correspondentes a uma fase pelo campo f.p (string com nomes)
+function getRiscosFromFaseStr(faseP){
+  if(!faseP) return [];
+  const fp = faseP.toLowerCase();
+  return RISCOS.filter(r => fp.includes(r.r.toLowerCase().substring(0, 8)));
+}
+
+// Calcula nível médio de risco de uma lista de riscos para uma fase
+function calcFaseNivel(riscos, atvId, fIdx){
+  if(!riscos || !riscos.length) return null;
+  const niveis = riscos.map(r => {
+    const k = `${atvId}_${fIdx}_${r.n}`;
+    const pv = riscoPSFase.get(k) || {p: r.p||'', s: r.s||''};
+    if(!pv.p || !pv.s) return 0;
+    return +pv.p * +pv.s;
+  }).filter(n => n > 0);
+  if(!niveis.length) return null;
+  const media = niveis.reduce((a, b) => a + b, 0) / niveis.length;
+  return calcNivelFromNum(media);
 }
 
 function atualizarPS(atvId, fIdx, rNum, campo, val){
