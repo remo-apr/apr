@@ -3282,7 +3282,17 @@ function gerarAPR(){
       </div>
     </div>
     <div class="apr-rodape">⚠ Regras de Ouro: Chuva com raios → PARALISAR IMEDIATAMENTE &nbsp;|&nbsp; APR obrigatória antes de iniciar &nbsp;|&nbsp; EPI básico obrigatório em todas as frentes &nbsp;|&nbsp; <span style="opacity:.6">APR Sistema ${APP_VERSAO}</span></div>
-    ${gerarChecklistsHTML()}`;
+    ${gerarChecklistsHTML()}
+    <!-- Botão de download PDF — oculto na impressão -->
+    <div class="no-print" style="display:flex;justify-content:center;padding:24px 0 8px;gap:12px">
+      <button onclick="window.print()"
+        style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;
+               background:#1B3E6B;color:#fff;border:none;border-radius:7px;
+               font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;
+               letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 14px rgba(27,62,107,.25)">
+        📥 Baixar / Imprimir APR (PDF)
+      </button>
+    </div>`;
 
   ir('out');
   // Mostrar botão exportar se há novas APRs
@@ -3321,8 +3331,8 @@ function gerarAPR(){
       versao:      APP_VERSAO,
     };
 
-    // HTML de fallback (caso PDF falhe)
-    const aprOutputEl  = document.getElementById('apr-output');
+    // Capturar HTML completo da APR para o Drive
+    const aprOutputEl  = document.getElementById('apr-out');
     const cssEl        = document.querySelector('style');
     const aprHtmlFallback = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
 <title>APR ${numRastreio}</title>
@@ -3330,30 +3340,8 @@ function gerarAPR(){
 <style>body{font-family:'Barlow',sans-serif;background:#fff;margin:0;padding:0}${cssEl?cssEl.textContent:''}</style>
 </head><body>${aprOutputEl?aprOutputEl.innerHTML:''}</body></html>`;
 
-    // Tentar gerar PDF via html2pdf.js (CDN) e enviar ao Drive
-    carregarHtml2Pdf(function(erro){
-      if(!erro && aprOutputEl && typeof html2pdf !== 'undefined'){
-        const opt = {
-          margin:     [9, 8, 9, 8],
-          filename:   `APR_${numRastreio}.pdf`,
-          image:      { type:'jpeg', quality:0.92 },
-          html2canvas:{ scale:2, useCORS:true, logging:false },
-          jsPDF:      { unit:'mm', format:'a4', orientation:'portrait' }
-        };
-        html2pdf().set(opt).from(aprOutputEl).outputPdf('arraybuffer')
-          .then(buffer => {
-            // Converter ArrayBuffer → base64
-            const bytes  = new Uint8Array(buffer);
-            let   binary = '';
-            bytes.forEach(b => binary += String.fromCharCode(b));
-            autoSync(syncUrl, dadosSync, btoa(binary), null);
-          })
-          .catch(() => autoSync(syncUrl, dadosSync, null, aprHtmlFallback));
-      } else {
-        // Fallback: enviar HTML se PDF não for possível
-        autoSync(syncUrl, dadosSync, null, aprHtmlFallback);
-      }
-    });
+    // Enviar HTML completo ao Drive (abre perfeitamente no navegador)
+    autoSync(syncUrl, dadosSync, null, aprHtmlFallback);
   }
 
   // Item 13 – Mostrar botão de configuração de sync
