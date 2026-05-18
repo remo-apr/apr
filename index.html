@@ -3282,17 +3282,7 @@ function gerarAPR(){
       </div>
     </div>
     <div class="apr-rodape">⚠ Regras de Ouro: Chuva com raios → PARALISAR IMEDIATAMENTE &nbsp;|&nbsp; APR obrigatória antes de iniciar &nbsp;|&nbsp; EPI básico obrigatório em todas as frentes &nbsp;|&nbsp; <span style="opacity:.6">APR Sistema ${APP_VERSAO}</span></div>
-    ${gerarChecklistsHTML()}
-    <!-- Botão de download PDF — oculto na impressão -->
-    <div class="no-print" style="display:flex;justify-content:center;padding:24px 0 8px;gap:12px">
-      <button onclick="window.print()"
-        style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;
-               background:#1B3E6B;color:#fff;border:none;border-radius:7px;
-               font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;
-               letter-spacing:.5px;cursor:pointer;box-shadow:0 4px 14px rgba(27,62,107,.25)">
-        📥 Baixar / Imprimir APR (PDF)
-      </button>
-    </div>`;
+    ${gerarChecklistsHTML()}\`;
 
   ir('out');
   // Mostrar botão exportar se há novas APRs
