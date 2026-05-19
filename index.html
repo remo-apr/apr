@@ -3308,6 +3308,7 @@ function gerarAPR(){
     const equipeStr   = disciplinas.length > 0 ? disciplinas.join(' / ') : (getEquipe().length > 0 ? `${getEquipe().length} colaboradores` : '—');
 
     const dadosSync = {
+      // ── Metadados básicos (planilha) ──
       rastreio:    numRastreio,
       data:        v('f-data'),
       atividade:   _atvSel ? `APR-${String(_atvSel.id).padStart(2,'0')} — ${_atvSel.nome}` : '—',
@@ -3319,9 +3320,29 @@ function gerarAPR(){
       local:       [...SEL_L].join('; ') || '—',
       pt:          v('f-pt'),
       versao:      APP_VERSAO,
+      obs:         obs || '',
+      escopo:      escopo || '',
+      maqs:        maqs || '',
+      // ── Dados ricos para o PDF completo ──
+      encList: [...SEL_E].map(nome => {
+        const enc = ENCARREGADOS.find(e => e.nome === nome);
+        return {nome, funcao: enc ? enc.funcao : 'Encarregado'};
+      }),
+      equipeList: getEquipe().map(c => ({nome: c.nome, cargo: c.cargo})),
+      fasesData: _atvSel ? _atvSel.fases.map((f, i) => {
+        const rf = getRiscosFase(_atvSel.id, i);
+        return {
+          fase:    f.f || '',
+          riscos:  rf.length > 0 ? rf.map(r => r.r).join(' · ') : (f.p || ''),
+          medidas: rf.length > 0 ? rf.map(r => r.c).join(' · ') : (f.m || ''),
+          epi:     f.e || '',
+          resp:    f.r || ''
+        };
+      }) : [],
+      riscosList: riscosParaAPR.map(r => ({num: r.n, risco: r.r, controle: r.c})),
     };
 
-    // Enviar apenas metadados (sem HTML) — Apps Script gera PDF via DocumentApp
+    // Enviar todos os dados da APR — Apps Script gera PDF completo
     autoSync(syncUrl, dadosSync);
   }
 
