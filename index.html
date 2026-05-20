@@ -3342,8 +3342,8 @@ function gerarAPR(){
       riscosList: riscosParaAPR.map(r => ({num: r.n, risco: r.r, controle: r.c})),
     };
 
-    // Enviar todos os dados da APR — Apps Script gera PDF completo
-    autoSync(syncUrl, dadosSync);
+    // Gerar PDF do documento real e enviar ao Drive
+    autoSyncComPDF(syncUrl, dadosSync);
   }
 
   // Item 13 – Mostrar botão de configuração de sync
@@ -4212,6 +4212,76 @@ function autoSync(url, dados){
   })
   .catch(()=>{
     if(badge){ badge.className='sync-badge fail'; badge.textContent='❌ Falha no envio'; }
+  });
+}
+
+// ── Gera PDF do documento real (html2pdf.js) e envia ao Drive ────────────
+function autoSyncComPDF(url, dados){
+  if(!url) return;
+  const badge = document.getElementById('sync-status');
+  if(badge){ badge.style.display='inline'; badge.className='sync-badge ing'; badge.textContent='🔄 Gerando PDF…'; }
+
+  carregarHtml2Pdf(function(erro){
+    if(erro || typeof html2pdf === 'undefined'){
+      // Fallback: enviar só os metadados
+      autoSync(url, dados);
+      return;
+    }
+    const el = document.getElementById('apr-out');
+    if(!el){ autoSync(url, dados); return; }
+
+    const opt = {
+      margin:     [6, 6, 6, 6],
+      filename:   (dados.rastreio||'APR') + '.pdf',
+      image:      { type:'jpeg', quality:0.90 },
+      html2canvas:{ scale:1.5, useCORS:true, logging:false, scrollY:0 },
+      jsPDF:      { unit:'mm', format:'a4', orientation:'portrait' },
+      pagebreak:  { mode:['css','legacy'] }
+    };
+
+    html2pdf().set(opt).from(el).outputPdf('blob')
+    .then(function(blob){
+      const reader = new FileReader();
+      reader.onload = function(){
+        const base64  = reader.result.split(',')[1];
+        // Payload: metadados básicos + PDF em base64 (sem fasesData/riscosList — Apps Script não precisa mais)
+        const payload = {
+          rastreio:    dados.rastreio,
+          data:        dados.data,
+          atividade:   dados.atividade,
+          elaborador:  dados.elaborador,
+          encarregado: dados.encarregado,
+          equipe:      dados.equipe,
+          etapa:       dados.etapa,
+          clima:       dados.clima,
+          local:       dados.local,
+          pt:          dados.pt,
+          versao:      dados.versao,
+          obs:         dados.obs,
+          tipo:        'blob',
+          pdfBase64:   base64
+        };
+        if(badge) badge.textContent='🔄 Enviando…';
+        fetch(url, {
+          method:'POST',
+          headers:{'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify(payload),
+          mode:'no-cors'
+        })
+        .then(()=>{
+          if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
+          setTimeout(()=>{ if(badge) badge.style.display='none'; }, 5000);
+        })
+        .catch(()=>{
+          if(badge){ badge.className='sync-badge fail'; badge.textContent='❌ Falha no envio'; }
+        });
+      };
+      reader.readAsDataURL(blob);
+    })
+    .catch(function(){
+      // Fallback se html2pdf falhar
+      autoSync(url, dados);
+    });
   });
 }
 </script>
