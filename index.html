@@ -4187,9 +4187,17 @@ function salvarSyncURL(){
 function carregarHtml2Pdf(callback){
   if(typeof html2pdf !== 'undefined'){ callback(); return; }
   const s = document.createElement('script');
-  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+  // Tenta jsdelivr primeiro; se falhar, tenta unpkg como fallback
+  s.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
   s.onload  = () => callback();
-  s.onerror = () => callback(true); // true = erro
+  s.onerror = () => {
+    // Fallback para unpkg
+    const s2 = document.createElement('script');
+    s2.src = 'https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
+    s2.onload  = () => callback();
+    s2.onerror = () => callback(true); // ambos falharam
+    document.head.appendChild(s2);
+  };
   document.head.appendChild(s);
 }
 
@@ -4198,19 +4206,27 @@ function autoSync(url, dados){
   const badge = document.getElementById('sync-status');
   if(badge){ badge.style.display='inline'; badge.className='sync-badge ing'; badge.textContent='🔄 Enviando…'; }
 
+  // Diagnóstico — remover após confirmar funcionamento
+  const payload = JSON.stringify(dados);
+  console.log('[APR-SYNC] URL:', url);
+  console.log('[APR-SYNC] Payload size (bytes):', new Blob([payload]).size);
+  console.log('[APR-SYNC] Rastreio:', dados.rastreio);
+
   // IMPORTANTE: mode:'no-cors' exige Content-Type text/plain
   // application/json é bloqueado silenciosamente pelo browser neste modo
   fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'text/plain;charset=utf-8'},
-    body: JSON.stringify(dados),
+    body: payload,
     mode: 'no-cors'
   })
   .then(()=>{
+    console.log('[APR-SYNC] Fetch resolvido (no-cors — resposta opaca)');
     if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
     setTimeout(()=>{ if(badge) badge.style.display='none'; }, 5000);
   })
-  .catch(()=>{
+  .catch((err)=>{
+    console.error('[APR-SYNC] Fetch falhou:', err);
     if(badge){ badge.className='sync-badge fail'; badge.textContent='❌ Falha no envio'; }
   });
 }
