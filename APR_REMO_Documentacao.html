@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Documentação do Projeto — Sistema APR REMO ENGENHARIA</title>
+<style>
+  :root {
+    --navy: #1B3E6B;
+    --dk:   #2E5F9E;
+    --grn:  #00A651;
+    --gold: #F5C400;
+    --bg:   #f2f4f6;
+    --wh:   #ffffff;
+    --li:   #E8EEF5;
+    --line: #dde3ea;
+    --txt:  #1a2332;
+    --mut:  #6b7a8d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5}
+
+  /* HEADER */
+  .hero{background:linear-gradient(135deg,var(--navy) 0%,var(--dk) 60%,var(--grn) 100%);color:#fff;padding:44px 32px 36px;text-align:center}
+  .hero-logo{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;opacity:.7;margin-bottom:8px}
+  .hero h1{font-size:28px;font-weight:900;letter-spacing:-.5px;margin-bottom:6px}
+  .hero h2{font-size:15px;font-weight:400;opacity:.85;margin-bottom:20px}
+  .hero-badges{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:4px 14px;font-size:12px;font-weight:600;letter-spacing:.5px}
+  .badge.green{background:rgba(0,166,81,.3);border-color:rgba(0,166,81,.5)}
+  .badge.gold{background:rgba(245,196,0,.25);border-color:rgba(245,196,0,.5);color:#ffe066}
+
+  /* LAYOUT */
+  .container{max-width:1060px;margin:0 auto;padding:32px 20px}
+  .section{background:var(--wh);border-radius:10px;border:1px solid var(--line);margin-bottom:24px;overflow:hidden}
+  .section-hdr{background:var(--navy);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:10px}
+  .section-hdr h3{font-size:14px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  .section-hdr .icon{font-size:18px}
+  .section-body{padding:0}
+
+  /* INFO GRID */
+  .info-grid{display:grid;grid-template-columns:220px 1fr;border-top:1px solid var(--line)}
+  .info-grid .lbl{background:var(--li);padding:11px 18px;font-weight:700;font-size:13px;color:var(--navy);border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+  .info-grid .val{padding:11px 18px;border-bottom:1px solid var(--line);font-size:13px}
+  .info-grid .val a{color:var(--dk);text-decoration:none}
+  .info-grid .val a:hover{text-decoration:underline}
+
+  /* TABLE */
+  table{width:100%;border-collapse:collapse}
+  th{background:var(--dk);color:#fff;padding:10px 14px;font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;text-align:left}
+  td{padding:10px 14px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}
+  tr:nth-child(even) td{background:#f8f9fb}
+  tr:last-child td{border-bottom:none}
+  .tag{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;letter-spacing:.3px}
+  .tag-grn{background:#e6f7ed;color:#00833d}
+  .tag-yel{background:#fff3cd;color:#856404}
+  .tag-blu{background:#e8eef5;color:var(--navy)}
+  .tag-org{background:#fff0e6;color:#a0522d}
+  .tag-nvy{background:var(--navy);color:#fff}
+  .tag-dk{background:var(--dk);color:#fff}
+
+  /* COMMITS */
+  .commit-row td:first-child{font-size:12px;color:var(--mut);white-space:nowrap;font-weight:600}
+  .commit-row td:nth-child(2){font-weight:700;font-size:12px;color:var(--navy)}
+
+  /* FEATURES */
+  .feat-check{color:var(--grn);font-weight:700;font-size:13px}
+
+  /* TECH GRID */
+  .tech-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1px;background:var(--line)}
+  .tech-card{background:var(--wh);padding:16px 18px}
+  .tech-card .tech-name{font-weight:700;font-size:13px;color:var(--navy);margin-bottom:4px}
+  .tech-card .tech-desc{font-size:12px;color:var(--mut);line-height:1.4}
+
+  /* FLOW */
+  .flow{display:flex;flex-direction:column;gap:0;padding:20px 22px}
+  .flow-step{display:flex;gap:14px;align-items:flex-start;position:relative;padding-bottom:18px}
+  .flow-step:last-child{padding-bottom:0}
+  .flow-step::before{content:'';position:absolute;left:18px;top:36px;width:2px;height:calc(100% - 18px);background:var(--line)}
+  .flow-step:last-child::before{display:none}
+  .flow-num{width:36px;height:36px;border-radius:50%;background:var(--navy);color:#fff;font-weight:900;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1}
+  .flow-content .flow-title{font-weight:700;font-size:13px;color:var(--navy);margin-bottom:3px}
+  .flow-content .flow-desc{font-size:12px;color:var(--mut);line-height:1.5}
+
+  /* DB */
+  .db-grid{display:grid;grid-template-columns:180px 70px 1fr;border-top:1px solid var(--line)}
+  .db-grid .db-lbl{background:var(--li);padding:12px 16px;font-weight:700;font-size:12px;color:var(--navy);border-bottom:1px solid var(--line);border-right:1px solid var(--line);font-family:monospace;letter-spacing:0}
+  .db-grid .db-num{padding:12px 10px;text-align:center;font-size:20px;font-weight:900;color:var(--navy);border-bottom:1px solid var(--line);border-right:1px solid var(--line)}
+  .db-grid .db-desc{padding:12px 16px;font-size:12px;color:var(--txt);border-bottom:1px solid var(--line);line-height:1.5}
+  .db-total{grid-column:1/-1;background:var(--navy);color:#fff;padding:12px 16px;font-weight:700;font-size:13px;text-align:center}
+
+  /* FOOTER */
+  .footer{text-align:center;padding:28px 20px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);background:var(--wh);margin-top:12px}
+  .footer strong{color:var(--navy)}
+
+  @media print {
+    .hero{padding:24px 20px 20px}
+    .container{padding:16px}
+    .section{page-break-inside:avoid}
+  }
+  @media(max-width:640px){
+    .info-grid{grid-template-columns:1fr}
+    .info-grid .lbl{border-right:none}
+    .db-grid{grid-template-columns:1fr 60px 1fr}
+    .hero h1{font-size:22px}
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-logo">Documentação do Projeto</div>
+  <h1>Sistema APR Digital</h1>
+  <h2>REMO ENGENHARIA &nbsp;·&nbsp; SE JAGUARA 345 kV</h2>
+  <div class="hero-badges">
+    <span class="badge">Versão 4.1</span>
+    <span class="badge green">✅ Em Produção</span>
+    <span class="badge">PWA / Offline</span>
+    <span class="badge gold">NR-10 / NR-18 / NR-35</span>
+    <span class="badge">Última atualização: 20/05/2026</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- IDENTIFICAÇÃO -->
+  <div class="section">
+    <div class="section-hdr"><span class="icon">📋</span><h3>Identificação do Projeto</h3></div>
+    <div class="info-grid">
+      <div class="lbl">Projeto</div>      <div class="val">Sistema APR Digital — Análise Preliminar de Risco</div>
+      <div class="lbl">Empresa</div>      <div class="val"><strong>REMO ENGENHARIA</strong></div>
+      <div class="lbl">Obra / Local</div> <div class="val"><strong>SE JAGUARA 345 kV</strong></div>
+      <div class="lbl">Arquivo</div>      <div class="val"><code>index.html</code> — single-file, PWA, 4421 linhas, ~430 KB</div>
+      <div class="lbl">URL pública</div>  <div class="val"><a href="https://remo-apr.github.io/apr/" target="_blank">https://remo-apr.github.io/apr/</a></div>
+      <div class="lbl">Repositório</div>  <div class="val"><a href="https://github.com/remo-apr/apr" target="_blank">https://github.com/remo-apr/apr</a></div>
+      <div class="lbl">Versão atual</div> <div class="val"><strong>4.1</strong></div>
+      <div class="lbl">Data de início</div>    <div class="val">16/04/2026</div>
+      <div class="lbl">Última atualização</div><div class="val">20/05/2026</div>
+      <div class="lbl">Desenvolvido com</div>  <div class="val">Assistência Claude AI (Anthropic)</div>
+      <div class="lbl">Conformidade</div>      <div class="val">NR-10 / NR-18 / NR-35</div>
+    </div>
+  </div>
+
+  <!-- DESCRIÇÃO -->
+  <div class="section">
+    <div class="section-hdr"><span class="icon">📝</span><h3>Descrição do Sistema</h3></div>
+    <div style="padding:20px 22px;font-size:13px;line-height:1.7;color:#2a3a4a">
+      <p>Sistema digital de <strong>Análise Preliminar de Risco (APR)</strong> para conformidade com <strong>NR-10, NR-18 e NR-35</strong>, desenvolvido como <em>single-file HTML</em> com suporte a PWA (Progressive Web App).</p>
+      <br>
+      <p>Permite elaboração, impressão e arquivamento de APRs diárias antes do início de serviços elétricos, civis e de montagem em subestação de alta tensão. O sistema funciona inteiramente no browser, sem necessidade de servidor, banco de dados externo ou instalação de software.</p>
+      <br>
+      <p>Integrado ao <strong>Google Drive</strong> e <strong>Google Sheets</strong> para armazenamento automático em nuvem: ao gerar uma APR, o PDF completo (idêntico ao documento impresso) é enviado diretamente ao Drive e registrado na planilha de controle com link para acesso.</p>
+    </div>
+  </div>
+
+  <!-- TECNOLOGIAS -->
+  <div class="section">
+    <div class="section-hdr"><span class="icon">⚙️</span><h3>Tecnologias Utilizadas</h3></div>
+    <div class="tech-grid">
+      <div class="tech-card"><div class="tech-name">HTML5 / CSS3 / JavaScript</div><div class="tech-desc">Single-file sem dependências externas além de Google Fonts</div></div>
+      <div class="tech-card"><div class="tech-name">PWA</div><div class="tech-desc">Manifest embutido + Service Worker. Instalável offline em mobile e desktop</div></div>
+      <div class="tech-card"><div class="tech-name">html2pdf.js (CDN)</div><div class="tech-desc">PDF gerado do documento HTML renderizado no browser, carregado sob demanda</div></div>
+      <div class="tech-card"><div class="tech-name">Google Apps Script v12</div><div class="tech-desc">Web App doPost: recebe PDF em base64 e salva diretamente no Google Drive</div></div>
+      <div class="tech-card"><div class="tech-name">Google Drive</div><div class="tech-desc">Armazenamento automático de PDFs na pasta da obra SE JAGUARA</div></div>
+      <div class="tech-card"><div class="tech-name">Google Sheets</div><div class="tech-desc">Planilha de registro com 13 colunas e link clicável para cada PDF</div></div>
+      <div class="tech-card"><div class="tech-name">GitHub Pages</div><div class="tech-desc">Hospedagem pública em remo-apr.github.io/apr</div></div>
+      <div class="tech-card"><div class="tech-name">localStorage / Cache</div><div class="tech-desc">Histórico local de APRs geradas e funcionamento offline</div></div>
+      <div class="tech-card"><div class="tech-name">QR Code API</div><div class="tech-desc">QR do rastreio gerado dinamicamente na APR impressa</div></div>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO DE COMMITS -->
+  <div class="section">
+    <div class="section-hdr"><span class="icon">🕓</span><h3>Histórico de Desenvolvimento</h3></div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Data</th><th>Versão / Tag</th><th>Descrição</th><th>Tipo</th></tr></thead>
+        <tbody>
+          <tr class="commit-row">
+            <td>20/05/2026</td>
+            <td>v4.1 — Apps Script v12</td>
+            <td>PDF do Drive gerado do documento real: <code>autoSyncComPDF()</code> renderiza <code>#apr-out</code> via html2pdf.js e envia base64 ao Apps Script. PDF salvo = documento impresso (layout idêntico ao Ctrl+P).</td>
+            <td><span class="tag tag-grn">Melhoria</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>19/05/2026</td>
+            <td>v4.1 — Apps Script v11</td>
+            <td>Extensão do <code>dadosSync</code> com <code>fasesData</code>, <code>equipeList</code>, <code>encList</code>, <code>riscosList</code>. Apps Script v11 monta PDF via Sheets com 6 seções: cabeçalho, identificação, fases, riscos, assinaturas, footer.</td>
+            <td><span class="tag tag-grn">Melhoria</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>17/05/2026</td>
+            <td>v4.1 — Fix sync</td>
+            <td>Corrigida <code>Content-Type</code> do fetch (<code>text/plain</code> para <code>mode:no-cors</code>). Removido payload HTML do sync. Corrigido erro de sintaxe na template literal.</td>
+            <td><span class="tag tag-yel">Correção</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>17/05/2026</td>
+            <td>v4.1 — Apps Script v10</td>
+            <td>PDF via <code>SpreadsheetApp.create()</code> + <code>getAs('application/pdf')</code> para evitar erro de permissão <code>DocumentApp</code>. Colunas da planilha corrigidas.</td>
+            <td><span class="tag tag-yel">Correção</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>17/05/2026</td>
+            <td>v4.1 — Integração Drive</td>
+            <td>Integração com Google Drive e Sheets: ao gerar APR, PDF salvo na pasta da obra e linha registrada na planilha de controle com link clicável.</td>
+            <td><span class="tag tag-blu">Nova func.</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>17/05/2026</td>
+            <td>v4.1 — Login</td>
+            <td>Login usuário/senha para elaboradores credenciados (7 usuários). Sessão <code>localStorage</code>. Modal com avatar e mensagem de boas-vindas.</td>
+            <td><span class="tag tag-blu">Nova func.</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>15/05/2026</td>
+            <td>v4.1 — Dados</td>
+            <td>Atualização da lista de colaboradores, telefones dos responsáveis técnicos (Leandro Pizani / Gislaine Nascimento) e adição do Risco 20 na base de dados.</td>
+            <td><span class="tag tag-org">Dados</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>06/05/2026</td>
+            <td>v4.0 — Manutenção</td>
+            <td>Atualização geral do index.html com ajustes de layout e dados de equipe.</td>
+            <td><span class="tag" style="background:#f5f5f5;color:#666">Manut.</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>17/04/2026</td>
+            <td>v4.0 — Lançamento</td>
+            <td>Sistema completo: 5 etapas, 32 atividades, 35 riscos, 46 colaboradores, 33 máquinas com checklists, PWA, rastreio <code>REMO-YYYYMMDD-HHMMSS-XXXX</code>.</td>
+            <td><span class="tag tag-nvy">Lançamento</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>16/04/2026</td>
+            <td>v4.0 — Repositório</td>
+            <td>Criação do repositório <code>remo-apr/apr</code> no GitHub e configuração do GitHub Pages para hospedagem pública.</td>
+            <td><span class="tag tag-dk">Infra</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FUNCIONALIDADES -->
+  <div class="section">
+    <div class="section-hdr"><span class="icon">✅</span><h3>Funcionalidades Implementadas</h3></div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Módulo</th><th>Descrição</th><th style="width:80px">Status</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Login de Elaboradores</strong></td><td>Modal autenticação usuário/senha. 7 elaboradores credenciados. Sessão localStorage com avatar.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Etapa 1 — Identificação</strong></td><td>Data, PT Nº, Elaborador, Encarregado (multi), Local (14), Escopo (28), Máquinas, Clima, Etapa APR.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Etapa 2 — Atividades</strong></td><td>32 atividades com filtro Civil/Elétrica/Montagem. Radio-select. Modal Nova APR personalizada.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Etapa 3 — Riscos por Fase</strong></td><td>Por fase: grid de 35 riscos com checkbox + complemento opcional. Vinculado à atividade.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Etapa 4 — Equipe de Campo</strong></td><td>46 colaboradores com filtro por equipe e busca por nome. Seleção múltipla com contador.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Etapa 5 — Geração</strong></td><td>Resumo completo + botão Gerar APR com validação dos campos obrigatórios.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Documento APR (HTML)</strong></td><td>Cabeçalho REMO, metadados, calendário semanal, tabela de fases, riscos, assinaturas, barra de rastreio, QR code, footer NR.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Checklists de Máquinas</strong></td><td>33 máquinas com checklists de inspeção pré-uso, gerados automaticamente para impressão.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Impressão / PDF local</strong></td><td><code>window.print()</code> com CSS <code>@media print</code> A4. Ctrl+P gera documento completo.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Sync PDF → Google Drive</strong></td><td><code>autoSyncComPDF()</code>: html2pdf.js renderiza DOM → blob PDF → base64 → Apps Script → Drive.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Registro Google Sheets</strong></td><td>13 colunas na planilha de controle + link clicável "📄 Abrir PDF" para cada APR.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Número de Rastreio</strong></td><td>Formato <code>REMO-YYYYMMDD-HHMMSS-XXXX</code> com QR Code na barra final da APR.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Histórico Local</strong></td><td>localStorage armazena APRs geradas. Modal histórico com lista completa.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>PWA / Offline</strong></td><td>Manifest dinâmico + Service Worker. Instalável. Funciona sem conexão.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Modo Escuro</strong></td><td>Toggle 🌙 para alternar entre tema claro e escuro.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Responsividade</strong></td><td>Layout CSS Grid/Flex para mobile 375px+, tablet e desktop.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Nova Atividade Ad-hoc</strong></td><td>Modal para criar atividade personalizada com fases e riscos customizados.</td><td class="feat-check">✅ Ativo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BANCO DE DADOS -->
+  <div class="section">
+    <div class="section-hdr"><span class="icon">🗄️</span><h3>Banco de Dados Embutido</h3></div>
+    <div class="db-grid">
+      <div class="db-lbl">ATIVIDADES</div>       <div class="db-num">32</div><div class="db-desc">32 atividades com fases, perigos, medidas de controle, EPIs e responsável. Disciplinas: Civil, Elétrica, Montagem.</div>
+      <div class="db-lbl">RISCOS</div>            <div class="db-num">35</div><div class="db-desc">35 riscos com descrição completa e medidas de controle associadas. Numerados R01 a R35.</div>
+      <div class="db-lbl">EQUIPE_CAMPO</div>      <div class="db-num">46</div><div class="db-desc">46 colaboradores com nome, cargo e equipe (Civil / Elétrica / Montagem / Administrativo). Atualizado em 15/05/2026.</div>
+      <div class="db-lbl">CREDENCIADOS</div>       <div class="db-num">7</div> <div class="db-desc">7 elaboradores autorizados com login, senha, função e avatar para assinar APRs.</div>
+      <div class="db-lbl">MAQUINAS</div>          <div class="db-num">33</div><div class="db-desc">33 máquinas manuais com checklists completos de inspeção pré-uso, impressos junto à APR.</div>
+      <div class="db-lbl">LOCAIS_FIXOS</div>      <div class="db-num">14</div><div class="db-desc">14 locais fixos da SE JAGUARA 345 kV (Pátio 345 kV, Sala de Controle, etc.).</div>
+      <div class="db-lbl">ESCOPOS_FIXOS</div>     <div class="db-num">28</div><div class="db-desc">28 escopos de obra pré-definidos para seleção rápida no campo.</div>
+      <div class="db-lbl">RESP. TÉCNICOS</div>     <div class="db-num">2</div> <div class="db-desc"><strong>Leandro Pizani</strong> — Eng. Residente — (31) 99223-7798<br><strong>Gislaine Nascimento</strong> — Téc. Segurança — (34) 98408-3585</div>
+      <div class="db-total">Total: 32 + 35 + 46 + 33 + 14 + 28 = <strong>188 registros</strong> no banco de dados embutido no arquivo HTML</div>
+    </div>
+  </div>
+
+  <!-- INTEGRAÇÃO DRIVE -->
+  <div class="section">
+    <div class="section-hdr"><span class="icon">☁️</span><h3>Integração Google Drive / Apps Script</h3></div>
+    <div class="info-grid">
+      <div class="lbl">Apps Script — Versão</div>     <div class="val"><strong>v12</strong> (implantada em 20/05/2026 às 14:48)</div>
+      <div class="lbl">Apps Script — Project ID</div> <div class="val" style="font-family:monospace;font-size:11px">1lPJsEOhqHCzdiA5d5WuJbdrmEkfA4ZuQZpVVKDraU7a3d0ArWzs0lj-_</div>
+      <div class="lbl">Web App URL</div>              <div class="val" style="font-family:monospace;font-size:10px;word-break:break-all"><a href="https://script.google.com/macros/s/AKfycbwPdWSS-Abki7PxArO-cfll3P-mOunnW2IKXpdelflb20W0jiKwIdUjqKqFZGqBA0ah/exec">https://script.google.com/macros/s/AKfycbwPdWSS-Abki7PxArO-.../exec</a></div>
+      <div class="lbl">Drive — Pasta ID</div>         <div class="val" style="font-family:monospace;font-size:12px">114YydL5vkN9mkJkZGMeO4-HF9LGwPpfp</div>
+      <div class="lbl">Planilha de Registros</div>    <div class="val">Registro de APRs - REMO JAGUARA 345 kV</div>
+      <div class="lbl">Colunas (13 total)</div>       <div class="val" style="font-size:12px">Rastreio | Data | Atividade | Elaborador | Encarregado | Equipe | <em>Arquivo Drive</em> | Etapa | Clima | Local | PT | Versão | Registrado em</div>
+      <div class="lbl">Permissão</div>                <div class="val"><code>executeAs: USER_DEPLOYING</code> / <code>access: ANYONE_ANONYMOUS</code></div>
+      <div class="lbl">OAuth Scopes</div>             <div class="val"><code>drive</code> + <code>spreadsheets</code></div>
+    </div>
+    <!-- Fluxo -->
+    <div style="padding:16px 22px 8px;background:#f8f9fb;border-top:1px solid var(--line)">
+      <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);margin-bottom:12px">Fluxo de Envio — PDF do Browser ao Drive</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-content"><div class="flow-title">Gerar APR</div><div class="flow-desc">Usuário clica "Gerar APR" — sistema monta HTML completo no elemento <code>#apr-out</code></div></div></div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-content"><div class="flow-title">Captura HTML → PDF</div><div class="flow-desc"><code>autoSyncComPDF()</code> carrega html2pdf.js (CDN) — renderiza <code>#apr-out</code> em canvas — gera blob PDF</div></div></div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><div class="flow-title">Converter Base64</div><div class="flow-desc"><code>FileReader.readAsDataURL(blob)</code> — extrai a parte base64 do resultado</div></div></div>
+      <div class="flow-step"><div class="flow-num">4</div><div class="flow-content"><div class="flow-title">Montar Payload</div><div class="flow-desc">JSON: <code>&#123;tipo:'blob', rastreio, data, atividade, elaborador, pdfBase64, ...&#125;</code></div></div></div>
+      <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><div class="flow-title">Enviar fetch</div><div class="flow-desc"><code>fetch(url, &#123;method:'POST', Content-Type:text/plain, mode:no-cors&#125;)</code></div></div></div>
+      <div class="flow-step"><div class="flow-num">6</div><div class="flow-content"><div class="flow-title">Apps Script — Salvar PDF</div><div class="flow-desc"><code>Utilities.base64Decode(pdfBase64)</code> → <code>Utilities.newBlob()</code> → <code>pasta.createFile()</code></div></div></div>
+      <div class="flow-step"><div class="flow-num">7</div><div class="flow-content"><div class="flow-title">Compartilhar no Drive</div><div class="flow-desc"><code>pdfFile.setSharing(ANYONE_WITH_LINK, VIEW)</code> — link público gerado</div></div></div>
+      <div class="flow-step"><div class="flow-num">8</div><div class="flow-content"><div class="flow-title">Registrar na Planilha</div><div class="flow-desc"><code>registrarPlanilha()</code>: 13 colunas + rich text "📄 Abrir PDF" com hyperlink na coluna 7</div></div></div>
+    </div>
+  </div>
+
+  <!-- RESPONSÁVEIS -->
+  <div class="section">
+    <div class="section-hdr"><span class="icon">👷</span><h3>Responsáveis Técnicos</h3></div>
+    <div class="info-grid">
+      <div class="lbl">Engenheiro Residente</div>  <div class="val"><strong>Leandro Pizani</strong> — (31) 99223-7798</div>
+      <div class="lbl">Técnico de Segurança</div>  <div class="val"><strong>Gislaine Nascimento</strong> — (34) 98408-3585</div>
+      <div class="lbl">Emergência — SAMU</div>      <div class="val"><strong>192</strong></div>
+      <div class="lbl">Corpo de Bombeiros</div>     <div class="val"><strong>193</strong></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>Sistema APR Digital — REMO ENGENHARIA / SE JAGUARA 345 kV</strong><br>
+  Gerado em 20/05/2026 &nbsp;·&nbsp; Versão 4.1 &nbsp;·&nbsp; NR-10 / NR-18 / NR-35 &nbsp;·&nbsp; <a href="https://remo-apr.github.io/apr/" style="color:var(--navy)">remo-apr.github.io/apr</a>
+</div>
+
+</body>
+</html>
