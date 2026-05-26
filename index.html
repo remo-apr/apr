@@ -476,7 +476,6 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 /* ─── ATIVIDADES ─── */
 .fbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
 .fb{padding:6px 15px;border-radius:3px;border:1.5px solid var(--remo-line);background:var(--remo-white);font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;color:var(--remo-muted);cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
-.fb:hover{border-color:var(--remo-yellow);color:#0d0d0d;background:var(--remo-green-lt)}
 .fb:hover{border-color:var(--remo-navy);color:var(--remo-navy);background:#e8eef5}
 .fb.on{background:var(--remo-navy);border-color:var(--remo-navy);color:#fff}
 .sel-info{font-size:13px;color:var(--remo-muted);margin-bottom:14px}
@@ -794,7 +793,8 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 .ea-opt input:checked+label .ea-label{color:var(--remo-green)}
 .ea-desc{font-size:11px;color:var(--remo-muted);line-height:1.3}
 
-@media(max-width:620px){.etapa-apr-row{grid-template-columns:1fr}}
+@media(max-width:620px){
+  .etapa-apr-row{grid-template-columns:1fr}
   .g2,.g3,.atv-grid,.res-grid{grid-template-columns:1fr}
   .clima-row{grid-template-columns:1fr 1fr}
   .apr-meta{grid-template-columns:1fr 1fr}
@@ -2102,8 +2102,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Atividades
   renderAtv();
 
-  // Equipe (3 linhas padrão)
-  addMembro(); addMembro(); addMembro();
+  // Equipe renderizada por renderEquipe() — addMembro() descontinuado
 
   // Popular dropdown de Local com opções fixas da planilha
   buildMs('local', LOCAIS_FIXOS.map(l=>({key:l,label:l,disc:''})), SEL_L, 'Selecione o local ▾');
@@ -2227,7 +2226,7 @@ function buildMs(tipo, itens, selSet, ph_vazio){
   drop.innerHTML='';
 
   if(!itens.length){
-    drop.innerHTML='<div class="ms-opt" style="color:var(--muted);cursor:default;font-style:italic">Nenhuma opção disponível</div>';
+    drop.innerHTML='<div class="ms-opt" style="color:var(--remo-muted);cursor:default;font-style:italic">Nenhuma opção disponível</div>';
     return;
   }
 
@@ -3111,36 +3110,8 @@ function gerarAPR(){
     {nome:"Gislaine Nascimento", func:"Técnico de Segurança",   fone:"(34) 98408-3585"},
   ];
 
-  // Encarregado(s) selecionados na Etapa 1
-  const encarregadosRows = [...SEL_E].map(nome=>{
-    const enc = ENCARREGADOS.find(e=>e.nome===nome);
-    return `<tr style="background:#fff8f3">
-      <td><strong>${nome}</strong></td>
-      <td>${enc?enc.funcao:'Encarregado'}</td>
-      <td></td>
-      <td style="min-width:120px"></td>
-    </tr>`;
-  }).join('');
-
-  // Fixos
-  const fixosRows = ASSINATURAS_FIXAS.map(f=>`
-    <tr style="background:#f5f2ed">
-      <td><strong>${f.nome}</strong></td>
-      <td>${f.func}</td>
-      <td style="white-space:nowrap">${f.fone||''}</td>
-      <td style="min-width:120px"></td>
-    </tr>`).join('');
-
-  // Equipe de campo (digitada na Etapa 3)
+  // Equipe de campo para tabela unificada
   const equipe3 = getEquipe();
-  const equipeRows = equipe3.length
-    ? equipe3.map(c=>`<tr><td style="font-weight:600">${c.nome}</td><td style="color:#555">${c.cargo}</td><td></td><td style="min-width:120px"></td></tr>`).join('')
-    : Array(6).fill(`<tr><td style="height:28px"></td><td></td><td></td><td style="min-width:120px"></td></tr>`).join('');
-
-  // Separadores visuais
-  const sepEnc = SEL_E.size ? `<tr><td colspan="4" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#00A651;background:#e6f7ed;border:1px solid var(--line)">Encarregado(s) Responsável(is)</td></tr>` : '';
-  const sepEquipe = `<tr><td colspan="4" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:#f5f2ed;border:1px solid var(--line)">Equipe de Campo</td></tr>`;
-  const sepFixos = `<tr><td colspan="4" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1B3E6B;background:#e8eef5;border:1px solid var(--remo-line)">Responsáveis Técnicos</td></tr>`;
 
   // ── Tabela unificada: Calendário + Assinaturas Diárias ─────────────────
   const dataStr = v('f-data'); // YYYY-MM-DD
@@ -3314,7 +3285,7 @@ function gerarAPR(){
       <div style="text-align:center;font-size:14px;color:#00A651;line-height:1.2;background:#f0f7f4;border-left:1px solid #b8cce0;border-right:1px solid #b8cce0">&#9660;</div>
       <div style="background:#1B3E6B;border:1px solid #1B3E6B;padding:8px 10px;border-radius:0 0 6px 6px">
         <div style="font-size:10px;font-weight:900;color:#fff">ENG. RESIDENTE</div>
-        <div style="font-size:9px;color:rgba(255,255,255,.85);margin-top:2px;line-height:1.45"><strong>Leandro Pizani</strong><br>(31) 99223-7798<br>SESMT Corporativo REMO</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.85);margin-top:2px;line-height:1.45"><strong>Leandro Pizani</strong><br>(31) 99223-7798<br>Engenheiro Residente</div>
       </div>
     </div>
   </div>
@@ -4198,8 +4169,8 @@ function atualizarCompletude(){
   const e3 = SEL_RISCOS.size > 0 && [...SEL_RISCOS.values()].some(m=>m.size>0);
   // Etapa 4: ao menos um colaborador selecionado
   const e4 = SEL_EQUIPE.size > 0;
-  // Etapa 5: tudo completo
-  const e5 = e1 && e2 && e4;
+  // Etapa 5: tudo completo (inclui riscos — e3)
+  const e5 = e1 && e2 && e3 && e4;
 
   [e1, e2, e3, e4, e5].forEach((ok, i)=>{
     const d = document.getElementById(`dot-${i+1}`);
@@ -4326,11 +4297,7 @@ function autoSync(url, dados){
   const badge = document.getElementById('sync-status');
   if(badge){ badge.style.display='inline'; badge.className='sync-badge ing'; badge.textContent='🔄 Enviando…'; }
 
-  // Diagnóstico — remover após confirmar funcionamento
   const payload = JSON.stringify(dados);
-  console.log('[APR-SYNC] URL:', url);
-  console.log('[APR-SYNC] Payload size (bytes):', new Blob([payload]).size);
-  console.log('[APR-SYNC] Rastreio:', dados.rastreio);
 
   // IMPORTANTE: mode:'no-cors' exige Content-Type text/plain
   // application/json é bloqueado silenciosamente pelo browser neste modo
@@ -4341,7 +4308,6 @@ function autoSync(url, dados){
     mode: 'no-cors'
   })
   .then(()=>{
-    console.log('[APR-SYNC] Fetch resolvido (no-cors — resposta opaca)');
     if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
     setTimeout(()=>{ if(badge) badge.style.display='none'; }, 5000);
   })
