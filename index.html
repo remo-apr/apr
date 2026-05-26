@@ -875,6 +875,9 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
   /* ── Assinaturas ── */
   .apr-ass-title{padding:6px 14px;font-size:10px}
 
+  /* ── Última folha ── */
+  .apr-ultima-folha-ref{page-break-before:always}
+
   /* ── Barra de rastreio ── */
   .apr-rastreio-bar{padding:8px 14px!important}
   .apr-rastreio-bar img{width:72px!important;height:72px!important}
@@ -3255,6 +3258,87 @@ function gerarAPR(){
       + '</div>';
   }
 
+  // ── Última folha: Fluxo de Comunicação de Acidente / Quase Acidente ────
+  const ultimaFolhaHtml = `<div style="page-break-before:always;background:#fff;font-family:'Barlow','Segoe UI',sans-serif;font-size:12px">
+  <div style="height:5px;background:linear-gradient(90deg,#1B3E6B,#00A651)"></div>
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#1B3E6B;color:#fff">
+    <div>
+      <div style="font-size:22px;font-weight:900;color:#FFA500;letter-spacing:3px;font-family:'Barlow Condensed',sans-serif">CEMIG</div>
+      <div style="font-size:8px;opacity:.65;letter-spacing:.5px;margin-top:1px">COMPANHIA ENERGÉTICA DE MINAS GERAIS</div>
+    </div>
+    <div style="text-align:center;flex:1;padding:0 20px">
+      <div style="font-size:14px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;line-height:1.4">FLUXO DE COMUNICAÇÃO DE ACIDENTE<br>E QUASE ACIDENTE DO TRABALHO</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:22px;font-weight:900;font-style:italic;font-family:'Barlow Condensed',sans-serif">REMO</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;opacity:.85">ENGENHARIA</div>
+    </div>
+  </div>
+  <div style="padding:16px 18px;display:flex;gap:14px;align-items:stretch">
+    <div style="width:135px;flex-shrink:0;background:#fff3cd;border:2px solid #FFC107;border-radius:8px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+      <div style="font-size:38px;line-height:1;margin-bottom:9px">&#9888;</div>
+      <div style="font-size:10px;font-weight:700;color:#1B3E6B;text-transform:uppercase;line-height:1.5">Ocorrência de Acidente ou Quase Acidente do Trabalho</div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:20px;color:#1B3E6B;flex-shrink:0;padding:0 2px">&#10140;</div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+      <div style="background:#fffbe6;border:1.5px solid #FFC107;border-left:5px solid #FFC107;border-radius:5px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:900;color:#1B3E6B;margin-bottom:5px;letter-spacing:.5px">1&ordm; PASSO &mdash; PRONTO ATENDIMENTO</div>
+        <div style="font-size:10.5px;color:#333;line-height:1.65">&bull; Prestar os primeiros socorros ao acidentado<br>&bull; Acionar SAMU (192) ou Corpo de Bombeiros (193) se necessário<br>&bull; Preservar o local do acidente sem remover evidências</div>
+      </div>
+      <div style="background:#fffbe6;border:1.5px solid #FFC107;border-left:5px solid #FFC107;border-radius:5px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:900;color:#1B3E6B;margin-bottom:5px;letter-spacing:.5px">2&ordm; PASSO &mdash; COMUNICAÇÃO IMEDIATA</div>
+        <div style="font-size:10.5px;color:#333;line-height:1.65">&bull; Comunicar imediatamente ao superior e ao Encarregado<br>&bull; Notificar o Técnico de Segurança do Trabalho<br>&bull; Registrar hora, local e circunstâncias do evento</div>
+      </div>
+      <div style="background:#fffbe6;border:1.5px solid #FFC107;border-left:5px solid #FFC107;border-radius:5px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:900;color:#1B3E6B;margin-bottom:5px;letter-spacing:.5px">3&ordm; PASSO &mdash; INVESTIGAÇÃO E REPORTE</div>
+        <div style="font-size:10.5px;color:#333;line-height:1.65">&bull; Investigar as causas do acidente / quase acidente<br>&bull; Elaborar relatório com plano de ação corretiva<br>&bull; Encaminhar ao SESMT Corporativo REMO Engenharia</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;font-size:20px;color:#1B3E6B;flex-shrink:0;padding:0 2px">&#10140;</div>
+    <div style="width:185px;flex-shrink:0;display:flex;flex-direction:column">
+      <div style="background:#1B3E6B;color:#fff;text-align:center;padding:6px;font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px 6px 0 0">CADEIA DE COMUNICAÇÃO</div>
+      <div style="background:#e8eef5;border:1px solid #b8cce0;padding:8px 10px">
+        <div style="font-size:10px;font-weight:900;color:#1B3E6B">FUNCIONÁRIO</div>
+        <div style="font-size:9px;color:#444;margin-top:2px;line-height:1.45">Comunicar ao superior imediato e ao Encarregado</div>
+      </div>
+      <div style="text-align:center;font-size:14px;color:#00A651;line-height:1.2;background:#f0f7f4;border-left:1px solid #b8cce0;border-right:1px solid #b8cce0">&#9660;</div>
+      <div style="background:#e6f7ed;border:1px solid #a8dfc0;padding:8px 10px">
+        <div style="font-size:10px;font-weight:900;color:#007a3d">ENCARREGADO</div>
+        <div style="font-size:9px;color:#333;margin-top:2px;line-height:1.45">Comunicar ao Gestor da Unidade e ao Técnico de Segurança</div>
+      </div>
+      <div style="text-align:center;font-size:14px;color:#00A651;line-height:1.2;background:#f0f7f4;border-left:1px solid #b8cce0;border-right:1px solid #b8cce0">&#9660;</div>
+      <div style="background:#e8eef5;border:1px solid #b8cce0;padding:8px 10px">
+        <div style="font-size:10px;font-weight:900;color:#1B3E6B">TÉC. DE SEGURANÇA</div>
+        <div style="font-size:9px;color:#333;margin-top:2px;line-height:1.45"><strong>Gislaine Nascimento</strong><br>(34) 98408-3585<br>Notificar SESMT Corporativo</div>
+      </div>
+      <div style="text-align:center;font-size:14px;color:#00A651;line-height:1.2;background:#f0f7f4;border-left:1px solid #b8cce0;border-right:1px solid #b8cce0">&#9660;</div>
+      <div style="background:#1B3E6B;border:1px solid #1B3E6B;padding:8px 10px;border-radius:0 0 6px 6px">
+        <div style="font-size:10px;font-weight:900;color:#fff">ENG. RESIDENTE</div>
+        <div style="font-size:9px;color:rgba(255,255,255,.85);margin-top:2px;line-height:1.45"><strong>Leandro Pizani</strong><br>(31) 99223-7798<br>SESMT Corporativo REMO</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:0 18px 16px;display:flex;gap:12px">
+    <div style="background:#c0392b;color:#fff;border-radius:8px;padding:12px 16px;min-width:215px;flex-shrink:0">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:6px">&#9742; TELEFONES DE EMERGÊNCIA</div>
+      <div style="display:flex;gap:14px">
+        <div style="text-align:center"><div style="font-size:26px;font-weight:900;line-height:1;font-family:'Barlow Condensed',sans-serif">192</div><div style="font-size:9px;opacity:.85;margin-top:2px">SAMU</div></div>
+        <div style="text-align:center"><div style="font-size:26px;font-weight:900;line-height:1;font-family:'Barlow Condensed',sans-serif">193</div><div style="font-size:9px;opacity:.85;margin-top:2px">Bombeiros</div></div>
+        <div style="text-align:center"><div style="font-size:26px;font-weight:900;line-height:1;font-family:'Barlow Condensed',sans-serif">01</div><div style="font-size:9px;opacity:.85;margin-top:2px">Rádio &mdash;<br>Canal 01</div></div>
+      </div>
+    </div>
+    <div style="background:#f5f2ed;border:1px solid #ddd;border-radius:8px;padding:12px 14px;flex:1">
+      <div style="font-size:10px;font-weight:700;color:#1B3E6B;letter-spacing:.5px;margin-bottom:7px;text-transform:uppercase">Base Normativa Aplicável</div>
+      <div style="font-size:10px;color:#444;line-height:1.8">Todo acidente ou quase acidente de trabalho deve ser <strong>comunicado, registrado e investigado</strong> conforme:<br><strong>NR-10</strong> &mdash; Segurança em Instalações e Serviços em Eletricidade &nbsp;&bull;&nbsp; <strong>NR-18</strong> &mdash; Segurança e Saúde no Trabalho na Construção &nbsp;&bull;&nbsp; <strong>NR-35</strong> &mdash; Trabalho em Altura &nbsp;&bull;&nbsp; Procedimentos SESMT REMO Engenharia</div>
+    </div>
+  </div>
+  <div style="background:linear-gradient(90deg,#1B3E6B,#00A651);color:#fff;padding:8px 18px;display:flex;justify-content:space-between;align-items:center;font-size:9px;font-weight:700;letter-spacing:.5px;font-family:'Barlow Condensed',sans-serif">
+    <span>REMO ENGENHARIA &middot; SE JAGUARA 345 kV</span>
+    <span>SEGURANÇA DO TRABALHO &mdash; PROCEDIMENTO DE EMERGÊNCIA</span>
+    <span style="opacity:.75">APR: ${numRastreio}</span>
+  </div>
+</div>`;
+
   document.getElementById('apr-out').innerHTML=`
     <!-- CABEÇALHO -->
     <div class="apr-head">
@@ -3317,7 +3401,8 @@ function gerarAPR(){
       </div>
     </div>
     <div class="apr-rodape">⚠ Regras de Ouro: Chuva com raios → PARALISAR IMEDIATAMENTE &nbsp;|&nbsp; APR obrigatória antes de iniciar &nbsp;|&nbsp; EPI básico obrigatório em todas as frentes &nbsp;|&nbsp; <span style="opacity:.6">APR Sistema ${APP_VERSAO}</span></div>
-    ${gerarChecklistsHTML()}`;
+    ${gerarChecklistsHTML()}
+    ${ultimaFolhaHtml}`;
 
   ir('out');
   // Mostrar botão exportar se há novas APRs
