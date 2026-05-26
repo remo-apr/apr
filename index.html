@@ -777,9 +777,10 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 /* Assinaturas */
 .apr-ass{padding:0}
 .apr-ass-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:#fff;background:var(--remo-grad);padding:12px 20px;margin-bottom:0;border-bottom:none}
-.apr-ass-table{width:100%;border-collapse:collapse}
-.apr-ass-table th{background:var(--remo-navy);padding:8px 11px;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:#fff;text-align:left;border:1px solid var(--remo-navy)}
-.apr-ass-table td{padding:13px 11px;border:1px solid var(--remo-line);font-size:12px}
+/* Tabela unificada de assinaturas diárias */
+.apr-sig-scroll{overflow-x:auto}
+.apr-sig-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.apr-sig-table th,.apr-sig-table td{border:1px solid #ddd}
 .apr-rodape{background:var(--remo-grad);color:#fff;padding:12px 22px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;text-align:center;text-transform:uppercase;letter-spacing:.8px}
 
 /* ─── ETAPA DA APR ─── */
@@ -829,12 +830,10 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
   /* ── Seções de escopo / obs gerais ── */
   .apr-secao{padding:5px 12px!important;font-size:11px!important}
 
-  /* ── Calendário semanal ── */
-  .apr-cal{padding:8px 12px!important}
-  .apr-cal > div:first-child{margin-bottom:6px!important;padding-bottom:4px!important;font-size:9px!important}
-  .apr-cal table{min-width:0!important}
-  .apr-cal th{padding:4px 3px!important;font-size:8px!important}
-  .apr-cal td{padding:5px 3px!important;font-size:10px!important}
+  /* ── Tabela unificada de assinaturas ── */
+  .apr-sig-scroll{overflow:visible!important}
+  .apr-sig-table th{padding:4px 3px!important;font-size:8px!important;letter-spacing:.4px}
+  .apr-sig-table td{height:28px!important;font-size:10px!important;padding:2px 3px!important}
 
   /* ── Observações do Dia ── */
   .apr-obs-dia{padding:7px 12px!important}
@@ -875,9 +874,6 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 
   /* ── Assinaturas ── */
   .apr-ass-title{padding:6px 14px;font-size:10px}
-  .apr-ass p{display:none} /* ocultar parágrafo declaratório — ocupa linha */
-  .apr-ass-table th{padding:5px 8px;font-size:9px}
-  .apr-ass-table td{padding:6px 8px;font-size:10px}
 
   /* ── Barra de rastreio ── */
   .apr-rastreio-bar{padding:8px 14px!important}
@@ -3143,9 +3139,9 @@ function gerarAPR(){
   const sepEquipe = `<tr><td colspan="4" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);background:#f5f2ed;border:1px solid var(--line)">Equipe de Campo</td></tr>`;
   const sepFixos = `<tr><td colspan="4" style="padding:4px 11px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1B3E6B;background:#e8eef5;border:1px solid var(--remo-line)">Responsáveis Técnicos</td></tr>`;
 
-  // ── Calendário semanal a partir da data da APR ──────────────────────────
+  // ── Tabela unificada: Calendário + Assinaturas Diárias ─────────────────
   const dataStr = v('f-data'); // YYYY-MM-DD
-  let calHtml = '';
+  let sigUnificadoHtml = '';
   if(dataStr){
     const dataApr = new Date(dataStr + 'T12:00:00'); // evitar problema de fuso
     // Encontrar segunda-feira da semana da data selecionada
@@ -3155,45 +3151,98 @@ function gerarAPR(){
     seg.setDate(dataApr.getDate() + diffSeg);
 
     const diasSemana = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'];
-    const diasNomes  = ['Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado','Domingo'];
 
-    let colsHeader   = '';
-    let colsDatas    = '';
-    let colsCondicao = '';
-
+    // Monta cabeçalhos dos dias e armazena dados de cada coluna
+    let thDias = '';
+    var datas = [];
     for(let i=0; i<7; i++){
       const dia = new Date(seg);
       dia.setDate(seg.getDate() + i);
-      const dd  = String(dia.getDate()).padStart(2,'0');
-      const mm  = String(dia.getMonth()+1).padStart(2,'0');
-      const isHoje    = dia.toDateString() === dataApr.toDateString();
-      const fimSemana = (i >= 5);
-
-      const bgH = isHoje ? 'background:linear-gradient(90deg,#1B3E6B,#00A651);color:#fff;' : (fimSemana ? 'background:#1B3E6B;opacity:.8;color:#fff;' : 'background:#1B3E6B;color:#fff;');
-      const bgD = isHoje ? 'background:#e6f7ed;font-weight:700;' : (fimSemana ? 'background:#f9f7f4;color:#555;' : 'background:#fff;');
-
-      colsHeader   += `<th style="padding:8px 6px;text-align:center;font-size:10px;font-weight:700;letter-spacing:.8px;border:1px solid #ddd;${bgH}">${diasSemana[i]}<br><span style="font-size:9px;opacity:.8;font-weight:400">${diasNomes[i]}</span></th>`;
-      colsDatas    += `<td style="padding:10px 6px;text-align:center;font-size:13px;font-weight:600;border:1px solid #ddd;${bgD}">${dd}/${mm}${isHoje?'<br><span style="font-size:9px;color:#00A651;font-weight:700">◀ APR</span>':''}</td>`;
-      colsCondicao += `<td style="padding:10px 6px;text-align:center;border:1px solid #ddd;${bgD}"><span style="font-size:18px">☐</span></td>`;
+      const dd = String(dia.getDate()).padStart(2,'0');
+      const mm = String(dia.getMonth()+1).padStart(2,'0');
+      const isApr = dia.toDateString() === dataApr.toDateString();
+      const fimSem = i >= 5;
+      datas.push({dd, mm, isApr, fimSem});
+      const bgTh = isApr
+        ? 'background:linear-gradient(90deg,#1B3E6B,#00A651);'
+        : (fimSem ? 'background:#5a7fa8;' : 'background:#1B3E6B;');
+      thDias += '<th style="text-align:center;font-size:9px;font-weight:700;letter-spacing:.6px;'
+             + 'padding:5px 2px;border:1px solid #bbb;color:#fff;' + bgTh + '">'
+             + diasSemana[i] + '<br>'
+             + '<span style="font-size:8px;font-weight:400;opacity:.9">' + dd + '/' + mm + '</span>'
+             + (isApr ? '<br><span style="font-size:7px;background:rgba(255,255,255,.25);border-radius:2px;padding:0 2px">▶ APR</span>' : '')
+             + '</th>';
     }
 
-    calHtml = `
-    <div class="apr-cal" style="padding:18px;background:#fff;border-bottom:3px solid var(--remo-gray)">
-      <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1B3E6B;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #00A651">Calendário Semanal de Execução</div>
-      <div style="overflow-x:auto">
-        <table style="width:100%;border-collapse:collapse;min-width:500px">
-          <thead><tr>${colsHeader}</tr></thead>
-          <tbody>
-            <tr>${colsDatas}</tr>
-            <tr>
-              <td colspan="7" style="padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#fff;background:linear-gradient(90deg,#1B3E6B,#00A651);border:none">Marque o Dia de Execução da Atividade</td>
-            </tr>
-            <tr>${colsCondicao}</tr>
-          </tbody>
-        </table>
-      </div>
-      <div style="font-size:11px;color:#1B3E6B;margin-top:8px">▶ Dia marcado em laranja = data de abertura da APR.</div>
-    </div>`;
+    // Monta linha de pessoa (9 colunas: nome, cargo, 7 dias p/ assinatura)
+    var makeRow = function(nome, cargo, bgRow){
+      var cells = '';
+      for(var j=0; j<7; j++){
+        var d = datas[j];
+        var bgC = d.isApr ? 'background:#e6f7ed;' : (d.fimSem ? 'background:#f9f7f4;' : '');
+        cells += '<td style="border:1px solid #ddd;height:42px;' + bgC + '"></td>';
+      }
+      return '<tr style="' + bgRow + '">'
+           + '<td style="padding:5px 8px;border:1px solid #ddd;font-size:11px;font-weight:600;word-break:break-word">' + nome + '</td>'
+           + '<td style="padding:5px 8px;border:1px solid #ddd;font-size:10px;color:#555;word-break:break-word">' + cargo + '</td>'
+           + cells + '</tr>';
+    };
+
+    // Linha separadora de seção (9 colunas)
+    var makeSep = function(label, color, bg){
+      return '<tr><td colspan="9" style="padding:3px 8px;font-size:9px;font-weight:700;letter-spacing:1px;'
+           + 'text-transform:uppercase;color:' + color + ';background:' + bg + ';border:1px solid #ddd">'
+           + label + '</td></tr>';
+    };
+
+    var rowsHtml = '';
+
+    // Encarregado(s) selecionados
+    if(SEL_E.size){
+      rowsHtml += makeSep('Encarregado(s) Responsável(is)', '#007a3d', '#e6f7ed');
+      rowsHtml += [...SEL_E].map(function(nome){
+        var enc = ENCARREGADOS.find(function(e){ return e.nome===nome; });
+        return makeRow('<strong>' + nome + '</strong>', enc ? enc.funcao : 'Encarregado', 'background:#fff8f3');
+      }).join('');
+    }
+
+    // Equipe de campo
+    rowsHtml += makeSep('Equipe de Campo', '#444', '#f5f2ed');
+    if(equipe3.length){
+      rowsHtml += equipe3.map(function(c){ return makeRow(c.nome, c.cargo, ''); }).join('');
+    } else {
+      // 6 linhas em branco para preenchimento manual
+      for(var k=0; k<6; k++){ rowsHtml += makeRow('', '', ''); }
+    }
+
+    // Responsáveis Técnicos
+    rowsHtml += makeSep('Responsáveis Técnicos', '#1B3E6B', '#e8eef5');
+    rowsHtml += ASSINATURAS_FIXAS.map(function(f){
+      return makeRow('<strong>' + f.nome + '</strong>', f.func, 'background:#f5f2ed');
+    }).join('');
+
+    sigUnificadoHtml = '<div class="apr-ass apr-sig-wrap">'
+      + '<div class="apr-ass-title">Declaração de Ciência — Assinaturas Diárias da Equipe</div>'
+      + '<div class="apr-sig-scroll">'
+      + '<table class="apr-sig-table" style="width:100%;border-collapse:collapse;table-layout:fixed">'
+      + '<colgroup>'
+      + '<col style="width:130px"><col style="width:90px">'
+      + '<col><col><col><col><col><col><col>'
+      + '</colgroup>'
+      + '<thead><tr>'
+      + '<th style="padding:7px 8px;background:#1B3E6B;color:#fff;text-align:left;font-size:10px;font-weight:700;border:1px solid #bbb;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;text-transform:uppercase">Nome</th>'
+      + '<th style="padding:7px 8px;background:#1B3E6B;color:#fff;text-align:left;font-size:10px;font-weight:700;border:1px solid #bbb;font-family:\'Barlow Condensed\',sans-serif;letter-spacing:1px;text-transform:uppercase">Cargo</th>'
+      + thDias
+      + '</tr></thead>'
+      + '<tbody>' + rowsHtml + '</tbody>'
+      + '</table>'
+      + '</div>'
+      + '<div style="margin-top:8px;padding:7px 11px;background:#fff3cd;border:1px solid #ffc107;border-radius:5px;font-size:9.5px;font-weight:600;color:#5a3e00;letter-spacing:.3px">'
+      + 'CASO NECESSÁRIO, ENTRAR EM CONTATO COM OS RESPONSÁVEIS TÉCNICOS.&ensp;'
+      + '<span style="white-space:nowrap">SAMU: <strong>192</strong></span>&ensp;·&ensp;'
+      + '<span style="white-space:nowrap">CORPO DE BOMBEIROS: <strong>193</strong></span>'
+      + '</div>'
+      + '</div>';
   }
 
   document.getElementById('apr-out').innerHTML=`
@@ -3223,10 +3272,6 @@ function gerarAPR(){
     ${escopo?`<div class="apr-secao" style="padding:14px 18px;background:#f5f2ed;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Escopo:</b> ${escopo}</div>`:''}
     ${obs?`<div class="apr-secao" style="padding:14px 18px;background:#fffbf5;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Observações:</b> ${obs}</div>`:''}
 
-    <!-- CALENDÁRIO SEMANAL -->
-    ${calHtml}
-
-
     <!-- ATIVIDADES -->
     ${atvHtml}
 
@@ -3238,28 +3283,8 @@ function gerarAPR(){
       <div class="risco-grid">${riscosHtml}</div>
     </div>
 
-    <!-- ASSINATURAS -->
-    <div class="apr-ass">
-      <div class="apr-ass-title">Declaração de Ciência – Assinaturas da Equipe</div>
-      <p class="apr-ass" style="font-size:12px;color:var(--muted);margin-bottom:12px">Declaro que li, compreendi e me comprometo a cumprir todas as medidas de controle desta APR antes do início das atividades.</p>
-      <table class="apr-ass-table">
-        <thead><tr><th>Nome Completo</th><th>Função / Cargo</th><th>Telefone</th><th>Assinatura</th></tr></thead>
-        <tbody>
-          ${sepEnc}
-          ${encarregadosRows}
-          ${sepEquipe}
-          ${equipeRows}
-          ${sepFixos}
-          ${fixosRows}
-        </tbody>
-      </table>
-      <div style="margin-top:8px;padding:7px 11px;background:#fff3cd;border:1px solid #ffc107;border-radius:5px;font-size:9.5px;font-weight:600;color:#5a3e00;letter-spacing:.3px">
-        CASO NECESSÁRIO, ENTRAR EM CONTATO COM OS RESPONSÁVEIS TÉCNICOS.&ensp;
-        <span style="white-space:nowrap">SAMU: <strong>192</strong></span>&ensp;·&ensp;
-        <span style="white-space:nowrap">CORPO DE BOMBEIROS: <strong>193</strong></span>
-      </div>
-      </div>
-    </div>
+    <!-- ASSINATURAS DIÁRIAS UNIFICADAS -->
+    ${sigUnificadoHtml}
 
     <!-- BARRA DE RASTREIO + QR CODE -->
     <div class="apr-rastreio-bar" style="display:flex;align-items:center;justify-content:space-between;gap:16px;
