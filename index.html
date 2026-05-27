@@ -807,7 +807,7 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
   body{background:#fff;font-size:10px}
 
   /* ── Ocultar UI ── */
-  .bar,.prog,.step:not(#step-out),.out-actions,.no-print,.sync-config-box{
+  .bar,.prog,.step:not(#step-out),.out-actions,.no-print{
     display:none!important;visibility:hidden!important;
     height:0!important;overflow:hidden!important;position:static!important}
   /* Remover espaçamento do wrapper na impressão */
@@ -980,9 +980,6 @@ body.dark .hist-item-btn.view{border-color:#7ab3e0;color:#7ab3e0}
 .hist-count{font-size:12px;color:var(--remo-muted)}
 .hist-clear-btn{border:1.5px solid #dc3545;color:#dc3545;background:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;transition:all .15s}
 .hist-clear-btn:hover{background:#dc3545;color:#fff}
-.hist-csv-btn{border:1.5px solid var(--remo-green);color:var(--remo-green);background:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;transition:all .15s}
-.hist-csv-btn:hover{background:var(--remo-green);color:#fff}
-.hist-footer-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* ═══════════════════════════════════════════════
    ITEM 11 – FAVORITOS
@@ -1023,18 +1020,55 @@ body.dark .risco-ps select{background:#162032;border-color:#243040;color:#d8e6f3
 .dot.completo::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7px;color:#fff;font-weight:900}
 
 /* ═══════════════════════════════════════════════
-   ITEM 13 – SINCRONIZAÇÃO
+   ITEM 13 – SINCRONIZAÇÃO / DRIVE
 ═══════════════════════════════════════════════ */
-.sync-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;white-space:nowrap;font-family:Barlow,sans-serif;flex-shrink:0}
+.sync-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;white-space:nowrap;font-family:Barlow,sans-serif;flex-shrink:0;display:flex;align-items:center;gap:7px}
 .sync-badge.ok{background:#d4edda;color:#155724}
 .sync-badge.fail{background:#f8d7da;color:#721c24}
 .sync-badge.ing{background:#fff3cd;color:#856404}
-.sync-config-box{margin-top:14px;padding:14px 16px;background:#f5f7fa;border-radius:9px;border:1px solid var(--remo-line)}
-body.dark .sync-config-box{background:#1e2e42;border-color:#243040}
-.sync-config-label{font-size:12px;font-weight:700;color:var(--remo-navy);display:block;margin-bottom:7px}
-body.dark .sync-config-label{color:#7ab3e0}
-.sync-url-input{width:100%;padding:8px 12px;border:1.5px solid var(--remo-line);border-radius:7px;font-family:Barlow,sans-serif;font-size:12px;box-sizing:border-box}
-body.dark .sync-url-input{background:#162032;border-color:#243040;color:#d8e6f3}
+.sync-badge button{background:none;border:1.5px solid currentColor;color:inherit;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;padding:1px 7px;font-family:Barlow,sans-serif}
+/* Botão Drive na barra */
+.drive-btn{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;padding:5px 10px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700;font-family:Barlow,sans-serif;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;transition:background .2s}
+.drive-btn:hover{background:rgba(255,255,255,.22)}
+.drive-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.drive-dot.on{background:#00A651;box-shadow:0 0 0 2px rgba(0,166,81,.35)}
+.drive-dot.off{background:#F5C400;box-shadow:0 0 0 2px rgba(245,196,0,.35)}
+/* Aviso Drive não configurado (Etapa 1) */
+.drive-aviso{display:none;align-items:center;gap:10px;flex-wrap:wrap;background:#fff8e1;border:1.5px solid #F5C400;border-radius:8px;padding:10px 14px;margin-top:14px;font-size:12px;color:#7a5c00}
+.drive-aviso.show{display:flex}
+body.dark .drive-aviso{background:#2a2200;border-color:#a07800;color:#f0c040}
+.drive-aviso-txt{flex:1;min-width:0}
+.drive-aviso-btn{background:var(--remo-navy);color:#fff;border:none;border-radius:6px;padding:5px 13px;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;white-space:nowrap}
+body.dark .drive-aviso-btn{background:#3a6fa8}
+/* Modal Drive */
+.drive-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9100;display:none;align-items:center;justify-content:center;padding:16px}
+.drive-overlay.open{display:flex}
+.drive-modal{background:#fff;border-radius:14px;width:100%;max-width:560px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.38)}
+body.dark .drive-modal{background:#162032;color:#d8e6f3}
+.drive-modal-head{background:var(--remo-grad);color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+.drive-modal-title{font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:800;letter-spacing:.5px}
+.drive-modal-close{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;opacity:.8;line-height:1;padding:0 4px}
+.drive-modal-close:hover{opacity:1}
+.drive-modal-body{padding:22px}
+.drive-modal-desc{font-size:13px;color:var(--remo-muted);margin-bottom:16px;line-height:1.55}
+body.dark .drive-modal-desc{color:#8cb0cc}
+.drive-modal-label{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--remo-navy);margin-bottom:5px;display:block}
+body.dark .drive-modal-label{color:#7ab3e0}
+.drive-modal-input{width:100%;padding:9px 12px;border:1.5px solid var(--remo-line);border-radius:7px;font-family:Barlow,sans-serif;font-size:12px;box-sizing:border-box;margin-bottom:12px}
+body.dark .drive-modal-input{background:#1e2e42;border-color:#243040;color:#d8e6f3}
+.drive-modal-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.drive-modal-btn{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;transition:all .15s;border:1.5px solid}
+.drive-modal-btn.prim{background:var(--remo-green);border-color:var(--remo-green);color:#fff}
+.drive-modal-btn.prim:hover{filter:brightness(1.1)}
+.drive-modal-btn.sec{background:none;border-color:var(--remo-navy);color:var(--remo-navy)}
+.drive-modal-btn.sec:hover{background:var(--remo-navy);color:#fff}
+body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
+.drive-modal-btn.del{background:none;border-color:#dc3545;color:#dc3545}
+.drive-modal-btn.del:hover{background:#dc3545;color:#fff}
+.drive-modal-status{font-size:12px;font-weight:700;padding:8px 12px;border-radius:6px;display:none}
+.drive-modal-status.ok{display:block;background:#d4edda;color:#155724}
+.drive-modal-status.fail{display:block;background:#f8d7da;color:#721c24}
+.drive-modal-status.ing{display:block;background:#fff3cd;color:#856404}
 </style>
 </head>
 <body>
@@ -1057,6 +1091,9 @@ body.dark .sync-url-input{background:#162032;border-color:#243040;color:#d8e6f3}
   <div class="dots" id="dots"></div>
   <div class="bar-actions" id="bar-actions">
     <span class="ver-badge" id="ver-badge">v4.1</span>
+    <button class="drive-btn no-print" id="drive-btn" onclick="abrirConfDrive()" title="Configurar sincronização com Google Drive">
+      <span class="drive-dot off" id="drive-dot"></span><span class="drive-btn-txt">Drive</span>
+    </button>
     <button class="hist-btn no-print" onclick="abrirHistorico()" title="Ver histórico de APRs geradas">📋 <span>Histórico</span></button>
     <button class="dark-toggle no-print" id="dark-toggle" onclick="toggleDark()" title="Alternar modo escuro">🌙</button>
   </div>
@@ -1235,6 +1272,12 @@ body.dark .sync-url-input{background:#162032;border-color:#243040;color:#d8e6f3}
         <div class="cl danger"><input type="radio" name="clima" id="c4" value="⛈ Chuva c/ raios – PARALISAR"><label for="c4"><span class="ic">⛈</span>Chuva c/ raios</label></div>
       </div>
     </div>
+  </div>
+
+  <!-- Aviso Drive não configurado -->
+  <div class="drive-aviso" id="drive-aviso">
+    <div class="drive-aviso-txt">⚠ <strong>Drive não configurado</strong> — as APRs geradas neste dispositivo não serão registradas automaticamente.</div>
+    <button class="drive-aviso-btn" onclick="abrirConfDrive()">Configurar Drive</button>
   </div>
 
   <div class="nav"><div></div><button class="btn-next" onclick="ir(2)">Próximo: Atividades →</button></div>
@@ -1473,10 +1516,34 @@ body.dark .sync-url-input{background:#162032;border-color:#243040;color:#d8e6f3}
     </div>
     <div class="hist-footer">
       <span class="hist-count" id="hist-count">0 registros</span>
-      <div class="hist-footer-actions">
-        <button class="hist-csv-btn" onclick="exportarHistoricoCSV()">📥 Exportar CSV</button>
-        <button class="hist-clear-btn" onclick="limparHistoricoConfirm()">🗑 Limpar tudo</button>
+      <button class="hist-clear-btn" onclick="limparHistoricoConfirm()">🗑 Limpar tudo</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL – CONFIGURAÇÃO DO DRIVE
+══════════════════════════════════════════ -->
+<div class="drive-overlay" id="drive-overlay" onclick="fecharConfDrive(event)">
+  <div class="drive-modal" onclick="event.stopPropagation()">
+    <div class="drive-modal-head">
+      <span class="drive-modal-title">🔗 Sincronização Google Drive</span>
+      <button class="drive-modal-close" onclick="fecharConfDrive()">×</button>
+    </div>
+    <div class="drive-modal-body">
+      <p class="drive-modal-desc">
+        Cada APR gerada é enviada automaticamente para o Google Sheets e o PDF salvo no Drive.<br>
+        Configure a URL do Apps Script em <strong>todos os dispositivos</strong> que geram APRs.
+      </p>
+      <label class="drive-modal-label" for="drive-url-input">URL do Apps Script Web App</label>
+      <input type="url" class="drive-modal-input" id="drive-url-input"
+             placeholder="https://script.google.com/macros/s/…/exec">
+      <div class="drive-modal-actions">
+        <button class="drive-modal-btn prim" onclick="salvarDriveURL()">💾 Salvar</button>
+        <button class="drive-modal-btn sec"  onclick="testarDrive()">🔌 Testar conexão</button>
+        <button class="drive-modal-btn del"  onclick="removerDriveURL()">🗑 Remover</button>
       </div>
+      <div class="drive-modal-status" id="drive-modal-status"></div>
     </div>
   </div>
 </div>
@@ -1496,19 +1563,6 @@ body.dark .sync-url-input{background:#162032;border-color:#243040;color:#d8e6f3}
       ⬇ Exportar Nova(s) APR(s)
     </button>
     <span class="sync-badge" id="sync-status" style="display:none"></span>
-  </div>
-  <!-- Configuração de Sincronização (Item 13) -->
-  <div class="sync-config-box" id="sync-config-box" style="display:none">
-    <label class="sync-config-label">🔗 Sincronização Google Sheets (opcional)</label>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <input type="url" class="sync-url-input" id="sync-url-input"
-             placeholder="Cole aqui a URL do Google Apps Script Web App…"
-             style="flex:1;min-width:200px">
-      <button class="btn-act" onclick="salvarSyncURL()" style="white-space:nowrap">💾 Salvar URL</button>
-    </div>
-    <div style="font-size:11px;color:var(--remo-muted);margin-top:6px">
-      A APR será enviada automaticamente após ser gerada. Deixe em branco para desativar.
-    </div>
   </div>
   <div class="apr" id="apr-out"></div>
 </div>
@@ -2059,14 +2113,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if(dt) dt.textContent = '☀️';
   }
 
-  // Item 13 – Restaurar URL de sync
-  const savedUrl = localStorage.getItem(SYNC_URL_KEY) || '';
-  const syncInput = document.getElementById('sync-url-input');
-  if(syncInput) syncInput.value = savedUrl;
-  if(savedUrl){
-    const scb = document.getElementById('sync-config-box');
-    if(scb) scb.style.display = 'block';
-  }
+  // Item 13 – Estado inicial do Drive
+  atualizarEstadoDrive();
 
   // Dots (5 etapas)
   const dc = document.getElementById('dots');
@@ -3443,9 +3491,6 @@ function gerarAPR(){
     autoSyncComPDF(syncUrl, dadosSync);
   }
 
-  // Item 13 – Mostrar botão de configuração de sync
-  const scb = document.getElementById('sync-config-box');
-  if(scb) scb.style.display = 'block';
 }
 
 function nova(){
@@ -4264,134 +4309,156 @@ function limparHistoricoConfirm(){
   }
 }
 
-function exportarHistoricoCSV(){
-  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
+// ═══════════════════════════════════════════════════════════════════════
+// ITEM 13 – SINCRONIZAÇÃO COM GOOGLE DRIVE (sistema único)
+// ═══════════════════════════════════════════════════════════════════════
 
-  // Aplicar os mesmos filtros ativos no modal
-  const busca   = (document.getElementById('hist-busca')?.value || '').toLowerCase();
-  const dataIni = document.getElementById('hist-data-ini')?.value || '';
-  const dataFim = document.getElementById('hist-data-fim')?.value || '';
+// Guarda último envio para retry em caso de falha
+let _ultimoSyncUrl   = null;
+let _ultimoSyncDados = null;
 
-  const filtrado = hist.filter(h => {
-    const txt = ((h.num||'') + ' ' + (h.atividade||'') + ' ' + (h.elaborador||'')).toLowerCase();
-    if(busca   && !txt.includes(busca))  return false;
-    if(dataIni && h.data < dataIni)      return false;
-    if(dataFim && h.data > dataFim)      return false;
-    return true;
-  });
+// ── Estado do botão Drive na barra + aviso na Etapa 1 ───────────────────
+function atualizarEstadoDrive(){
+  const url  = localStorage.getItem(SYNC_URL_KEY) || '';
+  const dot  = document.getElementById('drive-dot');
+  const aviso = document.getElementById('drive-aviso');
+  if(dot){
+    dot.className = 'drive-dot ' + (url ? 'on' : 'off');
+    dot.title = url ? 'Drive conectado' : 'Drive não configurado';
+  }
+  if(aviso) aviso.classList.toggle('show', !url);
+}
 
-  if(!filtrado.length){
-    alert('Nenhum registro para exportar.');
+// ── Modal de configuração ────────────────────────────────────────────────
+function abrirConfDrive(){
+  const overlay = document.getElementById('drive-overlay');
+  const input   = document.getElementById('drive-url-input');
+  const status  = document.getElementById('drive-modal-status');
+  if(input) input.value = localStorage.getItem(SYNC_URL_KEY) || '';
+  if(status){ status.className='drive-modal-status'; status.textContent=''; }
+  if(overlay) overlay.classList.add('open');
+  setTimeout(()=>{ if(input) input.focus(); }, 80);
+}
+
+function fecharConfDrive(e){
+  if(!e || e.target === document.getElementById('drive-overlay')){
+    document.getElementById('drive-overlay').classList.remove('open');
+  }
+}
+
+function salvarDriveURL(){
+  const input  = document.getElementById('drive-url-input');
+  const status = document.getElementById('drive-modal-status');
+  const url    = (input?.value || '').trim();
+
+  if(url && !url.startsWith('https://script.google.com')){
+    status.className = 'drive-modal-status fail';
+    status.textContent = '⚠ URL inválida — deve começar com https://script.google.com';
     return;
   }
 
-  // Cabeçalho do CSV (separador ; para compatibilidade com Excel BR)
-  const SEP = ';';
-  const NL  = '\r\n';
-  const cols = ['Rastreio','Data APR','Atividade','Elaborador','Etapa','Equipe (qtd)','Gerado Em'];
-
-  const linhas = filtrado.map(h => {
-    const dataFmt   = h.data    ? fmtDate(h.data) : '';
-    const geradoFmt = h.geradoEm
-      ? new Date(h.geradoEm).toLocaleString('pt-BR', {timeZone:'America/Sao_Paulo'})
-      : '';
-    // Escapar aspas duplas dentro de campos (RFC 4180)
-    const esc = v => '"' + String(v||'').replace(/"/g,'""') + '"';
-    return [
-      esc(h.num        || ''),
-      esc(dataFmt),
-      esc(h.atividade  || ''),
-      esc(h.elaborador || ''),
-      esc(h.etapa      || ''),
-      esc(h.equipeCount != null ? h.equipeCount : ''),
-      esc(geradoFmt),
-    ].join(SEP);
-  });
-
-  // BOM UTF-8 para o Excel abrir acentos corretamente
-  const csv = '﻿' + cols.join(SEP) + NL + linhas.join(NL);
-
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  const url  = URL.createObjectURL(blob);
-  const tag  = document.createElement('a');
-  const hoje = new Date().toISOString().slice(0,10).replace(/-/g,'');
-  tag.href     = url;
-  tag.download = 'Historico_APR_REMO_' + hoje + '.csv';
-  tag.click();
-  URL.revokeObjectURL(url);
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-// ITEM 13 – SINCRONIZAÇÃO AUTOMÁTICA
-// ═══════════════════════════════════════════════════════════════════════
-function salvarSyncURL(){
-  const input = document.getElementById('sync-url-input');
-  const url = (input?.value||'').trim();
   localStorage.setItem(SYNC_URL_KEY, url);
-  const badge = document.getElementById('sync-status');
-  if(badge){
-    badge.style.display = 'inline';
-    badge.className = 'sync-badge ok';
-    badge.textContent = url ? '✅ URL salva' : '⬜ Sync desativado';
-    setTimeout(()=>{ badge.style.display='none'; }, 3000);
-  }
+  atualizarEstadoDrive();
+  status.className = 'drive-modal-status ok';
+  status.textContent = url ? '✅ URL salva — Drive configurado neste dispositivo.' : '⬜ Sincronização desativada neste dispositivo.';
+  setTimeout(()=>{ fecharConfDrive(); }, 1800);
 }
 
-// Carrega html2pdf.js do CDN sob demanda (apenas ao sincronizar)
+function removerDriveURL(){
+  if(!confirm('Remover a URL do Drive deste dispositivo? As APRs geradas não serão mais registradas automaticamente.')) return;
+  localStorage.removeItem(SYNC_URL_KEY);
+  const input = document.getElementById('drive-url-input');
+  if(input) input.value = '';
+  const status = document.getElementById('drive-modal-status');
+  status.className = 'drive-modal-status ing';
+  status.textContent = '⬜ Drive desconectado neste dispositivo.';
+  atualizarEstadoDrive();
+  setTimeout(()=>{ fecharConfDrive(); }, 1600);
+}
+
+function testarDrive(){
+  const input  = document.getElementById('drive-url-input');
+  const status = document.getElementById('drive-modal-status');
+  const url    = (input?.value || '').trim();
+
+  if(!url){
+    status.className = 'drive-modal-status fail';
+    status.textContent = '⚠ Cole a URL antes de testar.';
+    return;
+  }
+
+  status.className = 'drive-modal-status ing';
+  status.textContent = '🔄 Enviando ping de teste…';
+
+  const payload = JSON.stringify({tipo:'teste', origem:'APR REMO', versao: APP_VERSAO, ts: new Date().toISOString()});
+  fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: payload, mode:'no-cors' })
+    .then(()=>{
+      status.className = 'drive-modal-status ok';
+      status.textContent = '✅ Ping enviado — verifique se apareceu na planilha para confirmar.';
+    })
+    .catch(()=>{
+      status.className = 'drive-modal-status fail';
+      status.textContent = '❌ Falha de rede — verifique a URL e a conexão.';
+    });
+}
+
+// ── Retry do último envio ────────────────────────────────────────────────
+function retentarSync(){
+  if(_ultimoSyncUrl && _ultimoSyncDados) autoSyncComPDF(_ultimoSyncUrl, _ultimoSyncDados);
+}
+
+// ── Carrega html2pdf.js do CDN sob demanda ──────────────────────────────
 function carregarHtml2Pdf(callback){
   if(typeof html2pdf !== 'undefined'){ callback(); return; }
   const s = document.createElement('script');
-  // Tenta jsdelivr primeiro; se falhar, tenta unpkg como fallback
   s.src = 'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
   s.onload  = () => callback();
   s.onerror = () => {
-    // Fallback para unpkg
     const s2 = document.createElement('script');
     s2.src = 'https://unpkg.com/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js';
     s2.onload  = () => callback();
-    s2.onerror = () => callback(true); // ambos falharam
+    s2.onerror = () => callback(true);
     document.head.appendChild(s2);
   };
   document.head.appendChild(s);
 }
 
+function _badgeFail(badge){
+  if(!badge) return;
+  badge.className = 'sync-badge fail';
+  badge.innerHTML = '❌ Falha no envio &nbsp;<button onclick="retentarSync()">🔄 Tentar novamente</button>';
+}
+
 function autoSync(url, dados){
   if(!url) return;
   const badge = document.getElementById('sync-status');
-  if(badge){ badge.style.display='inline'; badge.className='sync-badge ing'; badge.textContent='🔄 Enviando…'; }
+  if(badge){ badge.style.display='flex'; badge.className='sync-badge ing'; badge.textContent='🔄 Enviando…'; }
 
   const payload = JSON.stringify(dados);
-
-  // IMPORTANTE: mode:'no-cors' exige Content-Type text/plain
-  // application/json é bloqueado silenciosamente pelo browser neste modo
-  fetch(url, {
-    method: 'POST',
-    headers: {'Content-Type': 'text/plain;charset=utf-8'},
-    body: payload,
-    mode: 'no-cors'
-  })
-  .then(()=>{
-    if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
-    setTimeout(()=>{ if(badge) badge.style.display='none'; }, 5000);
-  })
-  .catch((err)=>{
-    console.error('[APR-SYNC] Fetch falhou:', err);
-    if(badge){ badge.className='sync-badge fail'; badge.textContent='❌ Falha no envio'; }
-  });
+  // mode:'no-cors' exige Content-Type text/plain
+  fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: payload, mode:'no-cors' })
+    .then(()=>{
+      if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
+      setTimeout(()=>{ if(badge) badge.style.display='none'; }, 6000);
+    })
+    .catch((err)=>{
+      console.error('[APR-SYNC] Fetch falhou:', err);
+      _badgeFail(badge);
+    });
 }
 
-// ── Gera PDF do documento real (html2pdf.js) e envia ao Drive ────────────
+// ── Gera PDF + envia ao Drive ────────────────────────────────────────────
 function autoSyncComPDF(url, dados){
   if(!url) return;
+  // Salvar para retry
+  _ultimoSyncUrl   = url;
+  _ultimoSyncDados = dados;
+
   const badge = document.getElementById('sync-status');
-  if(badge){ badge.style.display='inline'; badge.className='sync-badge ing'; badge.textContent='🔄 Gerando PDF…'; }
+  if(badge){ badge.style.display='flex'; badge.className='sync-badge ing'; badge.textContent='🔄 Gerando PDF…'; }
 
   carregarHtml2Pdf(function(erro){
-    if(erro || typeof html2pdf === 'undefined'){
-      // Fallback: enviar só os metadados
-      autoSync(url, dados);
-      return;
-    }
+    if(erro || typeof html2pdf === 'undefined'){ autoSync(url, dados); return; }
     const el = document.getElementById('apr-out');
     if(!el){ autoSync(url, dados); return; }
 
@@ -4409,7 +4476,6 @@ function autoSyncComPDF(url, dados){
       const reader = new FileReader();
       reader.onload = function(){
         const base64  = reader.result.split(',')[1];
-        // Payload: metadados básicos + PDF em base64 (sem fasesData/riscosList — Apps Script não precisa mais)
         const payload = {
           rastreio:    dados.rastreio,
           data:        dados.data,
@@ -4427,26 +4493,16 @@ function autoSyncComPDF(url, dados){
           pdfBase64:   base64
         };
         if(badge) badge.textContent='🔄 Enviando…';
-        fetch(url, {
-          method:'POST',
-          headers:{'Content-Type':'text/plain;charset=utf-8'},
-          body: JSON.stringify(payload),
-          mode:'no-cors'
-        })
-        .then(()=>{
-          if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
-          setTimeout(()=>{ if(badge) badge.style.display='none'; }, 5000);
-        })
-        .catch(()=>{
-          if(badge){ badge.className='sync-badge fail'; badge.textContent='❌ Falha no envio'; }
-        });
+        fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload), mode:'no-cors' })
+          .then(()=>{
+            if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
+            setTimeout(()=>{ if(badge) badge.style.display='none'; }, 6000);
+          })
+          .catch(()=>{ _badgeFail(badge); });
       };
       reader.readAsDataURL(blob);
     })
-    .catch(function(){
-      // Fallback se html2pdf falhar
-      autoSync(url, dados);
-    });
+    .catch(function(){ autoSync(url, dados); });
   });
 }
 </script>
