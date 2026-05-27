@@ -366,6 +366,14 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 .ac.nova-apr-card .ac-num{color:var(--remo-green)}
 .nova-badge{font-size:9px;font-weight:900;background:var(--remo-green);color:#fff;
   padding:1px 6px;border-radius:8px;letter-spacing:.5px;margin-left:4px}
+.nova-badge.pend{background:#e65100;animation:pulseBadge 2s infinite}
+.nova-badge.aprov{background:#2e7d32}
+@keyframes pulseBadge{0%,100%{opacity:1}50%{opacity:.65}}
+.btn-aprovar{display:block;width:calc(100% - 16px);margin:0 8px 8px;
+  padding:5px 0;border:none;border-radius:4px;background:var(--remo-green);
+  color:#fff;font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;
+  cursor:pointer;letter-spacing:.5px;text-transform:uppercase;transition:background .2s}
+.btn-aprovar:hover{background:var(--remo-green-dk)}
 
 @media(max-width:600px){
   .nova-apr-row{grid-template-columns:1fr}
@@ -1585,7 +1593,7 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
   <div class="h1 no-print">APR do Dia</div>
   <div class="sub no-print">Imprima ou exporte como PDF (Ctrl+P → Salvar como PDF).</div>
   <div class="out-actions">
-    <button class="btn-act prim" onclick="window.print()">🖨 Imprimir / PDF</button>
+    <button class="btn-act prim" onclick="imprimirAPR()">🖨 Imprimir / PDF</button>
     <button class="btn-act" onclick="nova()">↩ Nova APR</button>
     <button class="btn-act" id="btn-exportar-novas" onclick="exportarNovasAPRs()"
       style="display:none;background:var(--remo-green);border-color:var(--remo-green);color:#fff">
@@ -1749,14 +1757,21 @@ const SEL_ESC = new Set();
 // ─── CREDENCIADOS (elaboradores de APR) ───────────────────────────────────
 // user: nome de usuário para login | senha: senha de acesso
 const CREDENCIADOS = [
-  {n:1, nome:"ALBERT KAIK FRANCISCO DE SOUZA",        cargo:"ENCARREGADO DE TURMA",          aprovador:false, email:"",                                  user:"albert",    senha:"APR@2026"},
-  {n:2, nome:"ANDRE JOSE DA SILVA",                    cargo:"ENCARREGADO FORCA E CONTROLE",  aprovador:false, email:"",                                  user:"andre",     senha:"APR@2026"},
-  {n:3, nome:"ELIZANDRA V DE F DOS SANTOS",            cargo:"AUX DE SEGURANCA DO TRABALHO",  aprovador:true,  email:"elizandra.santos@remo.com.br",       user:"elizandra", senha:"APR@2026"},
-  {n:4, nome:"GISLAINE PEREIRA DO NASCIMENTO",         cargo:"TECNICO SEGURANCA DO TRABALHO", aprovador:true,  email:"gislaine.nascimento@remo.com.br",    user:"gislaine",  senha:"APR@2026"},
-  {n:5, nome:"JHONY DOS REIS BORGES",                  cargo:"OPERADOR DE MAQUINAS",           aprovador:false, email:"",                                  user:"jhony",     senha:"APR@2026"},
-  {n:6, nome:"JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR", cargo:"ENCARREGADO GERAL",              aprovador:false, email:"",                                  user:"jose",      senha:"APR@2026"},
-  {n:7, nome:"LEANDRO SILVA FERREIRA",                 cargo:"ENC. MONT. ELETROMECANICA",      aprovador:false, email:"",                                  user:"leandro",   senha:"APR@2026"},
+  {n:1, nome:"ALBERT KAIK FRANCISCO DE SOUZA",        cargo:"ENCARREGADO DE TURMA",          aprovador:false, email:"",                                  user:"albert",    senha:"APR@2026", disc:"Civil"},
+  {n:2, nome:"ANDRE JOSE DA SILVA",                    cargo:"ENCARREGADO FORCA E CONTROLE",  aprovador:false, email:"",                                  user:"andre",     senha:"APR@2026", disc:"Elétrica"},
+  {n:3, nome:"ELIZANDRA V DE F DOS SANTOS",            cargo:"AUX DE SEGURANCA DO TRABALHO",  aprovador:true,  email:"elizandra.santos@remo.com.br",       user:"elizandra", senha:"APR@2026", disc:null},
+  {n:4, nome:"GISLAINE PEREIRA DO NASCIMENTO",         cargo:"TECNICO SEGURANCA DO TRABALHO", aprovador:true,  email:"gislaine.nascimento@remo.com.br",    user:"gislaine",  senha:"APR@2026", disc:null},
+  {n:5, nome:"JHONY DOS REIS BORGES",                  cargo:"OPERADOR DE MAQUINAS",           aprovador:false, email:"",                                  user:"jhony",     senha:"APR@2026", disc:null},
+  {n:6, nome:"JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR", cargo:"ENCARREGADO GERAL",              aprovador:false, email:"",                                  user:"jose",      senha:"APR@2026", disc:"Civil"},
+  {n:7, nome:"LEANDRO SILVA FERREIRA",                 cargo:"ENC. MONT. ELETROMECANICA",      aprovador:false, email:"",                                  user:"leandro",   senha:"APR@2026", disc:"Montagem"},
 ];
+// Mapa credencial n → encarregado padrão (Item 5 — cascata de disciplina)
+const CRED_ENC_DEFAULT = {
+  1: "Albert Kaik",    // albert  → Equipe Civil
+  2: "André da Silva", // andre   → Equipe Elétrica
+  6: "José Adauto",    // jose    → Equipe Civil
+  7: "Leandro Silva",  // leandro → Equipe Montagem
+};
 // Emails dos aprovadores (destinatários fixos do envio)
 const APROVADORES_EMAIL = CREDENCIADOS.filter(c=>c.aprovador).map(c=>c.email);
 
@@ -2491,9 +2506,20 @@ function renderAtv(){
     return fa - fb;
   });
 
+  const sessC = getSessionCred();
+  const isAprovador = !!(sessC && sessC.aprovador);
+
   sorted.forEach(a=>{
     const cls = a.disc.includes('Montagem')?'montagem-c':a.disc.includes('Elétrica')?'eletrica-c':'civil-c';
-    const novaBadge = a._nova ? '<span class="nova-badge">NOVA</span>' : '';
+    const pendAprov = a._nova && !a._aprovada;
+    const novaBadge = a._nova
+      ? (pendAprov
+          ? '<span class="nova-badge pend">🔔 AGUARDA APROVAÇÃO</span>'
+          : '<span class="nova-badge aprov">✓ APROVADA</span>')
+      : '';
+    const aprvBtn = pendAprov && isAprovador
+      ? `<button class="btn-aprovar" onclick="aprovarAPR(${a.id},event)">✓ Aprovar esta APR</button>`
+      : '';
     const isFav = FAV_ATIVS.has(a.id);
     const passaEnc  = discEnc.size===0 || a.disc.some(d=>discEnc.has(d));
     const searchTxt = `apr-${String(a.id).padStart(2,'0')} ${a.nome}`.toLowerCase();
@@ -2519,7 +2545,8 @@ function renderAtv(){
           </div>
         </div>
       </div>
-      <button class="fav-btn${isFav?' ativo':''}" onclick="toggleFav(${a.id},event)" title="${isFav?'Adicionar aos favoritos':'Remover dos favoritos'}">${isFav?'★':'☆'}</button>`;
+      <button class="fav-btn${isFav?' ativo':''}" onclick="toggleFav(${a.id},event)" title="${isFav?'Adicionar aos favoritos':'Remover dos favoritos'}">${isFav?'★':'☆'}</button>
+      ${aprvBtn}`;
     g.appendChild(card);
   });
   atualizarContador();
@@ -3814,6 +3841,40 @@ function aplicarLoginElaborador(cred){
   if(ui) ui.value = '';
   if(pi) pi.value = '';
 
+  // ── Filtros em cascata por disciplina (Item 5) ─────────────────────────────
+  const disc = cred.disc; // "Civil" | "Elétrica" | "Montagem" | null
+  SEL_E.clear();
+
+  if(disc){
+    // Pré-selecionar encarregado padrão desta credencial
+    const encNome = CRED_ENC_DEFAULT[cred.n];
+    if(encNome) SEL_E.add(encNome);
+
+    // Filtro de atividades pela disciplina
+    _filtroAtvDisc = disc;
+    document.querySelectorAll('.fb').forEach(b =>
+      b.classList.toggle('on', b.textContent.trim() === disc)
+    );
+
+    // Filtro da equipe de campo pela disciplina
+    _eqFiltroAtual = disc;
+    document.querySelectorAll('.eq-fb').forEach(b =>
+      b.classList.toggle('on', b.textContent.trim() === disc)
+    );
+
+  } else {
+    // aprovadores e jhony — sem filtro, veem tudo
+    _filtroAtvDisc = 'TODAS';
+    document.querySelectorAll('.fb').forEach((b,i) => b.classList.toggle('on', i===0));
+    _eqFiltroAtual = 'TODAS';
+    document.querySelectorAll('.eq-fb').forEach((b,i) => b.classList.toggle('on', i===0));
+  }
+
+  syncCampos();
+  renderAtv();
+  aplicarFiltrosEquipe();
+  // ──────────────────────────────────────────────────────────────────────────
+
   atualizarCompletude();
 }
 
@@ -3826,6 +3887,16 @@ function logoutElaborador(){
   document.getElementById('elab-logged-in-panel').style.display  = 'none';
   document.getElementById('elab-login-err').style.display        = 'none';
   document.getElementById('elab-login-wrap').style.borderColor   = '';
+
+  // Resetar filtros em cascata
+  SEL_E.clear();
+  _filtroAtvDisc = 'TODAS';
+  document.querySelectorAll('.fb').forEach((b,i) => b.classList.toggle('on', i===0));
+  _eqFiltroAtual = 'TODAS';
+  document.querySelectorAll('.eq-fb').forEach((b,i) => b.classList.toggle('on', i===0));
+  syncCampos();
+  renderAtv();
+  aplicarFiltrosEquipe();
 
   setTimeout(() => document.getElementById('elab-user-input')?.focus(), 50);
   atualizarCompletude();
@@ -3842,6 +3913,44 @@ function checkElaboradorSession(){
 }
 
 function onElaboradorChange(){ /* mantido para compatibilidade */ }
+
+// ── Helper: credencial da sessão atual ──────────────────────────────────────
+function getSessionCred(){
+  try{
+    const sess=sessionStorage.getItem(ELAB_SESSION_KEY);
+    if(!sess) return null;
+    const data=JSON.parse(sess);
+    return CREDENCIADOS.find(c=>c.n===data.n)||null;
+  }catch(e){return null;}
+}
+
+// ── Aprovar nova APR (Item 2) ─────────────────────────────────────────────────
+function aprovarAPR(id, e){
+  if(e){ e.stopPropagation(); e.preventDefault(); }
+  const atv=ATIVIDADES.find(a=>a.id===+id);
+  if(!atv) return;
+  atv._aprovada=true;
+  const selId=SEL.size ? [...SEL][0] : null;
+  renderAtv();
+  // Restaurar seleção
+  if(selId){
+    setTimeout(()=>{
+      const rb=document.getElementById(`atv-rb-${selId}`);
+      if(rb && SEL.has(selId)){ rb.checked=true; rb.closest('.ac')?.classList.add('sel'); }
+    }, 50);
+  }
+}
+
+// ── Imprimir APR — restrito à equipe técnica (Item 4) ─────────────────────────
+function imprimirAPR(){
+  const cred=getSessionCred();
+  if(!cred||!cred.aprovador){
+    const nome=cred?cred.nome.split(' ')[0]:'Usuário';
+    alert(`⚠ ${nome}, a impressão da APR é restrita à equipe técnica autorizada.\n\nApenas Elizandra e Gislaine podem imprimir / gerar PDF.`);
+    return;
+  }
+  window.print();
+}
 
 // ═══════════════════════════════════════════════════
 // EMAIL — modal e envio via mailto
@@ -3886,6 +3995,44 @@ function abrirModalEmail(){
   status.style.display = 'none';
   status.textContent = '';
 
+  overlay.classList.add('show');
+}
+
+// ── Email específico para nova APR aguardando aprovação (Item 3) ─────────────
+function abrirModalEmailNovaAPR(nomeAtv, equipe){
+  const overlay = document.getElementById('email-overlay');
+  const toList  = document.getElementById('email-to-list');
+  const assunto = document.getElementById('email-assunto');
+  const msg     = document.getElementById('email-mensagem');
+  const status  = document.getElementById('email-status');
+
+  toList.innerHTML = '';
+  APROVADORES_EMAIL.forEach(email => {
+    const badge = document.createElement('span');
+    badge.className = 'email-to-badge';
+    badge.textContent = email;
+    toList.appendChild(badge);
+  });
+
+  const data  = v('f-data') ? fmtDate(v('f-data')) : new Date().toLocaleDateString('pt-BR');
+  const elab  = v('f-elaborador') || 'Não informado';
+  const obra  = v('f-obra') || 'SE JAGUARA 345 kV';
+
+  assunto.value = `[NOVA APR — AGUARDA APROVAÇÃO] ${nomeAtv} — ${obra}`;
+  msg.value =
+    `Prezados,\n\n` +
+    `Uma nova APR foi criada e aguarda aprovação da equipe técnica.\n\n` +
+    `Atividade: ${nomeAtv}\n` +
+    `Equipe: ${equipe}\n` +
+    `Criado por: ${elab}\n` +
+    `Obra: ${obra}\n` +
+    `Data: ${data}\n\n` +
+    `Por favor, acesse o sistema APR REMO para revisar e aprovar.\n\n` +
+    `Atenciosamente,\n${elab}\nREMO ENGENHARIA — SE JAGUARA 345 kV`;
+
+  status.className = 'email-status';
+  status.style.display = 'none';
+  status.textContent = '';
   overlay.classList.add('show');
 }
 
@@ -4132,10 +4279,17 @@ function salvarNovaAPR(){
   
   // Fechar modal e selecionar a nova atividade
   fecharNovaAPR();
-  
+
+  // Item 1 — Resetar filtros para garantir visibilidade da nova APR
+  _filtroAtvDisc  = 'TODAS';
+  _filtroAtvTexto = '';
+  const abEl = document.getElementById('atv-busca');
+  if(abEl) abEl.value = '';
+  document.querySelectorAll('.fb').forEach((b,i)=>b.classList.toggle('on',i===0));
+
   // Re-renderizar a lista de atividades
   renderAtv();
-  
+
   // Selecionar a nova atividade automaticamente
   setTimeout(()=>{
     const rb = document.getElementById(`atv-rb-${novoId}`);
@@ -4146,8 +4300,17 @@ function salvarNovaAPR(){
       rb.closest('.ac')?.scrollIntoView({behavior:'smooth', block:'center'});
     }
   }, 80);
-  
+
   aviso.textContent = '';
+
+  // Item 3 — Notificar equipe técnica da nova APR para aprovação
+  if(APROVADORES_EMAIL.length > 0){
+    setTimeout(()=>{
+      if(confirm(`✉ Nova APR "${nome}" criada!\n\nDeseja notificar a equipe técnica para aprovação?`)){
+        abrirModalEmailNovaAPR(nome, disc === 'Civil,Elétrica,Montagem' ? 'Todas as equipes' : disc);
+      }
+    }, 250);
+  }
 }
 
 // ── Exportar nova atividade para planilha (download JSON para referência) ──
