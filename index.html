@@ -4496,8 +4496,6 @@ function autoSyncComPDF(url, dados){
 
   // ── Service Worker (funciona apenas quando servido via HTTPS / gh-pages) ─
   if('serviceWorker' in navigator && location.protocol === 'https:'){
-    // SW externo no mesmo origin — funciona no GitHub Pages
-    // Se não houver sw.js, falha silenciosamente (app já é single-file offline)
     navigator.serviceWorker.register('./sw.js', {scope: './'})
       .then(reg => {
         reg.addEventListener('updatefound', ()=>{
