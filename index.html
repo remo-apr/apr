@@ -2450,25 +2450,18 @@ function fecharMs(tipo){
   document.getElementById('box-'+tipo)?.classList.remove('open');
 }
 
-// Recalcular encarregados com base na atividade selecionada
+// Recalcular encarregados — sempre exibe todos, sem filtro por disciplina.
+// O filtro automático causava remoção silenciosa do encarregado selecionado
+// quando a atividade era escolhida após o encarregado.
 function syncCampos(){
-  const equipes = new Set();
-  SEL.forEach(id=>{
-    const a=ATIVIDADES.find(x=>x.id===id);
-    if(a) a.disc.forEach(d=>equipes.add(d));
-  });
-  const semSel = equipes.size===0;
-
-  // ENCARREGADOS filtrados pela disciplina da atividade
-  const encsDisp=[];
-  ENCARREGADOS.forEach(enc=>{
-    const pertence = semSel || enc.disc.some(d=>equipes.has(d));
-    if(pertence && !encsDisp.find(x=>x.key===enc.nome)){
-      const dcls = enc.disc.includes('Elétrica')?'Elétrica':enc.disc.includes('Montagem')?'Montagem':'Civil';
-      encsDisp.push({key:enc.nome, label:enc.nome, sub:enc.funcao, disc:dcls});
-    }
-  });
-  if(!semSel) SEL_E.forEach(e=>{ if(!encsDisp.find(x=>x.key===e)) SEL_E.delete(e); });
+  const encsDisp = ENCARREGADOS.map(enc=>({
+    key:   enc.nome,
+    label: enc.nome,
+    sub:   enc.funcao,
+    disc:  enc.disc.includes('Elétrica') ? 'Elétrica'
+         : enc.disc.includes('Montagem') ? 'Montagem'
+         : 'Civil',
+  }));
   buildMs('enc', encsDisp, SEL_E, 'Selecione o(s) encarregado(s)…');
   atualizarChips('enc', SEL_E);
 }
