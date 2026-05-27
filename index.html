@@ -980,6 +980,9 @@ body.dark .hist-item-btn.view{border-color:#7ab3e0;color:#7ab3e0}
 .hist-count{font-size:12px;color:var(--remo-muted)}
 .hist-clear-btn{border:1.5px solid #dc3545;color:#dc3545;background:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;transition:all .15s}
 .hist-clear-btn:hover{background:#dc3545;color:#fff}
+.hist-csv-btn{border:1.5px solid var(--remo-green);color:var(--remo-green);background:none;padding:5px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:Barlow,sans-serif;transition:all .15s}
+.hist-csv-btn:hover{background:var(--remo-green);color:#fff}
+.hist-footer-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 /* ═══════════════════════════════════════════════
    ITEM 11 – FAVORITOS
@@ -1470,7 +1473,10 @@ body.dark .sync-url-input{background:#162032;border-color:#243040;color:#d8e6f3}
     </div>
     <div class="hist-footer">
       <span class="hist-count" id="hist-count">0 registros</span>
-      <button class="hist-clear-btn" onclick="limparHistoricoConfirm()">🗑 Limpar tudo</button>
+      <div class="hist-footer-actions">
+        <button class="hist-csv-btn" onclick="exportarHistoricoCSV()">📥 Exportar CSV</button>
+        <button class="hist-clear-btn" onclick="limparHistoricoConfirm()">🗑 Limpar tudo</button>
+      </div>
     </div>
   </div>
 </div>
@@ -4256,6 +4262,63 @@ function limparHistoricoConfirm(){
     localStorage.removeItem(HIST_KEY);
     renderHistorico();
   }
+}
+
+function exportarHistoricoCSV(){
+  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
+
+  // Aplicar os mesmos filtros ativos no modal
+  const busca   = (document.getElementById('hist-busca')?.value || '').toLowerCase();
+  const dataIni = document.getElementById('hist-data-ini')?.value || '';
+  const dataFim = document.getElementById('hist-data-fim')?.value || '';
+
+  const filtrado = hist.filter(h => {
+    const txt = ((h.num||'') + ' ' + (h.atividade||'') + ' ' + (h.elaborador||'')).toLowerCase();
+    if(busca   && !txt.includes(busca))  return false;
+    if(dataIni && h.data < dataIni)      return false;
+    if(dataFim && h.data > dataFim)      return false;
+    return true;
+  });
+
+  if(!filtrado.length){
+    alert('Nenhum registro para exportar.');
+    return;
+  }
+
+  // Cabeçalho do CSV (separador ; para compatibilidade com Excel BR)
+  const SEP = ';';
+  const NL  = '\r\n';
+  const cols = ['Rastreio','Data APR','Atividade','Elaborador','Etapa','Equipe (qtd)','Gerado Em'];
+
+  const linhas = filtrado.map(h => {
+    const dataFmt   = h.data    ? fmtDate(h.data) : '';
+    const geradoFmt = h.geradoEm
+      ? new Date(h.geradoEm).toLocaleString('pt-BR', {timeZone:'America/Sao_Paulo'})
+      : '';
+    // Escapar aspas duplas dentro de campos (RFC 4180)
+    const esc = v => '"' + String(v||'').replace(/"/g,'""') + '"';
+    return [
+      esc(h.num        || ''),
+      esc(dataFmt),
+      esc(h.atividade  || ''),
+      esc(h.elaborador || ''),
+      esc(h.etapa      || ''),
+      esc(h.equipeCount != null ? h.equipeCount : ''),
+      esc(geradoFmt),
+    ].join(SEP);
+  });
+
+  // BOM UTF-8 para o Excel abrir acentos corretamente
+  const csv = '﻿' + cols.join(SEP) + NL + linhas.join(NL);
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const tag  = document.createElement('a');
+  const hoje = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  tag.href     = url;
+  tag.download = 'Historico_APR_REMO_' + hoje + '.csv';
+  tag.click();
+  URL.revokeObjectURL(url);
 }
 
 // ═══════════════════════════════════════════════════════════════════════
