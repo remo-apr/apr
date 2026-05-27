@@ -478,6 +478,12 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 .fb{padding:6px 15px;border-radius:3px;border:1.5px solid var(--remo-line);background:var(--remo-white);font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;color:var(--remo-muted);cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
 .fb:hover{border-color:var(--remo-navy);color:var(--remo-navy);background:#e8eef5}
 .fb.on{background:var(--remo-navy);border-color:var(--remo-navy);color:#fff}
+.atv-busca-wrap{margin-bottom:12px;position:relative}
+.atv-busca{width:100%;padding:9px 12px 9px 36px;border:1.5px solid var(--remo-line);border-radius:8px;font-family:Barlow,sans-serif;font-size:13px;background:var(--remo-field);color:var(--remo-text);box-sizing:border-box;transition:border-color .2s}
+.atv-busca:focus{outline:none;border-color:var(--remo-navy)}
+.atv-busca-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;opacity:.5}
+body.dark .atv-busca{background:#1e2e42;border-color:#243040;color:#d8e6f3}
+body.dark .atv-busca:focus{border-color:#7ab3e0}
 .sel-info{font-size:13px;color:var(--remo-muted);margin-bottom:14px}
 .sel-info strong{color:var(--remo-green);font-weight:700}
 .atv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -1313,6 +1319,13 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
     <button class="fb" onclick="filtrar('Elétrica',this)">Elétrica</button>
     <button class="fb" onclick="filtrar('Montagem',this)">Montagem</button>
     <button class="fb-nova" onclick="abrirNovaAPR()">＋ Nova APR</button>
+  </div>
+
+  <div class="atv-busca-wrap">
+    <span class="atv-busca-icon">🔍</span>
+    <input type="search" class="atv-busca" id="atv-busca"
+           placeholder="Pesquisar APR pelo nome ou número…"
+           oninput="filtrarTexto(this.value)">
   </div>
 
   <div class="sel-info" id="sel-info">Nenhuma atividade selecionada</div>
@@ -2489,12 +2502,17 @@ function renderAtv(){
     const cls = a.disc.includes('Montagem')?'montagem-c':a.disc.includes('Elétrica')?'eletrica-c':'civil-c';
     const novaBadge = a._nova ? '<span class="nova-badge">NOVA</span>' : '';
     const isFav = FAV_ATIVS.has(a.id);
-    const visivel = discEnc.size===0 || a.disc.some(d=>discEnc.has(d));
+    const passaEnc  = discEnc.size===0 || a.disc.some(d=>discEnc.has(d));
+    const searchTxt = `apr-${String(a.id).padStart(2,'0')} ${a.nome}`.toLowerCase();
+    const passaTxt  = !_filtroAtvTexto || searchTxt.includes(_filtroAtvTexto);
+    const passaDisc = _filtroAtvDisc==='TODAS' || a.disc.includes(_filtroAtvDisc);
+    const visivel   = passaEnc && passaTxt && passaDisc;
     const isSel = SEL.has(a.id);
 
     const card=document.createElement('label');
     card.className=`ac ${cls}${isSel?' sel':''}`;
     card.dataset.disc=a.disc.join(',');
+    card.dataset.search=searchTxt;
     card.style.display=visivel?'':'none';
     card.innerHTML=`
       <input type="radio" name="atv_sel" id="atv-rb-${a.id}" value="${a.id}" ${isSel?'checked':''} onchange="toggleAtv('${a.id}',this)">
@@ -2540,16 +2558,30 @@ function atualizarContador(){
 }
 
 // Filtro por disciplina
+let _filtroAtvDisc  = 'TODAS';
+let _filtroAtvTexto = '';
+
+function aplicarFiltrosAtv(){
+  const discEnc = getDiscEncarregados();
+  document.querySelectorAll('.ac').forEach(card=>{
+    const cardDiscs = (card.dataset.disc||'').split(',');
+    const passaDisc = _filtroAtvDisc==='TODAS' || cardDiscs.includes(_filtroAtvDisc);
+    const passaEnc  = discEnc.size===0 || cardDiscs.some(d=>discEnc.has(d));
+    const passaTxt  = !_filtroAtvTexto || (card.dataset.search||'').includes(_filtroAtvTexto);
+    card.style.display = (passaDisc && passaEnc && passaTxt) ? '' : 'none';
+  });
+}
+
 function filtrar(disc, btn){
+  _filtroAtvDisc = disc;
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
-  const discEnc=getDiscEncarregados();
-  document.querySelectorAll('.ac').forEach(card=>{
-    const cardDiscs=(card.dataset.disc||'').split(',');
-    const passaFiltro = disc==='TODAS' || cardDiscs.includes(disc);
-    const passaEnc    = discEnc.size===0 || cardDiscs.some(d=>discEnc.has(d));
-    card.style.display=(passaFiltro && passaEnc)?'':'none';
-  });
+  aplicarFiltrosAtv();
+}
+
+function filtrarTexto(val){
+  _filtroAtvTexto = val.trim().toLowerCase();
+  aplicarFiltrosAtv();
 }
 
 // ═══════════════════════════════════════════════════
@@ -3611,6 +3643,13 @@ function nova(){
 
   document.getElementById('f-data').value = new Date().toISOString().slice(0,10);
   document.getElementById('apr-out').innerHTML = '';
+  // Resetar busca e filtro de atividades
+  _filtroAtvTexto = '';
+  _filtroAtvDisc  = 'TODAS';
+  const ab = document.getElementById('atv-busca');
+  if(ab) ab.value = '';
+  document.querySelectorAll('.fb').forEach((b,i)=>b.classList.toggle('on',i===0));
+
   renderAtv(); syncCampos(); ir(1); atualizarCompletude();
 }
 
