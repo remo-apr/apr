@@ -436,8 +436,8 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 .rb input:checked+label{background:var(--remo-navy);border-color:var(--remo-navy);color:#fff}
 
 /* ─── MÁQUINAS CHIPS ─── */
-.maq-list{margin-top:12px;display:none}
-.maq-list.show{display:block}
+.maq-list,.ferr-list{margin-top:12px;display:none}
+.maq-list.show,.ferr-list.show{display:block}
 /* ── Itens de máquina com controle de quantidade ── */
 .maq-item{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
 .maq-qty{display:none;align-items:center;gap:4px;background:var(--remo-field);border:1.5px solid var(--remo-navy);border-radius:20px;padding:2px 6px}
@@ -1259,6 +1259,22 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
     </div>
   </div>
 
+  <!-- FERRAMENTAS MANUAIS -->
+  <div class="card">
+    <div class="card-title">Uso de Ferramentas Manuais</div>
+    <div class="f">
+      <label>Haverá uso de ferramentas manuais?</label>
+      <div class="radio-row">
+        <div class="rb"><input type="radio" name="usoferr" id="ferr-nao" value="NÃO" checked onchange="toggleFerr()"><label for="ferr-nao">NÃO</label></div>
+        <div class="rb"><input type="radio" name="usoferr" id="ferr-sim" value="SIM" onchange="toggleFerr()"><label for="ferr-sim">SIM</label></div>
+      </div>
+    </div>
+    <div class="ferr-list" id="ferr-list">
+      <div class="hint" style="margin-bottom:8px">Selecione as ferramentas que serão utilizadas:</div>
+      <div class="maq-grid" id="ferr-grid"></div>
+    </div>
+  </div>
+
   <!-- CONDIÇÃO CLIMÁTICA -->
   <div class="card">
     <div class="card-title">Condição Climática</div>
@@ -1653,6 +1669,13 @@ const CHECKLISTS = {
   "Plaina": ["A plaina está posicionada em bancada estável?", "Possui aterramento no painel de alimentação?", "A lâmina está em boas condições", "As partes móveis estão protegidas por proteções fixas e resistentes?", "Pega mão para transporte", "Cabos de alimentação", "Colaborador Possui Treinamento?¹", "Colaborador possui todos EPI's¹"],
   "Lixadeira": ["Existe botão liga/desliga em bom estado e funcionando?¹", "Condições do punho lateral?", "Possui chave para trocar o disco/rebolo e está em boas condições para uso?¹", "Disco/rebolo está em boas condições para uso e é adequado à ferramenta?", "A velocidade de rotação indicada no rebolo/disco é maior ou igual ao do equipamento?¹", "Possui o protetor do disco/rebolo e está em condições adequadas?¹", "Eixo, flange e contraporca estão em boas condições para uso?¹", "Há extintor de incêndio próximo ao local da atividade?¹", "Cabo de alimentação elétrico está em boas condições e sem avarias, emendas e possui isolamento adequado?¹", "Verificações das condições da bateria", "O profissional foi treinado para operação do equipamento/ferramenta?¹"],
 };
+
+// ─── FERRAMENTAS MANUAIS (sem checklist) ─────────────────────────────────
+const FERRAMENTAS_MANUAIS = [
+  "Pá","Enxada","Picareta","Alavanca","Martelo","Marreta",
+  "Carrinho de mão","Turquesa","Serrote","Arco de serra",
+  "Pé de cabra","Ponteiro","Tesourão","Cavadeira","Catraca","Camelão",
+];
 
 // Locais por equipe
 // Locais fixos da planilha (aba LOCAL FRENTE DE SERVIÇO)
@@ -2094,6 +2117,7 @@ const SEL = new Set();      // atividades selecionadas
 const SEL_L = new Set();    // locais selecionados
 const SEL_E = new Set();    // encarregados selecionados
 const SEL_M = new Set();    // máquinas selecionadas
+const SEL_F = new Set();    // ferramentas manuais selecionadas
 
 // ═══════════════════════════════════════════════════
 // INIT
@@ -2151,6 +2175,20 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="maq-qty-label">un.</span>
       </div>`;
     mg.appendChild(wrapper);
+  });
+
+  // Ferramentas manuais grid — chips simples (sem controle de quantidade)
+  const fg = document.getElementById('ferr-grid');
+  FERRAMENTAS_MANUAIS.forEach(f=>{
+    const safeId = 'ferr-'+f.replace(/[\s/]/g,'-');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'maq-item';
+    wrapper.innerHTML = `
+      <label class="maq-chip">
+        <input type="checkbox" id="${safeId}" value="${f}" onchange="toggleFerrItem('${f}',this)">
+        <span>${f}</span>
+      </label>`;
+    fg.appendChild(wrapper);
   });
 
   // Atividades
@@ -2269,6 +2307,16 @@ function mudarQtdMaq(m, safeId, delta){
   SEL_M_QTD.set(m, novo);
   const numSpan = document.getElementById('maq-qty-num-' + safeId);
   if(numSpan) numSpan.textContent = novo;
+}
+
+function toggleFerr(){
+  const sim = document.getElementById('ferr-sim').checked;
+  document.getElementById('ferr-list').classList.toggle('show', sim);
+  if(!sim){ SEL_F.clear(); document.querySelectorAll('#ferr-grid input[type="checkbox"]').forEach(cb=>cb.checked=false); }
+}
+
+function toggleFerrItem(f, cb){
+  if(cb.checked) SEL_F.add(f); else SEL_F.delete(f);
 }
 
 // ═══════════════════════════════════════════════════
@@ -3004,6 +3052,8 @@ function renderResumo(){
     ? [...SEL_M].map(m=>{ const q=SEL_M_QTD.get(m)||1; return q>1?`${m} ×${q}`:m; }).join(', ')
     : 'Nenhuma';
   const usomaq=document.getElementById('maq-sim').checked?'SIM':'NÃO';
+  const ferrs=SEL_F.size ? [...SEL_F].join(', ') : 'Nenhuma';
+  const usoferr=document.getElementById('ferr-sim').checked?'SIM':'NÃO';
 
   document.getElementById('resumo').innerHTML=`
     <div class="res-grid">
@@ -3019,7 +3069,8 @@ function renderResumo(){
           <b>Encarregado(s):</b> ${[...SEL_E].join(', ')||'—'}<br>
           <b>Etapa da APR:</b> ${document.querySelector('input[name="etapa_apr"]:checked')?.value||'—'}<br>
           <b>Clima:</b> ${clima}<br>
-          <b>Máq. manuais:</b> ${usomaq}${usomaq==='SIM'?' – '+maqs:''}
+          <b>Máq. manuais:</b> ${usomaq}${usomaq==='SIM'?' – '+maqs:''}<br>
+          <b>Ferr. manuais:</b> ${usoferr}${usoferr==='SIM'?' – '+ferrs:''}
         </dd>
       </div>
       <div class="res-block">
@@ -3065,6 +3116,8 @@ function gerarAPR(){
   const maqs=usomaq&&SEL_M.size
     ? [...SEL_M].map(m=>{ const q=SEL_M_QTD.get(m)||1; return q>1?`${m} ×${q}`:m; }).join(', ')
     : '—';
+  const usoferr=document.getElementById('ferr-sim').checked;
+  const ferrs=usoferr&&SEL_F.size ? [...SEL_F].join(', ') : '—';
   const escopo=[...SEL_ESC][0]||'';
   const obs=v('f-obs');
 
@@ -3386,6 +3439,7 @@ function gerarAPR(){
       <div class="apr-mi"><div class="apr-mi-l">Etapa da APR</div><div class="apr-mi-v" style="display:inline-block;background:${etapaApr==="Pré Atividade"?"#e8eef5":etapaApr==="Durante Atividade"?"#e6f7ed":"#fff3cd"};color:${etapaApr==="Pré Atividade"?"var(--remo-navy)":etapaApr==="Durante Atividade"?"var(--remo-green)":"#856404"};font-weight:900;padding:2px 10px;border-radius:4px;font-size:12px">${etapaApr}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Condição Climática</div><div class="apr-mi-v">${clima}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Uso de Máquinas Manuais</div><div class="apr-mi-v">${usomaq?maqs:'NÃO'}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">Ferramentas Manuais</div><div class="apr-mi-v">${usoferr?ferrs:'NÃO'}</div></div>
     </div>
 
     ${escopo?`<div class="apr-secao" style="padding:14px 18px;background:#f5f2ed;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Escopo:</b> ${escopo}</div>`:''}
@@ -3509,10 +3563,15 @@ function nova(){
   // Limpar máquinas manuais
   document.getElementById('maq-nao').checked=true;
   document.getElementById('maq-list').classList.remove('show');
-  document.querySelectorAll('.maq-chip input').forEach(cb=>cb.checked=false);
+  document.querySelectorAll('#maq-grid .maq-chip input').forEach(cb=>cb.checked=false);
   document.querySelectorAll('.maq-qty').forEach(el=>{ el.style.display='none'; });
   document.querySelectorAll('.maq-qty-num').forEach(el=>{ el.textContent='1'; });
   SEL_M.clear();
+  // Limpar ferramentas manuais
+  document.getElementById('ferr-nao').checked=true;
+  document.getElementById('ferr-list').classList.remove('show');
+  document.querySelectorAll('#ferr-grid .maq-chip input').forEach(cb=>cb.checked=false);
+  SEL_F.clear();
   // Limpar campos de texto livres
   document.getElementById('f-pt').value='';
   document.getElementById('f-pt').disabled=false;
