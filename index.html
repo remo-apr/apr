@@ -390,6 +390,7 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s}
 .dot.on{background:var(--remo-green);transform:scale(1.45)}
 .dot.done{background:var(--remo-yellow)}
+.dot.completo{box-shadow:0 0 0 2px rgba(255,255,255,.5)}
 
 /* ─── PROGRESS ─── */
 .prog{height:4px;background:var(--remo-line);overflow:hidden}
@@ -487,7 +488,7 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 .fb:hover{border-color:var(--remo-navy);color:var(--remo-navy);background:#e8eef5}
 .fb.on{background:var(--remo-navy);border-color:var(--remo-navy);color:#fff}
 .atv-busca-wrap{margin-bottom:12px;position:relative}
-.atv-busca{width:100%;padding:9px 12px 9px 36px;border:1.5px solid var(--remo-line);border-radius:8px;font-family:Barlow,sans-serif;font-size:13px;background:var(--remo-field);color:var(--remo-text);box-sizing:border-box;transition:border-color .2s}
+.atv-busca{width:100%;padding:9px 12px 9px 36px;border:1.5px solid var(--remo-line);border-radius:8px;font-family:Barlow,sans-serif;font-size:13px;background:var(--remo-field);color:var(--remo-black);box-sizing:border-box;transition:border-color .2s}
 .atv-busca:focus{outline:none;border-color:var(--remo-navy)}
 .atv-busca-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;opacity:.5}
 body.dark .atv-busca{background:#1e2e42;border-color:#243040;color:#d8e6f3}
@@ -1757,6 +1758,13 @@ const SEL_ESC = new Set();
 
 
 
+// ─── RESPONSÁVEIS TÉCNICOS (assinaturas fixas na APR) ──────────────────────
+// Altere aqui para mudar engenheiro / técnico sem tocar em gerarAPR()
+const RESP_TECNICOS = [
+  {nome:"Leandro Pizani",      func:"Engenheiro Residente",   fone:"(31) 99223-7798"},
+  {nome:"Gislaine Nascimento", func:"Técnico de Segurança",   fone:"(34) 98408-3585"},
+];
+
 // ─── CREDENCIADOS (elaboradores de APR) ───────────────────────────────────
 // user: nome de usuário para login | senha: senha de acesso
 const CREDENCIADOS = [
@@ -2295,7 +2303,7 @@ function validar(s){
     for(const id of req){
       const el=document.getElementById(id);
       if(!el.value.trim()){
-        el.focus();el.style.borderColor='var(--red)';
+        el.focus();el.style.borderColor='var(--remo-red)';
         setTimeout(()=>el.style.borderColor='',2000);
         alert('Preencha os campos obrigatórios (*).');return false;
       }
@@ -2314,7 +2322,13 @@ function validar(s){
 function toggleMaq(){
   const sim = document.getElementById('maq-sim').checked;
   document.getElementById('maq-list').classList.toggle('show',sim);
-  if(!sim) SEL_M.clear();
+  if(!sim){
+    SEL_M.clear();
+    SEL_M_QTD.clear();
+    document.querySelectorAll('#maq-grid .maq-chip input').forEach(cb=>cb.checked=false);
+    document.querySelectorAll('.maq-qty').forEach(el=>el.style.display='none');
+    document.querySelectorAll('.maq-qty-num').forEach(el=>el.textContent='1');
+  }
 }
 function toggleMaqItem(m, cb, safeId){
   const qtyDiv = document.getElementById('maq-qty-' + safeId);
@@ -3267,10 +3281,7 @@ function gerarAPR(){
       </div>`).join('');
 
   // Assinaturas — ordem: fixos (Engenheiro + Técnico de Segurança) → Encarregado(s) selecionado(s) → equipe de campo
-  const ASSINATURAS_FIXAS = [
-    {nome:"Leandro Pizani",      func:"Engenheiro Residente",   fone:"(31) 99223-7798"},
-    {nome:"Gislaine Nascimento", func:"Técnico de Segurança",   fone:"(34) 98408-3585"},
-  ];
+  const ASSINATURAS_FIXAS = RESP_TECNICOS; // configurável no topo do arquivo
 
   // Equipe de campo para tabela unificada
   const equipe3 = getEquipe();
