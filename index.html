@@ -3578,6 +3578,12 @@ function gerarAPR(){
   </div>
 </div>`;
 
+  // ── QR Target: URL do GAS viewer com rastreio (ou só texto se não configurado) ──
+  const _gasUrl = localStorage.getItem(SYNC_URL_KEY) || '';
+  const qrTarget = _gasUrl
+    ? _gasUrl + '?r=' + numRastreio          // link funcional → abre APR no GAS
+    : numRastreio;                            // fallback: só o texto do rastreio
+
   document.getElementById('apr-out').innerHTML=`
     <!-- CABEÇALHO -->
     <div class="apr-head">
@@ -3631,13 +3637,17 @@ function gerarAPR(){
         <div style="font-size:10px;opacity:.6;margin-top:3px">
           Gerado em ${new Date().toLocaleString('pt-BR')} · NR-10 / NR-18 / NR-35
         </div>
+        <div style="font-size:9px;opacity:.55;margin-top:5px;font-style:italic">
+          Escaneie o QR Code para verificar e visualizar o documento original
+        </div>
       </div>
-      <!-- QR Code (online: imagem via API; offline: caixa de texto) -->
-      <div style="flex-shrink:0;background:#fff;padding:5px;border-radius:5px;text-align:center">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=90x90&margin=1&data=${encodeURIComponent(numRastreio)}"
-             alt="QR ${numRastreio}" width="90" height="90"
+      <!-- QR Code: codifica URL do GAS viewer com rastreio (online) ou texto (offline) -->
+      <div style="flex-shrink:0;background:#fff;padding:6px;border-radius:6px;text-align:center">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=2&data=${encodeURIComponent(qrTarget)}"
+             alt="QR ${numRastreio}" width="100" height="100"
              style="display:block"
-             onerror="this.parentElement.innerHTML='<div style=\\'font-family:monospace;font-size:7px;color:#1B3E6B;padding:4px;text-align:center;line-height:1.4;width:90px\\'><strong>RASTREIO</strong><br>${numRastreio.replace(/-/g,'-&#8203;')}</div>'">
+             onerror="this.parentElement.innerHTML='<div style=\\'font-family:monospace;font-size:7px;color:#1B3E6B;padding:4px;text-align:center;line-height:1.6;width:100px\\'><strong>RASTREIO</strong><br>${numRastreio.replace(/-/g,'-&#8203;')}</div>'">
+        <div style="font-size:7px;color:#1B3E6B;font-weight:700;letter-spacing:.5px;margin-top:3px;text-transform:uppercase">Verificar APR</div>
       </div>
     </div>
     <div class="apr-rodape">⚠ Regras de Ouro: Chuva com raios → PARALISAR IMEDIATAMENTE &nbsp;|&nbsp; APR obrigatória antes de iniciar &nbsp;|&nbsp; EPI básico obrigatório em todas as frentes &nbsp;|&nbsp; <span style="opacity:.6">APR Sistema ${APP_VERSAO}</span></div>
