@@ -374,6 +374,11 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
   color:#fff;font-family:'Barlow',sans-serif;font-size:11px;font-weight:700;
   cursor:pointer;letter-spacing:.5px;text-transform:uppercase;transition:background .2s}
 .btn-aprovar:hover{background:var(--remo-green-dk)}
+.btn-remover-nova{position:absolute;top:6px;right:6px;width:22px;height:22px;
+  border:none;border-radius:50%;background:rgba(198,40,40,.12);color:#c62828;
+  font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .2s;padding:0;line-height:1;flex-shrink:0}
+.btn-remover-nova:hover{background:#c62828;color:#fff}
 
 @media(max-width:600px){
   .nova-apr-row{grid-template-columns:1fr}
@@ -2158,6 +2163,88 @@ const SEL_E = new Set();    // encarregados selecionados
 const SEL_M = new Set();    // máquinas selecionadas
 const SEL_F = new Set();    // ferramentas manuais selecionadas
 
+// ─── PERSISTÊNCIA DE NOVAS APRs ─────────────────────────────────────────────
+const NOVAS_APR_KEY = 'apr_novas_atividades';
+
+// Serializa: Map(_riscos) → array de pares para JSON
+function _serializarNovaAtv(atv){
+  return {
+    ...atv,
+    fases: atv.fases.map(f => ({
+      ...f,
+      _riscos: undefined,
+      _riscos_arr: f._riscos ? [...f._riscos.entries()] : []
+    }))
+  };
+}
+// Deserializa: array de pares → Map(_riscos)
+function _deserializarNovaAtv(raw){
+  return {
+    ...raw,
+    fases: (raw.fases||[]).map(f => ({
+      ...f,
+      _riscos: new Map(f._riscos_arr || [])
+    }))
+  };
+}
+
+function persistirNovaAPR(atv){
+  try{
+    const salvas = JSON.parse(localStorage.getItem(NOVAS_APR_KEY) || '[]');
+    const idx = salvas.findIndex(a => a.id === atv.id);
+    const ser = _serializarNovaAtv(atv);
+    if(idx >= 0) salvas[idx] = ser; else salvas.push(ser);
+    localStorage.setItem(NOVAS_APR_KEY, JSON.stringify(salvas));
+  }catch(e){ console.warn('persistirNovaAPR:', e); }
+}
+
+function atualizarNovaAPRPersistida(id){
+  const atv = ATIVIDADES.find(a => a.id === +id);
+  if(atv) persistirNovaAPR(atv);
+}
+
+function removerNovaAPRPersistida(id){
+  try{
+    const salvas = JSON.parse(localStorage.getItem(NOVAS_APR_KEY) || '[]');
+    const idx = salvas.findIndex(a => a.id === +id);
+    if(idx >= 0){ salvas.splice(idx,1); localStorage.setItem(NOVAS_APR_KEY, JSON.stringify(salvas)); }
+  }catch(e){}
+}
+
+function carregarNovasAPRs(){
+  try{
+    const salvas = JSON.parse(localStorage.getItem(NOVAS_APR_KEY) || '[]');
+    salvas.forEach(raw => {
+      if(ATIVIDADES.find(a => a.id === raw.id)) return; // já existe
+      const atv = _deserializarNovaAtv(raw);
+      ATIVIDADES.push(atv);
+      // Restaurar riscos pré-selecionados nas fases
+      atv.fases.forEach((fase, fIdx) => {
+        if(fase._riscos && fase._riscos.size > 0){
+          const k = faseKey(atv.id, fIdx);
+          if(!SEL_RISCOS.has(k)) SEL_RISCOS.set(k, fase._riscos);
+        }
+      });
+    });
+  }catch(e){ console.warn('carregarNovasAPRs:', e); }
+}
+
+function removerNovaAPR(id, e){
+  if(e){ e.stopPropagation(); e.preventDefault(); }
+  if(!confirm('Remover a APR "' + (ATIVIDADES.find(a=>a.id===+id)?.nome||'') + '" do sistema?\nEsta ação não pode ser desfeita.')) return;
+  const idx = ATIVIDADES.findIndex(a => a.id === +id);
+  if(idx >= 0) ATIVIDADES.splice(idx, 1);
+  removerNovaAPRPersistida(+id);
+  if(SEL.has(+id)){
+    SEL.clear();
+    // Limpar riscos desta atividade
+    [...SEL_RISCOS.keys()].filter(k=>k.startsWith(id+'_')).forEach(k=>SEL_RISCOS.delete(k));
+  }
+  renderAtv();
+  atualizarContador();
+  syncCampos();
+}
+
 // ═══════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════
@@ -2229,6 +2316,9 @@ document.addEventListener('DOMContentLoaded', () => {
       </label>`;
     fg.appendChild(wrapper);
   });
+
+  // Carregar novas APRs persistidas em sessões anteriores
+  carregarNovasAPRs();
 
   // Atividades
   renderAtv();
@@ -2537,6 +2627,9 @@ function renderAtv(){
     const aprvBtn = pendAprov && isAprovador
       ? `<button class="btn-aprovar" onclick="aprovarAPR(${a.id},event)">✓ Aprovar esta APR</button>`
       : '';
+    const remvBtn = a._nova && isAprovador
+      ? `<button class="btn-remover-nova" onclick="removerNovaAPR(${a.id},event)" title="Remover esta APR">✕</button>`
+      : '';
     const isFav = FAV_ATIVS.has(a.id);
     const passaEnc  = discEnc.size===0 || a.disc.some(d=>discEnc.has(d));
     const searchTxt = `apr-${String(a.id).padStart(2,'0')} ${a.nome}`.toLowerCase();
@@ -2550,6 +2643,7 @@ function renderAtv(){
     card.dataset.disc=a.disc.join(',');
     card.dataset.search=searchTxt;
     card.style.display=visivel?'':'none';
+    card.style.position='relative';
     card.innerHTML=`
       <input type="radio" name="atv_sel" id="atv-rb-${a.id}" value="${a.id}" ${isSel?'checked':''} onchange="toggleAtv('${a.id}',this)">
       <div class="ac-inner" style="flex:1;min-width:0">
@@ -2563,6 +2657,7 @@ function renderAtv(){
         </div>
       </div>
       <button class="fav-btn${isFav?' ativo':''}" onclick="toggleFav(${a.id},event)" title="${isFav?'Adicionar aos favoritos':'Remover dos favoritos'}">${isFav?'★':'☆'}</button>
+      ${remvBtn}
       ${aprvBtn}`;
     g.appendChild(card);
   });
@@ -3614,8 +3709,7 @@ function gerarAPR(){
 }
 
 function nova(){
-  // Remover atividades criadas na sessão
-  while(ATIVIDADES.length > 0 && ATIVIDADES[ATIVIDADES.length-1]._nova) ATIVIDADES.pop();
+  // Novas APRs são persistidas em localStorage — não removê-las ao iniciar nova APR
   SEL.clear(); SEL_L.clear(); SEL_E.clear(); SEL_M.clear(); SEL_ESC.clear(); SEL_EQUIPE.clear(); SEL_RISCOS.clear();
   customRiscosFase.clear(); editRiscosFase.clear(); riscoPSFase.clear(); SEL_M_QTD.clear(); _nextCId = 1000;
 
@@ -3944,6 +4038,7 @@ function aprovarAPR(id, e){
   const atv=ATIVIDADES.find(a=>a.id===+id);
   if(!atv) return;
   atv._aprovada=true;
+  atualizarNovaAPRPersistida(+id); // persistir aprovação em localStorage
   const selId=SEL.size ? [...SEL][0] : null;
   renderAtv();
   // Restaurar seleção
@@ -4280,8 +4375,9 @@ function salvarNovaAPR(){
     _nova: true, // marcador de atividade criada na sessão
   };
   
-  // Adicionar ao array ATIVIDADES em memória
+  // Adicionar ao array ATIVIDADES em memória e persistir
   ATIVIDADES.push(novaAtv);
+  persistirNovaAPR(novaAtv);
   
   // Pré-popular SEL_RISCOS para as fases desta nova atividade
   fases.forEach((fase, fIdx) => {
