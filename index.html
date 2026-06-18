@@ -1791,7 +1791,7 @@ const CRED_ENC_DEFAULT = {
 // Emails dos aprovadores (destinatários fixos do envio)
 const APROVADORES_EMAIL = CREDENCIADOS.filter(c=>c.aprovador).map(c=>c.email);
 
-// ─── EQUIPE DE CAMPO (46 colaboradores) ───
+// ─── EQUIPE DE CAMPO (45 colaboradores) ───
 const EQUIPE_CAMPO = [
   // Fonte: APR_BancoDados_REMO_v3.xlsx — aba EQUIPE DE CAMPO (atualizado 2026-05)
   {num:1, nome:"ADRIANO AUGUSTO LINO",                          cargo:"OPERADOR DE BETONEIRA",          equipe:"Civil"},
@@ -1878,13 +1878,13 @@ const RISCOS = [
   {n:4,  p:'2',s:'2', r:"Uso de Ferramentas Inadequadas",       c:"Não improvisar ferramentas. Realizar checklist antes do uso. Nunca utilizar ferramentas danificadas."},
   {n:5,  p:'2',s:'3', r:"Procedimentos Técnicos Incorretos",    c:"Comunicação direta e simplificada. Direcionar função por colaborador. Recolher assinaturas ao término."},
   {n:6,  p:'2',s:'2', r:"Picadas de Animais Peçonhentos",       c:"Verificar presença de animais peçonhentos antes de iniciar atividades em escavações."},
-  {n:7,  p:'3',s:'4', r:"Trabalho próx. a Circuitos Energizados",c:"Manter distâncias de segurança dos pontos energizados."},
+  {n:7,  p:'3',s:'4', r:"Trabalho próx. a Circuitos Energizados",c:"Manter distâncias de segurança dos pontos energizados. 345 kV Distância mínima de aproximação: 3,5 metros - 138 kV Distância mínima de aproximação: 1,5 metros."},
   {n:8,  p:'2',s:'4', r:"Retorno de Tensão",                    c:"Certificar liberação do equipamento. Aterramento provisório. Teste de ausência de tensão. LOTO."},
-  {n:9,  p:'3',s:'3', r:"Indução Elétrica",                     c:"Utilizar aterramento provisório. Inspecionar cabos de aterramento. Apresentar distâncias de segurança."},
+  {n:9,  p:'3',s:'3', r:"Indução Elétrica",                     c:"Utilizar aterramento provisório. Inspecionar cabos de aterramento. Apresentar distâncias de segurança. Verificar se área contém malha terra eficiente para garantir a equipotencialização e uso de isolantes para evitar contato acidental com partes energizadas."},
   {n:10, p:'2',s:'3', r:"Trip Acidental",                       c:"Seguir procedimento de bloqueio e etiquetagem conforme NR-10."},
   {n:11, p:'2',s:'4', r:"Choque Elétrico",                      c:"Proibido materiais metálicos próx. a SEP. Inspecionar extensões/cabos. Proibido trenas metálicas."},
   {n:12, p:'3',s:'2', r:"Exposição a Ruído",                    c:"Fazer uso de protetor auricular tipo plug ou concha."},
-  {n:13, p:'3',s:'1', r:"Exposição à Radiação",                 c:"Usar protetor solar e reaplicar a cada 2 horas. Manter hidratação. Máscara contra UV para solda."},
+  {n:13, p:'3',s:'1', r:"Exposição à Radiação",                 c:"Usar protetor solar e reaplicar a cada 2 horas. Manter hidratação."},
   {n:14, p:'2',s:'4', r:"Queda em Altura",                      c:"Treinamento NR-35 obrigatório. Cinto paraquedista com dois talabartes acima de 2 m. PT necessária."},
   {n:15, p:'2',s:'2', r:"Exposição a Vibrações",                c:"Rodízio entre profissionais: 25 min trabalhados / 10 min descanso. Luva anti-vibração."},
   {n:16, p:'2',s:'2', r:"Exposição a Fumos Metálicos",          c:"Usar máscara de proteção adequada para fumos e ventilação no local."},
@@ -2757,6 +2757,10 @@ function renderRiscosSel(){
 
     atv.fases.forEach((fase, fIdx)=>{
       const k    = faseKey(atvId, fIdx);
+      // Restaurar riscos de APR persistida caso SEL_RISCOS tenha sido limpo (nova())
+      if(!SEL_RISCOS.has(k) && fase._riscos && fase._riscos.size > 0){
+        SEL_RISCOS.set(k, fase._riscos);
+      }
       const mapa = getMapFase(atvId, fIdx);
       const nSel = mapa.size;
 
