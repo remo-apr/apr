@@ -2373,6 +2373,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!e.target.closest('#wrap-enc'))    fecharMs('enc');
     if(!e.target.closest('#wrap-escopo'))  fecharMs('escopo');
   });
+
+  // Efeito degradê no logo REMO — dispara sempre ao clicar em PRÓXIMO
+  document.querySelectorAll('.btn-next').forEach(btn=>{
+    btn.addEventListener('click', flashLogoRemo);
+  });
 });
 
 // ═══════════════════════════════════════════════════
@@ -2398,9 +2403,14 @@ function ir(n){
   if(n===5) renderResumo();
   atualizarCompletude();
   window.scrollTo({top:0,behavior:'smooth'});
-  // Efeito degradê no logo REMO ao trocar de etapa
+}
+
+function flashLogoRemo(){
   const logo = document.querySelector('.bar-logo-svg');
-  if(logo){logo.classList.remove('remo-flash');void logo.offsetWidth;logo.classList.add('remo-flash')}
+  if(!logo) return;
+  logo.classList.remove('remo-flash');
+  void logo.offsetWidth;
+  logo.classList.add('remo-flash');
 }
 
 function validar(s){
