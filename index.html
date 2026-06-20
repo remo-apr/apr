@@ -158,6 +158,7 @@ input, select, textarea, button {
   
   /* Top bar compacta */
   .bar-logo { font-size: 18px !important; }
+  .bar-logo-svg { height: 36px !important; }
   .bar-sub { font-size: 10px !important; }
   /* Ocultar texto do botão histórico em telas muito pequenas */
   .hist-btn span { display: none; }
@@ -388,11 +389,11 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 /* ─── TOP BAR ─── */
 .bar{background:var(--remo-navy);height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:200;border-bottom:4px solid transparent;border-image:var(--remo-grad) 1}
 .bar-logo{display:flex;align-items:center;gap:12px}
-.bar-logo-svg{height:32px;width:auto}
+.bar-logo-svg{height:48px;width:auto}
 /* ── Logo REMO — efeito degradê ao navegar entre etapas ── */
 .remo-grad-layer{opacity:0;pointer-events:none}
 @keyframes remo-flash{0%,100%{opacity:0}15%,72%{opacity:1}}
-.bar-divider{width:1px;height:28px;background:rgba(255,255,255,.2)}
+.bar-divider{width:1px;height:40px;background:rgba(255,255,255,.2)}
 .bar-obra{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.65);letter-spacing:1.5px;text-transform:uppercase}
 .dots{display:flex;gap:5px}
 .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s}
