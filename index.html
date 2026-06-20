@@ -392,7 +392,6 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 /* ── Logo REMO — efeito degradê ao navegar entre etapas ── */
 .remo-grad-layer{opacity:0;pointer-events:none}
 @keyframes remo-flash{0%,100%{opacity:0}15%,72%{opacity:1}}
-.bar-logo-svg.remo-flash .remo-grad-layer{animation:remo-flash 1.6s cubic-bezier(.4,0,.2,1) forwards}
 .bar-divider{width:1px;height:28px;background:rgba(255,255,255,.2)}
 .bar-obra{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.65);letter-spacing:1.5px;text-transform:uppercase}
 .dots{display:flex;gap:5px}
@@ -2374,9 +2373,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!e.target.closest('#wrap-escopo'))  fecharMs('escopo');
   });
 
-  // Efeito degradê no logo REMO — dispara sempre ao clicar em PRÓXIMO
-  document.querySelectorAll('.btn-next').forEach(btn=>{
-    btn.addEventListener('click', flashLogoRemo);
+  // Efeito degradê no logo REMO — delegation captura qualquer .btn-next em qualquer etapa
+  document.addEventListener('click', e=>{
+    if(e.target.closest('.btn-next')) flashLogoRemo();
   });
 });
 
@@ -2406,11 +2405,11 @@ function ir(n){
 }
 
 function flashLogoRemo(){
-  const logo = document.querySelector('.bar-logo-svg');
-  if(!logo) return;
-  logo.classList.remove('remo-flash');
-  void logo.offsetWidth;
-  logo.classList.add('remo-flash');
+  const layer = document.querySelector('.remo-grad-layer');
+  if(!layer) return;
+  layer.style.animation = 'none';
+  void layer.getBoundingClientRect();
+  layer.style.animation = 'remo-flash 1.6s cubic-bezier(.4,0,.2,1) forwards';
 }
 
 function validar(s){
