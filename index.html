@@ -2240,13 +2240,10 @@ function carregarNovasAPRs(){
       if(ATIVIDADES.find(a => a.id === raw.id)) return; // já existe
       const atv = _deserializarNovaAtv(raw);
       ATIVIDADES.push(atv);
-      // Restaurar riscos pré-selecionados nas fases
-      atv.fases.forEach((fase, fIdx) => {
-        if(fase._riscos && fase._riscos.size > 0){
-          const k = faseKey(atv.id, fIdx);
-          if(!SEL_RISCOS.has(k)) SEL_RISCOS.set(k, fase._riscos);
-        }
-      });
+      // NÃO pré-popular SEL_RISCOS aqui: os riscos do template só devem entrar
+      // na seleção quando a atividade for de fato escolhida (restauração sob
+      // demanda em renderRiscosSel). Popular no load fazia riscos de APRs não
+      // selecionadas vazarem para o documento e marcava a Etapa 3 como completa.
     });
   }catch(e){ console.warn('carregarNovasAPRs:', e); }
 }
@@ -2257,14 +2254,16 @@ function removerNovaAPR(id, e){
   const idx = ATIVIDADES.findIndex(a => a.id === +id);
   if(idx >= 0) ATIVIDADES.splice(idx, 1);
   removerNovaAPRPersistida(+id);
-  if(SEL.has(+id)){
-    SEL.clear();
-    // Limpar riscos desta atividade
-    [...SEL_RISCOS.keys()].filter(k=>k.startsWith(id+'_')).forEach(k=>SEL_RISCOS.delete(k));
-  }
+  if(SEL.has(+id)) SEL.clear();
+  // Limpar riscos desta atividade SEMPRE (não só quando selecionada): chaves
+  // órfãs de uma APR removida continuavam alimentando o documento gerado.
+  [...SEL_RISCOS.keys()].filter(k=>k.startsWith((+id)+'_')).forEach(k=>SEL_RISCOS.delete(k));
+  [...customRiscosFase.keys()].filter(k=>k.startsWith((+id)+'_')).forEach(k=>customRiscosFase.delete(k));
+  [...editRiscosFase.keys()].filter(k=>k.startsWith((+id)+'_')).forEach(k=>editRiscosFase.delete(k));
   renderAtv();
   atualizarContador();
   syncCampos();
+  atualizarCompletude();
 }
 
 // ═══════════════════════════════════════════════════
@@ -2792,9 +2791,11 @@ function renderRiscosSel(){
 
     atv.fases.forEach((fase, fIdx)=>{
       const k    = faseKey(atvId, fIdx);
-      // Restaurar riscos de APR persistida caso SEL_RISCOS tenha sido limpo (nova())
+      // Restaurar riscos de APR persistida caso SEL_RISCOS tenha sido limpo (nova()).
+      // CLONE do Map: sem clonar, editar seleções/complementos na sessão mutava o
+      // template persistido (fase._riscos), corrompendo os defaults de APRs futuras.
       if(!SEL_RISCOS.has(k) && fase._riscos && fase._riscos.size > 0){
-        SEL_RISCOS.set(k, fase._riscos);
+        SEL_RISCOS.set(k, new Map(fase._riscos));
       }
       const mapa = getMapFase(atvId, fIdx);
       const nSel = mapa.size;
@@ -2960,7 +2961,10 @@ function toggleRiscoFase(atvId, fIdx, rNum, card){
     card.classList.remove('sel');
     chk.textContent = '';
   } else {
-    mapa.set(rNum, '');
+    // Reaproveitar o complemento já visível no textarea (se houver): remarcar
+    // não deve descartar o texto que o usuário está vendo na tela.
+    const taAtual = document.getElementById(`rfc-comp-${atvId}-${fIdx}-${rNum}`);
+    mapa.set(rNum, taAtual ? taAtual.value.trim() : '');
     card.classList.add('sel');
     chk.textContent = '✓';
     setTimeout(()=>{
@@ -3008,7 +3012,13 @@ function getRiscosFase(atvId, fIdx){
 // Todos os riscos selecionados para o rodapé da APR
 function getRiscosParaAPR(){
   const todos = [];
+  // Só considerar chaves das atividades atualmente selecionadas. Sem esse filtro,
+  // riscos de atividades trocadas/removidas (chaves órfãs em SEL_RISCOS) vazavam
+  // para o rodapé do documento e para os dados enviados ao Drive. O delimitador
+  // '_' evita colisão de prefixo (ex.: atividade 1 vs 12).
+  const idsSel = [...SEL];
   SEL_RISCOS.forEach((mapa, k)=>{
+    if(!idsSel.some(id => k.startsWith(id + '_'))) return;
     const edits   = editRiscosFase.get(k)   || new Map();
     const customs = customRiscosFase.get(k) || [];
     mapa.forEach((comp, n)=>{
@@ -3144,11 +3154,17 @@ function salvarEdicaoRisco(atvId, fIdx, rNum){
   // Fechar modo edição
   const card = document.getElementById(`rfc-${atvId}-${fIdx}-${rNum}`);
   card?.classList.remove('editing');
+  // Se o risco não está de fato selecionado, remover o destaque visual 'sel' que
+  // foi adicionado só para expandir o card na edição — senão ele parece incluído
+  // na APR sem estar. A edição fica salva; basta marcar o risco para incluí-lo.
+  if(card && !getMapFase(atvId, fIdx).has(rNum)) card.classList.remove('sel');
 }
 
 function cancelarEdicaoRisco(atvId, fIdx, rNum){
+  atvId=+atvId; fIdx=+fIdx; rNum=+rNum;
   const card = document.getElementById(`rfc-${atvId}-${fIdx}-${rNum}`);
   card?.classList.remove('editing');
+  if(card && !getMapFase(atvId, fIdx).has(rNum)) card.classList.remove('sel');
 }
 
 // renderRiscosSel também deve ser chamado ao ir para step-3
@@ -4546,11 +4562,12 @@ function salvarNovaAPR(){
   ATIVIDADES.push(novaAtv);
   persistirNovaAPR(novaAtv);
   
-  // Pré-popular SEL_RISCOS para as fases desta nova atividade
+  // Pré-popular SEL_RISCOS para as fases desta nova atividade (auto-selecionada).
+  // CLONE: nunca compartilhar a referência de fase._riscos com a seleção da sessão.
   fases.forEach((fase, fIdx) => {
     if(fase._riscos && fase._riscos.size > 0){
       const k = faseKey(novoId, fIdx);
-      SEL_RISCOS.set(k, fase._riscos);
+      SEL_RISCOS.set(k, new Map(fase._riscos));
     }
   });
   
