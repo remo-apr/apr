@@ -2860,7 +2860,7 @@ function renderRiscosSel(){
             <div class="rfc-chk">${isSel?'✓':''}</div>
             <div class="rfc-info" style="min-width:0;flex:1">
               <div class="rfc-num">Risco ${r._custom?'✦':r.n}${badgeNovo}${badgeEdit}</div>
-              <div class="rfc-nome" id="rfc-nome-txt-${atvId}-${fIdx}-${r.n}">${nomeFinal}</div>
+              <div class="rfc-nome" id="rfc-nome-txt-${atvId}-${fIdx}-${r.n}">${esc(nomeFinal)}</div>
             </div>
             <button class="rfc-btn-edit" onclick="abrirEditarRisco('${atvId}',${fIdx},${r.n},event)" title="Editar risco">✏ Editar</button>
           </div>
@@ -2868,12 +2868,12 @@ function renderRiscosSel(){
             <!-- Vista normal -->
             <div id="rfc-view-${atvId}-${fIdx}-${r.n}">
               <div class="rfc-ctrl-label">Medida de controle</div>
-              <div class="rfc-ctrl" id="rfc-ctrl-txt-${atvId}-${fIdx}-${r.n}">${ctrlFinal}</div>
+              <div class="rfc-ctrl" id="rfc-ctrl-txt-${atvId}-${fIdx}-${r.n}">${esc(ctrlFinal)}</div>
               <textarea class="rfc-comp"
                 id="rfc-comp-${atvId}-${fIdx}-${r.n}"
                 placeholder="Complemento opcional para esta fase…"
                 oninput="atualizarCompFase('${atvId}',${fIdx},${r.n},this.value)"
-                onclick="event.stopPropagation()">${comp}</textarea>
+                onclick="event.stopPropagation()">${esc(comp)}</textarea>
               <!-- Item 5: Matriz P×S -->
               <div class="risco-ps" onclick="event.stopPropagation()">
                 <span class="risco-ps-label">Matriz P×S:</span>
@@ -2900,12 +2900,12 @@ function renderRiscosSel(){
               <div class="rfc-edit-label">Nome do risco</div>
               <input class="rfc-edit-input" type="text"
                 id="rfc-edit-nome-${atvId}-${fIdx}-${r.n}"
-                value="${nomeFinal.replace(/"/g,'&quot;')}"
+                value="${esc(nomeFinal)}"
                 placeholder="Nome do risco">
               <div class="rfc-edit-label">Medida de controle</div>
               <textarea class="rfc-edit-textarea"
                 id="rfc-edit-ctrl-${atvId}-${fIdx}-${r.n}"
-                placeholder="Descreva a medida de controle…">${ctrlFinal}</textarea>
+                placeholder="Descreva a medida de controle…">${esc(ctrlFinal)}</textarea>
               <div class="rfc-edit-actions">
                 <button class="rfc-edit-cancel" onclick="cancelarEdicaoRisco('${atvId}',${fIdx},${r.n})">Cancelar</button>
                 <button class="rfc-edit-save" onclick="salvarEdicaoRisco('${atvId}',${fIdx},${r.n})">✔ Salvar edição</button>
@@ -3355,7 +3355,7 @@ function gerarAPR(){
   // Atividade selecionada (single-select)
   const _atvSel = SEL.size > 0 ? ATIVIDADES.find(x=>x.id===[...SEL][0]) : null;
   const atvLabel = _atvSel
-    ? `APR-${String(_atvSel.id).padStart(2,'0')} &mdash; ${_atvSel.nome}`
+    ? `APR-${String(_atvSel.id).padStart(2,'0')} &mdash; ${esc(_atvSel.nome)}`
     : '—';
   const equipeLabel = _atvSel ? _atvSel.disc.join(' · ') : '—';
 
@@ -3369,8 +3369,8 @@ function gerarAPR(){
     <div class="apr-bloco">
       <div class="apr-bloco-title">
         <span class="apr-badge">APR-${a.id}</span>
-        <span class="apr-bname">${a.nome}</span>
-        <span class="apr-bnorm">${a.normas||''} | Equipe: ${a.disc.join(' · ')}</span>
+        <span class="apr-bname">${esc(a.nome)}</span>
+        <span class="apr-bnorm">${esc(a.normas||'')} | Equipe: ${esc(a.disc.join(' · '))}</span>
       </div>
       <table class="apr-table">
         <thead><tr><th>Nº</th><th>Fase / Etapa</th><th>Riscos Identificados</th><th>Medidas de Controle</th><th>EPI Necessário</th><th>Responsável</th></tr></thead>
@@ -3379,8 +3379,8 @@ function gerarAPR(){
 
           // Coluna RISCOS: nomes dos riscos selecionados (ou os originais se não selecionou)
           const colunaRiscos = riscosFase.length > 0
-            ? riscosFase.map(r=>`<span class="apr-risco-tag">${r.n}. ${r.r}</span>`).join('')
-            : `<span style="color:#999;font-size:11px">${f.p||'—'}</span>`;
+            ? riscosFase.map(r=>`<span class="apr-risco-tag">${r.n}. ${esc(r.r)}</span>`).join('')
+            : `<span style="color:#999;font-size:11px">${esc(f.p||'—')}</span>`;
 
           // Coluna MEDIDAS DE CONTROLE: apenas os riscos selecionados com controle + complemento
           const colunaMedidas = riscosFase.length > 0
@@ -3394,14 +3394,14 @@ function gerarAPR(){
                 <div class="apr-medida-item">
                   <div class="apr-medida-head">
                     <span class="apr-medida-num">R${r.n}</span>
-                    <strong class="apr-medida-nome">${r.r}</strong>${psTag}
+                    <strong class="apr-medida-nome">${esc(r.r)}</strong>${psTag}
                   </div>
-                  <div class="apr-medida-ctrl">${r.c}</div>
-                  ${r.comp ? `<div class="apr-medida-comp">📝 ${r.comp}</div>` : ''}
+                  <div class="apr-medida-ctrl">${esc(r.c)}</div>
+                  ${r.comp ? `<div class="apr-medida-comp">📝 ${esc(r.comp)}</div>` : ''}
                 </div>`;
               }).join('')}
               </div>`
-            : f.m; // fallback: texto original se nenhum risco foi selecionado
+            : esc(f.m); // fallback: texto original se nenhum risco foi selecionado
 
           // Nível médio de risco da fase
           const faseRiscosNivel = riscosFase.length > 0 ? riscosFase : getRiscosFromFaseStr(f.p);
@@ -3417,11 +3417,11 @@ function gerarAPR(){
           return`
           <tr>
             <td class="cn">${i+1}</td>
-            <td class="cf">${f.f}${faseNivelTag}</td>
+            <td class="cf">${esc(f.f)}${faseNivelTag}</td>
             <td class="cp">${colunaRiscos}</td>
             <td class="cm">${colunaMedidas}</td>
-            <td class="ce">${f.e}</td>
-            <td class="cr">${f.r}</td>
+            <td class="ce">${esc(f.e)}</td>
+            <td class="cr">${esc(f.r)}</td>
           </tr>`;
         }).join('')}
         </tbody>
@@ -3432,14 +3432,14 @@ function gerarAPR(){
   const riscosHtml = riscosParaAPR.length > 0
     ? riscosParaAPR.map(r=>`
       <div class="risco-item${r.comp?' risco-item-comp':''}">
-        <div class="ri-head"><span class="rn">${r.n}.</span><strong>${r.r}</strong></div>
-        <div class="ri-ctrl">${r.c}</div>
-        ${r.comp ? `<div class="ri-ctrl ri-comp">📝 <strong>Complemento:</strong> ${r.comp}</div>` : ''}
+        <div class="ri-head"><span class="rn">${r.n}.</span><strong>${esc(r.r)}</strong></div>
+        <div class="ri-ctrl">${esc(r.c)}</div>
+        ${r.comp ? `<div class="ri-ctrl ri-comp">📝 <strong>Complemento:</strong> ${esc(r.comp)}</div>` : ''}
       </div>`).join('')
     : RISCOS.map(r=>`
       <div class="risco-item">
-        <div class="ri-head"><span class="rn">${r.n}.</span><strong>${r.r}</strong></div>
-        <div class="ri-ctrl">${r.c}</div>
+        <div class="ri-head"><span class="rn">${r.n}.</span><strong>${esc(r.r)}</strong></div>
+        <div class="ri-ctrl">${esc(r.c)}</div>
       </div>`).join('');
 
   // Assinaturas — ordem: fixos (Engenheiro + Técnico de Segurança) → Encarregado(s) selecionado(s) → equipe de campo
@@ -3782,20 +3782,20 @@ function gerarAPR(){
 
     <!-- METADADOS -->
     <div class="apr-meta">
-      <div class="apr-mi"><div class="apr-mi-l">Elaborado por</div><div class="apr-mi-v">${v('f-elaborador')||'—'}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">Elaborado por</div><div class="apr-mi-v">${esc(v('f-elaborador'))||'—'}</div></div>
       <div class="apr-mi apr-mi-atv"><div class="apr-mi-l">Atividade do Dia</div><div class="apr-mi-v apr-mi-atv-v">${atvLabel}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">Local / Frente de Serviço</div><div class="apr-mi-v">${[...SEL_L].join('; ')||'—'}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">PT Nº</div><div class="apr-mi-v">${v('f-pt')||'—'}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">Local / Frente de Serviço</div><div class="apr-mi-v">${esc([...SEL_L].join('; '))||'—'}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">PT Nº</div><div class="apr-mi-v">${esc(v('f-pt'))||'—'}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Equipe</div><div class="apr-mi-v">${equipeLabel}</div></div>
-      <div class="apr-mi"><div class="apr-mi-l">Encarregado(s)</div><div class="apr-mi-v">${[...SEL_E].join(', ')||'—'}</div></div>
+      <div class="apr-mi"><div class="apr-mi-l">Encarregado(s)</div><div class="apr-mi-v">${esc([...SEL_E].join(', '))||'—'}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Etapa da APR</div><div class="apr-mi-v" style="display:inline-block;background:${etapaApr==="Pré Atividade"?"#e8eef5":etapaApr==="Durante Atividade"?"#e6f7ed":"#fff3cd"};color:${etapaApr==="Pré Atividade"?"var(--remo-navy)":etapaApr==="Durante Atividade"?"var(--remo-green)":"#856404"};font-weight:900;padding:2px 10px;border-radius:4px;font-size:12px">${etapaApr}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Condição Climática</div><div class="apr-mi-v">${clima}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Uso de Máquinas Manuais</div><div class="apr-mi-v">${usomaq?maqs:'NÃO'}</div></div>
       <div class="apr-mi"><div class="apr-mi-l">Ferramentas Manuais</div><div class="apr-mi-v">${usoferr?ferrs:'NÃO'}</div></div>
     </div>
 
-    ${escopo?`<div class="apr-secao" style="padding:14px 18px;background:#f5f2ed;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Escopo:</b> ${escopo}</div>`:''}
-    ${obs?`<div class="apr-secao" style="padding:14px 18px;background:#fffbf5;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Observações:</b> ${obs}</div>`:''}
+    ${escopo?`<div class="apr-secao" style="padding:14px 18px;background:#f5f2ed;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Escopo:</b> ${esc(escopo)}</div>`:''}
+    ${obs?`<div class="apr-secao" style="padding:14px 18px;background:#fffbf5;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Observações:</b> ${esc(obs)}</div>`:''}
 
     <!-- ATIVIDADES -->
     ${atvHtml}
@@ -4047,8 +4047,8 @@ function gerarChecklistsHTML(){
           <div class="cl-meta-cell"><span class="cl-meta-label">Função</span>&nbsp;</div>
           <div class="cl-meta-cell"><span class="cl-meta-label">TAG do Equipamento</span>&nbsp;</div>
           <div class="cl-meta-cell"><span class="cl-meta-label">Local</span>&nbsp;&nbsp;<em style="font-size:10px">( &nbsp;) Interno &nbsp;&nbsp;&nbsp;( &nbsp;) Externo</em></div>
-          <div class="cl-meta-cell"><span class="cl-meta-label">Obra</span>${obra}</div>
-          <div class="cl-meta-cell" style="grid-column:1/3"><span class="cl-meta-label">Turno</span>&nbsp;&nbsp;&nbsp;<em style="font-size:10px">( &nbsp;) Diurno &nbsp;&nbsp;&nbsp;&nbsp;( &nbsp;) Noturno</em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cl-meta-label" style="display:inline">Empresa:</span> ${empresa}</div>
+          <div class="cl-meta-cell"><span class="cl-meta-label">Obra</span>${esc(obra)}</div>
+          <div class="cl-meta-cell" style="grid-column:1/3"><span class="cl-meta-label">Turno</span>&nbsp;&nbsp;&nbsp;<em style="font-size:10px">( &nbsp;) Diurno &nbsp;&nbsp;&nbsp;&nbsp;( &nbsp;) Noturno</em>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cl-meta-label" style="display:inline">Empresa:</span> ${esc(empresa)}</div>
         </div>
         <table class="cl-table">
           <thead>
@@ -4658,6 +4658,17 @@ function exportarNovasAPRs(){
 // ─── helpers ───
 function v(id){return document.getElementById(id)?.value.trim()||''}
 function fmtDate(d){if(!d)return'—';const[y,m,day]=d.split('-');return`${day}/${m}/${y}`}
+// Escapa texto livre do usuário antes de interpolar em innerHTML/template literal.
+// Evita XSS (armazenado no localStorage/Drive e refletido no documento) e também
+// impede que caracteres como '<' em observações (ex.: "distância < 3,5 m")
+// quebrem o layout do documento impresso. Aplicar SEMPRE em valores de origem
+// (nunca em strings já compostas com HTML intencional).
+function esc(s){
+  if(s===undefined||s===null) return '';
+  return String(s).replace(/[&<>"']/g, ch => (
+    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]
+  ));
+}
 
 // ── Número de Rastreio ───────────────────────────────────────────────────
 function gerarNumRastreio(){
@@ -4871,12 +4882,12 @@ function renderHistorico(){
     const realIdx = hist.indexOf(h); // índice real no array completo
     return `<div class="hist-item">
       <div class="hist-item-head">
-        <div class="hist-item-num">${h.num||'—'}</div>
+        <div class="hist-item-num">${esc(h.num)||'—'}</div>
         <div class="hist-item-date">${geradoFmt}</div>
       </div>
-      <div class="hist-item-atv">${h.atividade||'—'}</div>
+      <div class="hist-item-atv">${esc(h.atividade)||'—'}</div>
       <div class="hist-item-det">
-        📅 ${dataFmt} &nbsp;|&nbsp; 👤 ${h.elaborador||'—'} &nbsp;|&nbsp; 🏷 ${h.etapa||'—'} &nbsp;|&nbsp; 👥 ${h.equipeCount||0} colaboradores
+        📅 ${dataFmt} &nbsp;|&nbsp; 👤 ${esc(h.elaborador)||'—'} &nbsp;|&nbsp; 🏷 ${esc(h.etapa)||'—'} &nbsp;|&nbsp; 👥 ${+h.equipeCount||0} colaboradores
       </div>
       <div class="hist-item-btns">
         <button class="hist-item-btn del" onclick="excluirHistoricoItem(${realIdx})">🗑 Excluir</button>
@@ -4941,9 +4952,11 @@ function salvarDriveURL(){
   const status = document.getElementById('drive-modal-status');
   const url    = (input?.value || '').trim();
 
-  if(url && !url.startsWith('https://script.google.com')){
+  // Exigir o caminho completo /macros/ — só checar o domínio permitia URLs
+  // forjadas como https://script.google.com.evil.com/... passarem na validação.
+  if(url && !url.startsWith('https://script.google.com/macros/')){
     status.className = 'drive-modal-status fail';
-    status.textContent = '⚠ URL inválida — deve começar com https://script.google.com';
+    status.textContent = '⚠ URL inválida — deve começar com https://script.google.com/macros/';
     return;
   }
 
