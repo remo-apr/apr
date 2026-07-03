@@ -2383,7 +2383,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // NAVEGAÇÃO
 // ═══════════════════════════════════════════════════
 function ir(n){
-  if(n>step && !validar(step)) return;
+  // Só validar em avanços numéricos; ir('out') é a tela final e não revalida.
+  if(typeof n==='number' && n>step && !validar(step)) return;
 
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('on'));
   step = n;
@@ -2391,9 +2392,11 @@ function ir(n){
   document.getElementById(id).classList.add('on');
 
   const totalSteps = 5;
+  // Na tela final ('out') todas as etapas contam como concluídas (nNum > total).
+  const nNum = (n==='out') ? totalSteps+1 : n;
   for(let i=1;i<=totalSteps;i++){
     const d=document.getElementById('dot-'+i);
-    if(d) d.className='dot'+(i<n?' done':i===n?' on':'');
+    if(d) d.className='dot'+(i<nNum?' done':i===nNum?' on':'');
   }
   const pct = n==='out'?100:Math.round(n/totalSteps*100);
   document.getElementById('prog').style.width=pct+'%';
@@ -2437,6 +2440,15 @@ function validar(s){
     if(SEL_E.size===0){alert('Selecione ao menos um Encarregado Responsável.');return false;}
   }
   if(s===2&&SEL.size===0){alert('Selecione ao menos uma atividade.');return false;}
+  // Etapa 3: exigir ao menos um risco avaliado numa fase da atividade selecionada.
+  // Sem isso, a APR de segurança podia ser emitida sem nenhuma análise de risco.
+  if(s===3){
+    const idsSel=[...SEL];
+    const temRisco=[...SEL_RISCOS.entries()].some(([k,m])=>m.size>0 && idsSel.some(id=>k.startsWith(id+'_')));
+    if(!temRisco){alert('Selecione ao menos um risco na Etapa 3 (Análise de Riscos) antes de prosseguir.');return false;}
+  }
+  // Etapa 4: exigir ao menos um colaborador (senão a tabela de assinaturas sai vazia).
+  if(s===4 && SEL_EQUIPE.size===0){alert('Selecione ao menos um colaborador da equipe (Etapa 4).');return false;}
   return true;
 }
 
@@ -4170,9 +4182,23 @@ function aplicarLoginElaborador(cred){
 }
 
 function logoutElaborador(){
+  // Trocar de elaborador é ação deliberada de "trocar de usuário" (tablet
+  // compartilhado). Se houver rascunho em andamento, confirmar antes de limpar
+  // para não deixar seleções da disciplina anterior grudadas no próximo usuário.
+  const temRascunho = SEL.size>0 || SEL_EQUIPE.size>0 || SEL_RISCOS.size>0;
+  if(temRascunho && !confirm('Sair encerra a APR em preenchimento e limpa as seleções (atividade, riscos e equipe). Deseja continuar?')) return;
+
   sessionStorage.removeItem(ELAB_SESSION_KEY);
   const sel = document.getElementById('f-elaborador');
   if(sel) sel.value = '';
+
+  // Reset completo do rascunho da APR (estado coerente para o próximo elaborador)
+  SEL.clear();
+  SEL_RISCOS.clear();
+  SEL_EQUIPE.clear();
+  customRiscosFase.clear();
+  editRiscosFase.clear();
+  riscoPSFase.clear();
 
   document.getElementById('elab-logged-out-panel').style.display = 'block';
   document.getElementById('elab-logged-in-panel').style.display  = 'none';
