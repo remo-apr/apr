@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -99,9 +99,11 @@ input, select, textarea, button {
 }
 
 /* Área mínima de toque (44px recomendado pela Apple/Google) */
+/* .ac é a classe real dos cards de atividade (antes a regra citava .atv-card,
+   uma classe que não existe no HTML — o alvo de toque nunca era aplicado). */
 .maq-chip span, .eq-fb, .pt-na,
 .risco-fase-card .rfc-head, .eq-card,
-.atv-card, .fb {
+.ac, .fb {
   min-height: 44px;
   display: flex;
   align-items: center;
@@ -350,7 +352,7 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
   font-family:'Barlow',sans-serif;font-size:12px;background:var(--remo-field);
   resize:vertical;min-height:48px;outline:none;transition:border-color .2s}
 .na-rc-comp:focus{border-color:var(--remo-navy);background:#fff}
-.na-rc-comp::placeholder{color:#bbb;font-size:11px}
+.na-rc-comp::placeholder{color:#757575;font-size:11px}
 
 /* Footer modal */
 .nova-apr-footer{padding:16px 22px;border-top:1px solid var(--remo-line);
@@ -394,6 +396,11 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 /* ── Logo REMO — efeito degradê ao navegar entre etapas ── */
 .remo-grad-layer{opacity:0;pointer-events:none}
 @keyframes remo-flash{0%,100%{opacity:0}15%,72%{opacity:1}}
+/* Respeitar "movimento reduzido" do sistema (acessibilidade): desliga o flash
+   do logo, a animação de entrada das etapas e as transições. */
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
 .bar-divider{width:1px;height:40px;background:rgba(255,255,255,.2)}
 .bar-obra{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.65);letter-spacing:1.5px;text-transform:uppercase}
 .dots{display:flex;gap:5px}
@@ -639,7 +646,7 @@ body.dark .atv-busca:focus{border-color:#7ab3e0}
   font-family:'Barlow',sans-serif;font-size:12px;background:var(--remo-field);
   resize:vertical;min-height:52px;outline:none;transition:border-color .2s;color:#0d0d0d}
 .rfc-comp:focus{border-color:var(--remo-navy);background:#fff}
-.rfc-comp::placeholder{color:#bbb;font-size:11px}
+.rfc-comp::placeholder{color:#757575;font-size:11px}
 .fase-risco-contador{font-size:11px;font-weight:700;color:rgba(255,255,255,.8);
   background:rgba(0,166,81,.6);padding:2px 8px;border-radius:10px;
   transition:background .2s}
@@ -954,9 +961,12 @@ body.dark .hint{color:#8da8bf}
 body.dark .btn-back{background:#162032;border-color:#243040;color:#d8e6f3}
 body.dark .prog{background:#243040}
 body.dark .dot{background:#243040}
-body.dark .dot.on{background:var(--remo-navy)}
-body.dark .dot.done{background:var(--remo-green)}
+body.dark .dot.on{background:var(--remo-green)}
+body.dark .dot.done{background:var(--remo-yellow)}
 body.dark .res-block{color:#d8e6f3}
+/* Título (dt) tem cor própria #0d0d0d que a regra genérica de .res-block não
+   vence — precisa de override específico, senão fica invisível no dark mode. */
+body.dark .res-block dt{color:#7ab3e0}
 body.dark .fase-risco-bloco{border-color:#243040}
 body.dark .fase-risco-header{background:#162032}
 body.dark .fase-risco-body{background:#0d1b2a}
