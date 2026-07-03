@@ -1,14 +1,18 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    APR REMO ENGENHARIA — Service Worker
    Estratégia:
-     • same-origin  → stale-while-revalidate (cache imediato + atualização bg)
-     • CDN externo  → cache-first (fontes Barlow + html2pdf.js)
+     • same-origin  → network-first (SEMPRE a versão mais recente quando online;
+                       cai para o cache só offline). Antes era stale-while-
+                       revalidate, que deixava a equipe de campo 1 versão atrás
+                       do documento de segurança a cada deploy.
+     • CDN externo  → cache-first (fontes Barlow + html2pdf.js, URLs versionadas)
      • Drive / sync → sem interceptação (requer rede por design)
+   Bump o CACHE_NAME a cada release relevante para forçar limpeza do cache antigo.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 'use strict';
 
-const CACHE_NAME = 'apr-remo-v1';
+const CACHE_NAME = 'apr-remo-v2';
 
 // Assets pré-cacheados no install (shell mínimo do app)
 const PRE_CACHE = [
@@ -58,9 +62,9 @@ self.addEventListener('fetch', function(event) {
   try { url = new URL(req.url); } catch(e) { return; }
   if (!url.protocol.startsWith('http')) return;
 
-  // Same-origin → stale-while-revalidate
+  // Same-origin → network-first
   if (url.origin === self.location.origin) {
-    event.respondWith(swrStrategy(req));
+    event.respondWith(networkFirstStrategy(req));
     return;
   }
 
@@ -74,18 +78,22 @@ self.addEventListener('fetch', function(event) {
   // Demais (Drive sync, etc.) → sem interceptação
 });
 
-// ── Stale-while-revalidate ───────────────────────────────────────────────────
-// Entrega o cache imediatamente; atualiza o cache em background via rede.
-// Na próxima visita o conteúdo já estará atualizado.
-function swrStrategy(req) {
+// ── Network-first ────────────────────────────────────────────────────────────
+// Busca a rede primeiro (versão mais recente do app) e atualiza o cache; se a
+// rede falhar (offline), serve a cópia em cache. Para navegações sem match
+// exato (ex.: URL com query string), cai para o index cacheado.
+function networkFirstStrategy(req) {
   return caches.open(CACHE_NAME).then(function(cache) {
-    return cache.match(req).then(function(cached) {
-      var networkUpdate = fetch(req).then(function(res) {
-        if (res && res.status === 200) cache.put(req, res.clone());
-        return res;
-      }).catch(function() { return null; });
-
-      return cached || networkUpdate;
+    return fetch(req).then(function(res) {
+      if (res && res.status === 200) cache.put(req, res.clone());
+      return res;
+    }).catch(function() {
+      return cache.match(req).then(function(cached) {
+        return cached ||
+               cache.match('./index.html') ||
+               cache.match('./') ||
+               new Response('Offline e sem cópia em cache.', { status: 503, statusText: 'Offline' });
+      });
     });
   });
 }
