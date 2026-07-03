@@ -1900,7 +1900,7 @@ const RISCOS = [
   {n:4,  p:'2',s:'2', r:"Uso de Ferramentas Inadequadas",       c:"Não improvisar ferramentas. Realizar checklist antes do uso. Nunca utilizar ferramentas danificadas."},
   {n:5,  p:'2',s:'3', r:"Procedimentos Técnicos Incorretos",    c:"Comunicação direta e simplificada. Direcionar função por colaborador. Recolher assinaturas ao término."},
   {n:6,  p:'2',s:'2', r:"Picadas de Animais Peçonhentos",       c:"Verificar presença de animais peçonhentos antes de iniciar atividades em escavações."},
-  {n:7,  p:'3',s:'4', r:"Trabalho próx. a Circuitos Energizados",c:"Manter distâncias de segurança dos pontos energizados. 345 kV Distância mínima de aproximação: 3,5 metros - 138 kV Distância mínima de aproximação: 1,5 metros."},
+  {n:7,  p:'3',s:'4', r:"Trabalho próximo a Circuitos Energizados",c:"Manter distâncias de segurança dos pontos energizados. 345 kV Distância mínima de aproximação: 3,5 metros - 138 kV Distância mínima de aproximação: 1,5 metros."},
   {n:8,  p:'2',s:'4', r:"Retorno de Tensão",                    c:"Certificar liberação do equipamento. Aterramento provisório. Teste de ausência de tensão. LOTO."},
   {n:9,  p:'3',s:'3', r:"Indução Elétrica",                     c:"Utilizar aterramento provisório. Inspecionar cabos de aterramento. Apresentar distâncias de segurança. Verificar se área contém malha terra eficiente para garantir a equipotencialização e uso de isolantes para evitar contato acidental com partes energizadas."},
   {n:10, p:'2',s:'3', r:"Trip Acidental",                       c:"Seguir procedimento de bloqueio e etiquetagem conforme NR-10."},
@@ -1918,7 +1918,7 @@ const RISCOS = [
   {n:22, p:'1',s:'2', r:"Iluminação Inadequada",                c:"Garantir iluminação adequada no local de trabalho antes de iniciar atividades noturnas ou em ambientes fechados."},
   {n:23, p:'2',s:'3', r:"Exposição a Gases/Vapores",            c:"Armazenar combustível somente em local autorizado. Extintor de incêndio no local dentro do prazo."},
   {n:24, p:'2',s:'3', r:"Atropelamento",                        c:"Atentar ao trajeto perante veículos e máquinas. Contato visual com motorista e sinaleiro."},
-  {n:25, p:'2',s:'3', r:"Máquinas sem Proteção",                c:"Verificar proteções de máquinas conforme NR-12 antes de operar. Nunca remover proteções."},
+  {n:25, p:'2',s:'3', r:"Máquinas e Equipamentos sem Proteção", c:"Verificar proteções de máquinas conforme NR-12 antes de operar. Nunca remover proteções."},
   {n:26, p:'2',s:'2', r:"Contato com Produtos Químicos",        c:"Uso obrigatório de luvas nitrílicas e máscara PFF2. Consultar FISPQ dos produtos manuseados."},
   {n:27, p:'2',s:'4', r:"Manobra ou Operação Indevida",         c:"Operação somente por profissionais autorizados. Rádio de comunicação. Área sinalizada e isolada."},
   {n:28, p:'3',s:'2', r:"Escoriações / Cortes / Pancadas",      c:"Utilizar luvas de vaqueta. Delimitar área de trabalho com cones e cordas."},
@@ -4694,14 +4694,30 @@ function calcNivelFromNum(n){
              return {label:'Crítico', cls:'critico', icon:'🔴', bg:'#f8d7da', fg:'#721c24'};
 }
 
-// Busca riscos correspondentes a uma fase pelo campo f.p (string com nomes)
+// Busca riscos correspondentes a uma fase pelo campo f.p (string com nomes).
+// Usa a MESMA lógica normalizada da Etapa 3 (renderRiscosSel), garantindo que o
+// selo de nível da fase reflita exatamente os riscos que apareceriam para seleção.
+// O matcher antigo comparava só os 8 primeiros caracteres, gerando falsos
+// positivos (vários "Exposição a…" casavam entre si) e falsos negativos.
 function getRiscosFromFaseStr(faseP){
   if(!faseP) return [];
-  const fp = faseP.toLowerCase();
-  return RISCOS.filter(r => fp.includes(r.r.toLowerCase().substring(0, 8)));
+  const _norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+  const nomes = faseP.split(';').map(s=>s.trim()).filter(Boolean);
+  return RISCOS.filter(r => {
+    const rN = _norm(r.r);
+    return nomes.some(n => {
+      const nN = _norm(n);
+      const MIN = 5;
+      return nN === rN ||
+             (rN.length >= MIN && nN.includes(rN)) ||
+             (nN.length >= MIN && rN.includes(nN));
+    });
+  });
 }
 
-// Calcula nível médio de risco de uma lista de riscos para uma fase
+// Calcula o nível de risco da fase pelo PIOR risco (maior produto P×S).
+// Antes usava a MÉDIA, o que mascarava um risco Crítico individual quando havia
+// vários riscos leves na mesma fase — inaceitável em documento de segurança.
 function calcFaseNivel(riscos, atvId, fIdx){
   if(!riscos || !riscos.length) return null;
   const niveis = riscos.map(r => {
@@ -4711,8 +4727,8 @@ function calcFaseNivel(riscos, atvId, fIdx){
     return +pv.p * +pv.s;
   }).filter(n => n > 0);
   if(!niveis.length) return null;
-  const media = niveis.reduce((a, b) => a + b, 0) / niveis.length;
-  return calcNivelFromNum(media);
+  const maximo = Math.max(...niveis);
+  return calcNivelFromNum(maximo);
 }
 
 function atualizarPS(atvId, fIdx, rNum, campo, val){
