@@ -1641,7 +1641,12 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
 const APP_VERSAO = 'v4.1';
 
 // Item 11 – Favoritos de atividade (persistidos em localStorage)
-const FAV_ATIVS = new Set(JSON.parse(localStorage.getItem('apr_favs') || '[]').map(Number));
+// try/catch: sem ele, um 'apr_favs' corrompido lançava exceção no top-level e
+// derrubava TODO o script no carregamento (app inutilizável no dispositivo).
+const FAV_ATIVS = (()=>{
+  try{ return new Set(JSON.parse(localStorage.getItem('apr_favs') || '[]').map(Number)); }
+  catch(e){ console.warn('apr_favs corrompido, ignorando:', e); return new Set(); }
+})();
 
 // Item 5 – Matriz P×S por risco/fase  Map("atvId_faseIdx_riscoNum" → {p,s})
 const riscoPSFase = new Map();
@@ -4836,11 +4841,16 @@ function atualizarCompletude(){
 const HIST_KEY = 'apr_historico';
 
 function salvarHistoricoLocal(entry){
-  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
-  hist.unshift(entry); // mais recente no topo
-  // Manter apenas os últimos 100 registros
-  if(hist.length > 100) hist.splice(100);
-  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  // try/catch: histórico corrompido ou quota estourada não deve abortar
+  // gerarAPR() (que chama esta função antes do sync com o Drive).
+  try{
+    let hist = [];
+    try{ hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); }catch(e){ hist = []; }
+    if(!Array.isArray(hist)) hist = [];
+    hist.unshift(entry); // mais recente no topo
+    if(hist.length > 100) hist.splice(100);
+    localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  }catch(e){ console.warn('salvarHistoricoLocal falhou (quota/corrupção):', e); }
 }
 
 function abrirHistorico(){
@@ -4854,7 +4864,9 @@ function fecharHistorico(evt){
 }
 
 function renderHistorico(){
-  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
+  let hist = [];
+  try{ hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); }catch(e){ hist = []; }
+  if(!Array.isArray(hist)) hist = [];
   const busca = (document.getElementById('hist-busca')?.value || '').toLowerCase();
   const dataIni = document.getElementById('hist-data-ini')?.value || '';
   const dataFim = document.getElementById('hist-data-fim')?.value || '';
@@ -4897,9 +4909,12 @@ function renderHistorico(){
 }
 
 function excluirHistoricoItem(idx){
-  const hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
-  hist.splice(idx, 1);
-  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  try{
+    let hist = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
+    if(!Array.isArray(hist)) hist = [];
+    hist.splice(idx, 1);
+    localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  }catch(e){ console.warn('excluirHistoricoItem:', e); }
   renderHistorico();
 }
 
@@ -4994,14 +5009,14 @@ function testarDrive(){
   status.textContent = '🔄 Enviando ping de teste…';
 
   const payload = JSON.stringify({tipo:'teste', origem:'APR REMO', versao: APP_VERSAO, ts: new Date().toISOString()});
-  fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: payload, mode:'no-cors' })
+  fetchComTimeout(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: payload, mode:'no-cors' })
     .then(()=>{
       status.className = 'drive-modal-status ok';
       status.textContent = '✅ Ping enviado — verifique se apareceu na planilha para confirmar.';
     })
     .catch(()=>{
       status.className = 'drive-modal-status fail';
-      status.textContent = '❌ Falha de rede — verifique a URL e a conexão.';
+      status.textContent = '❌ Falha de rede/timeout — verifique a URL e a conexão.';
     });
 }
 
@@ -5027,6 +5042,14 @@ function carregarHtml2Pdf(callback){
   document.head.appendChild(s);
 }
 
+// POST com timeout: sem isso, uma rede instável deixava o badge preso em
+// "🔄 Enviando…" para sempre (o fetch nunca resolvia nem rejeitava).
+function fetchComTimeout(url, opts, ms){
+  const ctrl = new AbortController();
+  const t = setTimeout(()=>ctrl.abort(), ms || 30000);
+  return fetch(url, {...opts, signal: ctrl.signal}).finally(()=>clearTimeout(t));
+}
+
 function _badgeFail(badge){
   if(!badge) return;
   badge.className = 'sync-badge fail';
@@ -5039,10 +5062,12 @@ function autoSync(url, dados){
   if(badge){ badge.style.display='flex'; badge.className='sync-badge ing'; badge.textContent='🔄 Enviando…'; }
 
   const payload = JSON.stringify(dados);
-  // mode:'no-cors' exige Content-Type text/plain
-  fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: payload, mode:'no-cors' })
+  // mode:'no-cors' exige Content-Type text/plain. A resposta é opaca: não dá
+  // para confirmar gravação, apenas que o envio foi despachado — por isso o
+  // badge diz "Enviado" (e não "Registrado", que seria falso em caso de 404/500).
+  fetchComTimeout(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: payload, mode:'no-cors' })
     .then(()=>{
-      if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
+      if(badge){ badge.className='sync-badge ok'; badge.textContent='📤 Enviado ao Drive'; }
       setTimeout(()=>{ if(badge) badge.style.display='none'; }, 6000);
     })
     .catch((err)=>{
@@ -5077,7 +5102,17 @@ function autoSyncComPDF(url, dados){
 
     html2pdf().set(opt).from(el).outputPdf('blob')
     .then(function(blob){
+      // Guarda de tamanho: PDFs muito grandes estouram a quota de payload do
+      // Google Apps Script. Acima do limite, envia só os metadados (sem o PDF)
+      // e avisa, em vez de falhar silenciosamente ou ser rejeitado pelo GAS.
+      const LIMITE_PDF = 20 * 1024 * 1024; // ~20 MB
+      if(blob && blob.size > LIMITE_PDF){
+        console.warn('[APR-SYNC] PDF grande ('+Math.round(blob.size/1048576)+'MB) — enviando só metadados.');
+        autoSync(url, dados);
+        return;
+      }
       const reader = new FileReader();
+      reader.onerror = function(){ _badgeFail(badge); }; // sem isso, o badge ficava preso em "Gerando PDF…"
       reader.onload = function(){
         const base64  = reader.result.split(',')[1];
         const payload = {
@@ -5097,9 +5132,9 @@ function autoSyncComPDF(url, dados){
           pdfBase64:   base64
         };
         if(badge) badge.textContent='🔄 Enviando…';
-        fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload), mode:'no-cors' })
+        fetchComTimeout(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload), mode:'no-cors' })
           .then(()=>{
-            if(badge){ badge.className='sync-badge ok'; badge.textContent='✅ Registrado no Drive'; }
+            if(badge){ badge.className='sync-badge ok'; badge.textContent='📤 Enviado ao Drive'; }
             setTimeout(()=>{ if(badge) badge.style.display='none'; }, 6000);
           })
           .catch(()=>{ _badgeFail(badge); });
