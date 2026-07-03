@@ -805,6 +805,11 @@ body.dark .atv-busca:focus{border-color:#7ab3e0}
 .apr-sig-table{width:100%;border-collapse:collapse;table-layout:fixed}
 .apr-sig-table th,.apr-sig-table td{border:1px solid #ddd}
 .apr-rodape{background:var(--remo-grad);color:#fff;padding:12px 22px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:800;text-align:center;text-transform:uppercase;letter-spacing:.8px}
+/* Evitar que linhas/itens sejam cortados ao meio entre páginas. No CSS BASE
+   (não só @media print) porque o html2pdf captura em modo tela e lê estas
+   regras da folha padrão — uma linha de assinatura ou de risco partida entre
+   duas páginas é inaceitável num documento assinado. */
+.apr-table tbody tr,.apr-medida-item,.risco-item,.apr-sig-table tr{page-break-inside:avoid;break-inside:avoid}
 
 /* ─── ETAPA DA APR ─── */
 .etapa-apr-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
@@ -3835,6 +3840,7 @@ function gerarAPR(){
       <div style="flex-shrink:0;background:#fff;padding:6px;border-radius:6px;text-align:center">
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=2&data=${encodeURIComponent(qrTarget)}"
              alt="QR ${numRastreio}" width="100" height="100"
+             crossorigin="anonymous"
              style="display:block"
              onerror="this.parentElement.innerHTML='<div style=\\'font-family:monospace;font-size:7px;color:#1B3E6B;padding:4px;text-align:center;line-height:1.6;width:100px\\'><strong>RASTREIO</strong><br>${numRastreio.replace(/-/g,'-&#8203;')}</div>'">
         <div style="font-size:7px;color:#1B3E6B;font-weight:700;letter-spacing:.5px;margin-top:3px;text-transform:uppercase">Verificar APR</div>
@@ -5100,8 +5106,15 @@ function autoSyncComPDF(url, dados){
       pagebreak:  { mode:['css','legacy'] }
     };
 
+    // Capturar sempre no tema claro (o html2pdf não dispara beforeprint): no
+    // modo escuro o PDF saía com texto azul-claro sobre branco, ilegível.
+    const eraDark = document.body.classList.contains('dark');
+    if(eraDark) document.body.classList.remove('dark');
+    const _restauraDark = ()=>{ if(eraDark) document.body.classList.add('dark'); };
+
     html2pdf().set(opt).from(el).outputPdf('blob')
     .then(function(blob){
+      _restauraDark();
       // Guarda de tamanho: PDFs muito grandes estouram a quota de payload do
       // Google Apps Script. Acima do limite, envia só os metadados (sem o PDF)
       // e avisa, em vez de falhar silenciosamente ou ser rejeitado pelo GAS.
@@ -5141,7 +5154,7 @@ function autoSyncComPDF(url, dados){
       };
       reader.readAsDataURL(blob);
     })
-    .catch(function(){ autoSync(url, dados); });
+    .catch(function(){ _restauraDark(); autoSync(url, dados); });
   });
 }
 </script>
@@ -5212,6 +5225,12 @@ function autoSyncComPDF(url, dados){
   // ── Ocultar UI antes de imprimir (beforeprint cobre Ctrl+P e botão) ─────
   const PRINT_HIDE_SEL = '.bar,.prog,.out-actions,.no-print';
   window.addEventListener('beforeprint', ()=>{
+    // Imprimir sempre no tema claro: no modo escuro o documento saía com texto
+    // azul-claro herdado (#d8e6f3) sobre fundo branco, praticamente ilegível.
+    if(document.body.classList.contains('dark')){
+      document.body.dataset._pdark = '1';
+      document.body.classList.remove('dark');
+    }
     document.querySelectorAll(PRINT_HIDE_SEL).forEach(el=>{
       el.dataset._ph = el.style.cssText;
       el.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;position:static!important';
@@ -5222,6 +5241,7 @@ function autoSyncComPDF(url, dados){
     if(so){ so.dataset._ps = so.style.cssText; so.style.padding='0'; so.style.margin='0'; }
   });
   window.addEventListener('afterprint', ()=>{
+    if(document.body.dataset._pdark){ document.body.classList.add('dark'); delete document.body.dataset._pdark; }
     document.querySelectorAll(PRINT_HIDE_SEL).forEach(el=>{
       el.style.cssText = el.dataset._ph || ''; delete el.dataset._ph;
     });
