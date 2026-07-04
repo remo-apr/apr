@@ -598,6 +598,10 @@ body.dark .atv-busca:focus{border-color:#7ab3e0}
   vertical-align:middle;text-transform:uppercase}
 .rfc-badge-edit{background:#F5C400;color:#1B3E6B}
 .rfc-badge-novo{background:#00A651;color:#fff}
+.rfc-badge-sug{background:#E6F1FB;color:#185FA5;border:1px solid #85B7EB}
+body.dark .rfc-badge-sug{background:#0d2a40;color:#7ab3e0;border-color:#243040}
+.copiloto-nota{background:#E6F1FB;border:1px solid #B5D4F4;border-radius:var(--radius);padding:11px 14px;font-size:12.5px;line-height:1.5;color:#0C447C;margin-bottom:14px}
+body.dark .copiloto-nota{background:#0d2a40;border-color:#243040;color:#9ec4e0}
 
 /* ─── Botão INCLUIR RISCO ─── */
 .rfc-btn-incluir{
@@ -1484,6 +1488,7 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
   <div class="eyebrow">Etapa 3 de 5</div>
   <div class="h1">Riscos por Fase</div>
   <div class="sub">Para cada fase da atividade, selecione os riscos identificados. Adicione complementos quando necessário. As medidas de controle serão geradas automaticamente.</div>
+  <div class="copiloto-nota">💡 <strong>Copiloto de riscos:</strong> cards marcados com <span class="rfc-badge rfc-badge-sug" style="margin:0">💡 SUGERIDO</span> são riscos que o assistente identificou no texto da fase e que talvez você tenha esquecido. A sugestão é <strong>consultiva</strong> — avalie e marque apenas se aplicável à atividade real.</div>
   <div id="fases-riscos-container"></div>
   <div class="nav">
     <button class="btn-back" onclick="ir(2)">← Voltar</button>
@@ -2875,6 +2880,45 @@ function getMapFase(atvId, fIdx){
   return SEL_RISCOS.get(k);
 }
 
+// ═══════════════════════════════════════════════════
+// COPILOTO DE RISCOS (heurístico, offline) — Ação 8
+// Detecta riscos IMPLÍCITOS no texto da fase que o match do catálogo não pegou
+// e os apresenta como cards "💡 Sugerido". 100% advisório: o técnico decide
+// marcar. Sem rede, sem chave, sem custo. Mapa conservador p/ evitar falso alarme.
+// ═══════════════════════════════════════════════════
+const COPILOTO_MAP = [
+  { kw:['solda','soldagem','eletrodo','macarico','oxicorte','oxiacetileno'],                 riscos:[13,16,17,35] },
+  { kw:['altura','andaime','escada','telhado','cobertura','plataforma','talabarte','paraquedista'], riscos:[14] },
+  { kw:['energizad','tensao','circuito','subestacao','linha viva','345','138','kv','barrament','disjuntor','transformador','trafo'], riscos:[7,11,8,9] },
+  { kw:['aterrament','malha terra','equipotencial'],                                          riscos:[9] },
+  { kw:['escavac','vala','talude','soterr','desmoron','estaca'],                              riscos:[32,6] },
+  { kw:['ruido'],                                                                             riscos:[12] },
+  { kw:['poeira','particulado'],                                                              riscos:[18] },
+  { kw:['fispq','combustivel','graxa','tinta','solvente','diluente','produto quimico'],       riscos:[26,23] },
+  { kw:['caminhao','munck','guindaste','icament','empilhadeira','retroescav','maquina pesada','betoneira'], riscos:[24,21,20,27] },
+  { kw:['disco','esmeril','serra','lamina','maquita','makita','policorte','amoladeira'],      riscos:[28,29] },
+  { kw:['levantament','carga manual','esforco fisico','transporte manual'],                   riscos:[19] },
+  { kw:['chuva','raio','trovoada','meteorolog'],                                              riscos:[31] },
+  { kw:['vibrac'],                                                                            riscos:[15] },
+  { kw:['insolacao','radiacao','ao ar livre','ceu aberto'],                                   riscos:[13] },
+  { kw:['sinaleiro'],                                                                         riscos:[30] },
+  { kw:['adorno','alianca','brinco'],                                                         riscos:[2] },
+  { kw:['noturno','ambiente fechado','pouca luz'],                                            riscos:[22] },
+  { kw:['peconhent','animais','vegetacao'],                                                   riscos:[6] },
+  { kw:['espaco confinado','ventilacao','vapores'],                                           riscos:[23] },
+];
+
+// Retorna Set de números de risco implícitos no texto da fase.
+function sugerirRiscosFase(fase){
+  const _n = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  const texto = _n((fase.f||'') + ' ' + (fase.p||'') + ' ' + (fase.m||''));
+  const set = new Set();
+  COPILOTO_MAP.forEach(regra=>{
+    if(regra.kw.some(k => texto.includes(_n(k)))) regra.riscos.forEach(n=>set.add(n));
+  });
+  return set;
+}
+
 // Renderizar Etapa 3 — uma seção por fase da atividade selecionada
 function renderRiscosSel(){
   const container = document.getElementById('fases-riscos-container');
@@ -2918,7 +2962,18 @@ function renderRiscosSel(){
       const riscosBase = riscosDisponiveis.length > 0 ? riscosDisponiveis : RISCOS;
       // Adicionar riscos customizados da fase
       const customs = customRiscosFase.get(k) || [];
-      const riscosParaFase = [...riscosBase, ...customs];
+      // Copiloto: riscos implícitos no texto ainda ausentes da lista da fase.
+      // Só quando há lista específica (riscosDisponiveis>0); se caiu no fallback
+      // de todos os riscos, não há o que sugerir.
+      const jaNaLista = new Set([...riscosBase, ...customs].map(r=>r.n));
+      const sugeridos = riscosDisponiveis.length > 0
+        ? [...sugerirRiscosFase(fase)]
+            .filter(n => !jaNaLista.has(n))
+            .map(n => { const b = RISCOS.find(rr=>rr.n===n); return b ? {...b, _sugerido:true} : null; })
+            .filter(Boolean)
+            .slice(0, 5)   // no máx. 5 sugestões por fase para não sobrecarregar
+        : [];
+      const riscosParaFase = [...riscosBase, ...customs, ...sugeridos];
       // Edições locais
       const edits = editRiscosFase.get(k) || new Map();
 
@@ -2931,6 +2986,7 @@ function renderRiscosSel(){
         const ctrlFinal = ed?.c ?? r.c;
         const badgeEdit = ed  ? `<span class="rfc-badge rfc-badge-edit">EDITADO</span>` : '';
         const badgeNovo = r._custom ? `<span class="rfc-badge rfc-badge-novo">NOVO</span>` : '';
+        const badgeSug  = r._sugerido ? `<span class="rfc-badge rfc-badge-sug">💡 SUGERIDO</span>` : '';
         // Item 5 – P×S
         const psKey = `${atvId}_${fIdx}_${r.n}`;
         // Inicializar com defaults do risco se ainda não preenchido
@@ -2949,7 +3005,7 @@ function renderRiscosSel(){
           <div class="rfc-head">
             <div class="rfc-chk">${isSel?'✓':''}</div>
             <div class="rfc-info" style="min-width:0;flex:1">
-              <div class="rfc-num">Risco ${r._custom?'✦':r.n}${badgeNovo}${badgeEdit}</div>
+              <div class="rfc-num">Risco ${r._custom?'✦':r.n}${badgeNovo}${badgeEdit}${badgeSug}</div>
               <div class="rfc-nome" id="rfc-nome-txt-${atvId}-${fIdx}-${r.n}">${esc(nomeFinal)}</div>
             </div>
             <button class="rfc-btn-edit" onclick="abrirEditarRisco('${atvId}',${fIdx},${r.n},event)" title="Editar risco">✏ Editar</button>
