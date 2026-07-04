@@ -454,6 +454,16 @@ body.dark .elab-logged-card{background:#0f2a1a;border-left-color:var(--remo-gree
 .cl.danger input:checked+label{border-color:var(--remo-red);background:#ffebee;color:var(--remo-red)}
 .clima-alert{display:none;padding:12px 16px;background:#ffebee;border:2px solid var(--remo-red);border-radius:var(--radius);color:var(--remo-red);font-weight:700;font-size:13px;margin-bottom:14px}
 .clima-alert.show{display:block}
+/* Clima automático (Open-Meteo) */
+.clima-auto{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.clima-auto-btn{padding:8px 14px;border:1.5px solid var(--remo-navy);border-radius:var(--radius);background:#fff;color:var(--remo-navy);font-family:'Barlow',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.clima-auto-btn:hover{background:var(--remo-navy);color:#fff}
+.clima-auto-status{font-size:12px;font-weight:600;line-height:1.4}
+.clima-auto-status.ing{color:var(--remo-muted)}
+.clima-auto-status.ok{color:var(--remo-green-dk)}
+.clima-auto-status.fail{color:var(--remo-red)}
+body.dark .clima-auto-btn{background:#162032;color:#7ab3e0;border-color:#243040}
+body.dark .clima-auto-btn:hover{background:#1a3a5c;color:#fff}
 
 /* ─── RADIO SIM/NÃO ─── */
 .radio-row{display:flex;gap:10px;margin-top:4px}
@@ -1337,6 +1347,10 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
   <div class="card">
     <div class="card-title">Condição Climática</div>
     <div class="clima-alert" id="clima-alert">⚡ ATENÇÃO: Chuva com raios! As atividades devem ser PARALISADAS imediatamente.</div>
+    <div class="clima-auto">
+      <button type="button" class="clima-auto-btn" onclick="detectarClima(true)">🌦 Detectar clima automaticamente</button>
+      <span class="clima-auto-status" id="clima-auto-status"></span>
+    </div>
     <div class="f">
       <label>Condição Climática</label>
       <div class="clima-row">
@@ -2324,6 +2338,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('clima-alert').classList.toggle('show',v.includes('raios'));
     });
   });
+  // Detecção automática do clima ao abrir (best-effort; não sobrescreve escolha manual)
+  detectarClima(false);
 
   // Máquinas grid — chip + controle de quantidade
   const mg = document.getElementById('maq-grid');
@@ -2434,6 +2450,59 @@ function flashLogoRemo(){
   layer.style.animation = 'none';
   void layer.getBoundingClientRect();
   layer.style.animation = 'remo-flash 1.6s cubic-bezier(.4,0,.2,1) forwards';
+}
+
+// ═══════════════════════════════════════════════════
+// CLIMA AUTOMÁTICO (Open-Meteo — gratuito, sem API key, CORS)
+// ═══════════════════════════════════════════════════
+const CLIMA_COORD = { lat: -20.0876, lon: -47.6149 }; // SE JAGUARA 345 kV
+
+// Mapeia o código WMO da Open-Meteo para uma das 4 opções de clima do formulário.
+function mapClimaCodigo(code){
+  if([95,96,99].includes(code))                                   return {id:'c4', desc:'Trovoadas'};        // raios → PARALISAR
+  if([51,53,55,56,57,61,63,65,66,67,80,81,82,85,86].includes(code)) return {id:'c3', desc:'Chuva'};
+  if([2,3,45,48].includes(code))                                  return {id:'c2', desc:'Nublado'};
+  if([0,1].includes(code))                                        return {id:'c1', desc:'Céu limpo'};
+  return {id:'c2', desc:'Condição indefinida'};                                                              // fallback seguro
+}
+
+// Consulta a previsão atual e pré-seleciona o clima. manual=true força a
+// aplicação mesmo se já houver seleção; auto (load) não sobrescreve escolha do usuário.
+function detectarClima(manual){
+  const status = document.getElementById('clima-auto-status');
+  if(!navigator.onLine){
+    if(status && manual){ status.className='clima-auto-status fail'; status.textContent='⚠ Offline — selecione o clima manualmente.'; }
+    return;
+  }
+  if(status){ status.className='clima-auto-status ing'; status.textContent='🔄 Consultando previsão…'; }
+  const url = 'https://api.open-meteo.com/v1/forecast'
+            + '?latitude='  + CLIMA_COORD.lat
+            + '&longitude=' + CLIMA_COORD.lon
+            + '&current=temperature_2m,weather_code,precipitation,wind_speed_10m'
+            + '&timezone=America/Sao_Paulo';
+  fetchComTimeout(url, {}, 12000)
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      const cur = data && data.current;
+      if(!cur || cur.weather_code === undefined) throw new Error('resposta inválida');
+      const m = mapClimaCodigo(cur.weather_code);
+      const jaSel = document.querySelector('input[name="clima"]:checked');
+      if(manual || !jaSel){
+        const radio = document.getElementById(m.id);
+        if(radio){ radio.checked = true; radio.dispatchEvent(new Event('change', {bubbles:true})); }
+      }
+      if(status){
+        const temp  = Math.round(cur.temperature_2m);
+        const vento = Math.round(cur.wind_speed_10m);
+        const hora  = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+        status.className = 'clima-auto-status ok';
+        status.innerHTML = '✅ ' + m.desc + ', ' + temp + '°C · vento ' + vento + ' km/h '
+                         + '<span style="opacity:.7">· detectado ' + hora + '</span>';
+      }
+    })
+    .catch(function(){
+      if(status){ status.className='clima-auto-status fail'; status.textContent='⚠ Não foi possível obter o clima — selecione manualmente.'; }
+    });
 }
 
 function validar(s){
