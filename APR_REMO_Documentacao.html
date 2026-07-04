@@ -114,11 +114,11 @@
   <h1>Sistema APR Digital</h1>
   <h2>REMO ENGENHARIA &nbsp;·&nbsp; SE JAGUARA 345 kV</h2>
   <div class="hero-badges">
-    <span class="badge">Versão 4.1</span>
+    <span class="badge">Versão 4.2</span>
     <span class="badge green">✅ Em Produção</span>
     <span class="badge">PWA / Offline</span>
     <span class="badge gold">NR-10 / NR-18 / NR-35</span>
-    <span class="badge">Última atualização: 20/05/2026</span>
+    <span class="badge">Última atualização: 03/07/2026</span>
   </div>
 </div>
 
@@ -131,12 +131,12 @@
       <div class="lbl">Projeto</div>      <div class="val">Sistema APR Digital — Análise Preliminar de Risco</div>
       <div class="lbl">Empresa</div>      <div class="val"><strong>REMO ENGENHARIA</strong></div>
       <div class="lbl">Obra / Local</div> <div class="val"><strong>SE JAGUARA 345 kV</strong></div>
-      <div class="lbl">Arquivo</div>      <div class="val"><code>index.html</code> — single-file, PWA, 4421 linhas, ~430 KB</div>
+      <div class="lbl">Arquivo</div>      <div class="val"><code>index.html</code> — single-file, PWA, ~5310 linhas, ~490 KB (+ <code>sw.js</code>)</div>
       <div class="lbl">URL pública</div>  <div class="val"><a href="https://remo-apr.github.io/apr/" target="_blank">https://remo-apr.github.io/apr/</a></div>
       <div class="lbl">Repositório</div>  <div class="val"><a href="https://github.com/remo-apr/apr" target="_blank">https://github.com/remo-apr/apr</a></div>
-      <div class="lbl">Versão atual</div> <div class="val"><strong>4.1</strong></div>
+      <div class="lbl">Versão atual</div> <div class="val"><strong>4.2</strong></div>
       <div class="lbl">Data de início</div>    <div class="val">16/04/2026</div>
-      <div class="lbl">Última atualização</div><div class="val">20/05/2026</div>
+      <div class="lbl">Última atualização</div><div class="val">03/07/2026 (auditoria v4.2)</div>
       <div class="lbl">Desenvolvido com</div>  <div class="val">Assistência Claude AI (Anthropic)</div>
       <div class="lbl">Conformidade</div>      <div class="val">NR-10 / NR-18 / NR-35</div>
     </div>
@@ -177,6 +177,18 @@
       <table>
         <thead><tr><th>Data</th><th>Versão / Tag</th><th>Descrição</th><th>Tipo</th></tr></thead>
         <tbody>
+          <tr class="commit-row">
+            <td>03/07/2026</td>
+            <td>v4.2 — Auditoria completa</td>
+            <td><strong>Auditoria de 9 lotes (~66 correções).</strong> Estado da Etapa 3 (riscos não vazam mais entre atividades); risco 7 "Trabalho próximo a Circuitos Energizados" selecionável; validação das Etapas 3/4; escape de texto (XSS e <code>&lt;</code> em observações); sync com timeout e badge honesto; quebra de página e modo escuro na impressão/PDF; service worker network-first; acessibilidade (zoom, contraste, teclado). Detalhes na seção 17 do CONTEXTO_CLAUDE.md.</td>
+            <td><span class="tag tag-grn">Auditoria</span></td>
+          </tr>
+          <tr class="commit-row">
+            <td>19–20/06/2026</td>
+            <td>v4.1 — Mapa + Logo</td>
+            <td>Mapa SVG estático de rota de emergência (obra → hospital de Rifaina) + QR code base64 na última folha impressa. Efeito degradê azul→verde no logo REMO ao avançar etapas; logo ampliado.</td>
+            <td><span class="tag tag-grn">Nova func.</span></td>
+          </tr>
           <tr class="commit-row">
             <td>20/05/2026</td>
             <td>v4.1 — Apps Script v12</td>
@@ -253,7 +265,7 @@
           <tr><td><strong>Etapa 1 — Identificação</strong></td><td>Data, PT Nº, Elaborador, Encarregado (multi), Local (14), Escopo (28), Máquinas, Clima, Etapa APR.</td><td class="feat-check">✅ Ativo</td></tr>
           <tr><td><strong>Etapa 2 — Atividades</strong></td><td>32 atividades com filtro Civil/Elétrica/Montagem. Radio-select. Modal Nova APR personalizada.</td><td class="feat-check">✅ Ativo</td></tr>
           <tr><td><strong>Etapa 3 — Riscos por Fase</strong></td><td>Por fase: grid de 35 riscos com checkbox + complemento opcional. Vinculado à atividade.</td><td class="feat-check">✅ Ativo</td></tr>
-          <tr><td><strong>Etapa 4 — Equipe de Campo</strong></td><td>46 colaboradores com filtro por equipe e busca por nome. Seleção múltipla com contador.</td><td class="feat-check">✅ Ativo</td></tr>
+          <tr><td><strong>Etapa 4 — Equipe de Campo</strong></td><td>45 colaboradores com filtro por equipe e busca por nome. Seleção múltipla com contador.</td><td class="feat-check">✅ Ativo</td></tr>
           <tr><td><strong>Etapa 5 — Geração</strong></td><td>Resumo completo + botão Gerar APR com validação dos campos obrigatórios.</td><td class="feat-check">✅ Ativo</td></tr>
           <tr><td><strong>Documento APR (HTML)</strong></td><td>Cabeçalho REMO, metadados, calendário semanal, tabela de fases, riscos, assinaturas, barra de rastreio, QR code, footer NR.</td><td class="feat-check">✅ Ativo</td></tr>
           <tr><td><strong>Checklists de Máquinas</strong></td><td>33 máquinas com checklists de inspeção pré-uso, gerados automaticamente para impressão.</td><td class="feat-check">✅ Ativo</td></tr>
@@ -277,7 +289,7 @@
     <div class="db-grid">
       <div class="db-lbl">ATIVIDADES</div>       <div class="db-num">32</div><div class="db-desc">32 atividades com fases, perigos, medidas de controle, EPIs e responsável. Disciplinas: Civil, Elétrica, Montagem.</div>
       <div class="db-lbl">RISCOS</div>            <div class="db-num">35</div><div class="db-desc">35 riscos com descrição completa e medidas de controle associadas. Numerados R01 a R35.</div>
-      <div class="db-lbl">EQUIPE_CAMPO</div>      <div class="db-num">46</div><div class="db-desc">46 colaboradores com nome, cargo e equipe (Civil / Elétrica / Montagem / Administrativo). Atualizado em 15/05/2026.</div>
+      <div class="db-lbl">EQUIPE_CAMPO</div>      <div class="db-num">45</div><div class="db-desc">45 colaboradores com nome, cargo e equipe (Civil / Elétrica / Montagem / Administrativo).</div>
       <div class="db-lbl">CREDENCIADOS</div>       <div class="db-num">7</div> <div class="db-desc">7 elaboradores autorizados com login, senha, função e avatar para assinar APRs.</div>
       <div class="db-lbl">MAQUINAS</div>          <div class="db-num">33</div><div class="db-desc">33 máquinas manuais com checklists completos de inspeção pré-uso, impressos junto à APR.</div>
       <div class="db-lbl">LOCAIS_FIXOS</div>      <div class="db-num">14</div><div class="db-desc">14 locais fixos da SE JAGUARA 345 kV (Pátio 345 kV, Sala de Controle, etc.).</div>
@@ -331,7 +343,7 @@
 
 <div class="footer">
   <strong>Sistema APR Digital — REMO ENGENHARIA / SE JAGUARA 345 kV</strong><br>
-  Gerado em 20/05/2026 &nbsp;·&nbsp; Versão 4.1 &nbsp;·&nbsp; NR-10 / NR-18 / NR-35 &nbsp;·&nbsp; <a href="https://remo-apr.github.io/apr/" style="color:var(--navy)">remo-apr.github.io/apr</a>
+  Atualizado em 03/07/2026 &nbsp;·&nbsp; Versão 4.2 &nbsp;·&nbsp; NR-10 / NR-18 / NR-35 &nbsp;·&nbsp; <a href="https://remo-apr.github.io/apr/" style="color:var(--navy)">remo-apr.github.io/apr</a>
 </div>
 
 </body>

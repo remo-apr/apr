@@ -14,9 +14,11 @@
 | **URL pública (GitHub Pages)** | https://remo-apr.github.io/apr/ |
 | **Repositório** | https://github.com/remo-apr/apr |
 | **Branch** | `main` |
-| **Versão atual** | `v4.1` (variável `APP_VERSAO = 'v4.1'`) |
-| **Tamanho do arquivo** | ~430 KB, 4421 linhas |
+| **Versão atual** | `v4.2` (variável `APP_VERSAO = 'v4.2'`) |
+| **Tamanho do arquivo** | ~490 KB, ~5310 linhas |
+| **Service worker** | `sw.js` (network-first, cache `apr-remo-v2`) |
 | **Conformidade** | NR-10 / NR-18 / NR-35 |
+| **Última auditoria** | v4.2 (03/07/2026) — 9 lotes de correções, ver seção 17 |
 
 ### O que é o sistema
 Single-file HTML com PWA (Progressive Web App) para elaboração de Análises Preliminares de Risco (APRs) diárias antes de serviços elétricos, civis e de montagem em subestação de alta tensão. Funciona sem servidor, sem banco de dados externo, sem instalação. Integrado ao Google Drive e Google Sheets via Google Apps Script.
@@ -167,7 +169,15 @@ function testeConexao() {
 
 ## 4. FLUXO DE SINCRONIZAÇÃO (index.html → Drive)
 
-### Função crítica: `autoSyncComPDF()` (linha ~4217 do index.html)
+> **ATUALIZAÇÃO v4.2 (03/07/2026):** o `autoSyncComPDF()` foi endurecido na auditoria — ver seção 17. Mudanças em relação ao código abaixo (que é o histórico v4.1):
+> - Fetch agora usa `fetchComTimeout(url, opts, 30000)` (AbortController) — evita badge preso em "Enviando…".
+> - Badge de sucesso passou de "✅ Registrado no Drive" para **"📤 Enviado ao Drive"** (com `no-cors` não há como confirmar gravação; o texto antigo era falso em caso de 404/500 do GAS).
+> - Guarda de tamanho ~20 MB: acima disso envia só metadados via `autoSync()`.
+> - `FileReader.onerror` → `_badgeFail()`.
+> - Modo escuro é removido do `<body>` durante a captura do html2pdf e restaurado depois (senão o PDF saía com texto azul-claro ilegível).
+> - Todo texto livre do usuário é escapado com `esc()` antes de entrar no `#apr-out`.
+
+### Função crítica: `autoSyncComPDF()` (código v4.1 — comportamento base)
 
 ```javascript
 function autoSyncComPDF(url, dados){
@@ -231,17 +241,26 @@ function autoSyncComPDF(url, dados){
 
 ### Constantes globais (linhas 1517–1787)
 ```
-APP_VERSAO = 'v4.1'
+APP_VERSAO = 'v4.2'
 SYNC_URL_KEY = 'apr_sync_url'           // chave localStorage para URL do Apps Script
 ENCARREGADOS[]                           // 5 encarregados com nome, funcao, disc
-MAQUINAS[]                               // 33 máquinas (strings)
+MAQUINAS[]                               // máquinas (strings) — inclui "Caminhão Munck"
 CHECKLISTS{}                             // objeto chave=nome_maquina → array de itens
-LOCAIS_FIXOS[]                           // 14 locais da SE
+LOCAIS_FIXOS[]                           // locais da SE
 CREDENCIADOS[]                           // 7 usuários com user/senha/cargo/email
-EQUIPE_CAMPO[]                           // 46 colaboradores com num/nome/cargo/equipe
+EQUIPE_CAMPO[]                           // 45 colaboradores com num/nome/cargo/equipe
 EPIS_CADASTRO[]                          // 20 EPIs cadastrados
 RISCOS[]                                 // 35 riscos com n/p/s/r/c
 ATIVIDADES[]                             // 32 atividades com id/nome/disc/normas/fases[]
+```
+
+### Helpers introduzidos na auditoria v4.2 (ver seção 17)
+```
+esc(s)                    // escapa &<>"' — usar SEMPRE em texto livre do usuário no innerHTML
+fetchComTimeout(url,o,ms) // fetch com AbortController (timeout, padrão 30s)
+flashLogoRemo()           // efeito degradê do logo ao clicar PRÓXIMO
+getRiscosParaAPR()        // agora FILTRA por atividade selecionada (não vaza riscos órfãos)
+calcFaseNivel()           // nível da fase = PIOR risco (máx P×S), não média
 ```
 
 ### Estado global (Sets/Maps)
@@ -312,19 +331,18 @@ O `#apr-out` é o que `html2pdf.js` captura para gerar o PDF.
 - **Leandro Pizani** — Engenheiro Residente — (31) 99223-7798
 - **Gislaine Nascimento** — Técnico de Segurança — (34) 98408-3585
 
-### Equipe de Campo (46 colaboradores)
-Civil (aprox. 20), Elétrica (aprox. 8), Montagem (aprox. 7), Administrativo (aprox. 11).
-Nomes completos no `index.html` linhas 1669–1716.
+### Equipe de Campo (45 colaboradores)
+Civil, Elétrica, Montagem, Administrativo. Nomes completos na constante `EQUIPE_CAMPO` do `index.html`.
 
 ### 35 Riscos (resumido)
 R01 Cansaço Físico/Mental | R02 Uso de Adorno | R03 Impacto Ambiental |
 R04 Ferramentas Inadequadas | R05 Procedimentos Técnicos Incorretos | R06 Picadas de Animais |
-R07 Trabalho próx. Circuitos Energizados | R08 Retorno de Tensão | R09 Indução Elétrica |
+R07 Trabalho próximo a Circuitos Energizados | R08 Retorno de Tensão | R09 Indução Elétrica |
 R10 Trip Acidental | R11 Choque Elétrico | R12 Exposição a Ruído | R13 Exposição à Radiação |
 R14 Queda em Altura | R15 Exposição a Vibrações | R16 Fumos Metálicos | R17 Incêndio/Explosões |
 R18 Exposição a Poeiras | R19 Levantamento Manual de Peso | R20 Prensamento de Membros |
 R21 Colisões/Abalroamento | R22 Iluminação Inadequada | R23 Gases/Vapores |
-R24 Atropelamento | R25 Máquinas sem Proteção | R26 Contato com Produtos Químicos |
+R24 Atropelamento | R25 Máquinas e Equipamentos sem Proteção | R26 Contato com Produtos Químicos |
 R27 Manobra Indevida | R28 Escoriações/Cortes/Pancadas | R29 Projeção de Partículas |
 R30 Falha de Comunicação | R31 Condições Meteorológicas | R32 Desmoronamento/Soterramento |
 R33 Queda de Materiais | R34 Queda de Pessoas | R35 Queimaduras
@@ -497,26 +515,52 @@ O usuário configura a URL do Apps Script diretamente na interface:
 ```
 C:\Users\Remo Engenharia\Desktop\apr\
 ├── index.html                      # Sistema APR completo (ARQUIVO PRINCIPAL)
-├── APR_REMO_Historico_Projeto.xlsx # Excel com histórico do projeto (5 abas)
+├── sw.js                           # Service worker (network-first, cache apr-remo-v2)
+├── APR_REMO_Historico_Projeto.xlsx # Excel com histórico do projeto (6 abas)
 ├── APR_REMO_Documentacao.html      # HTML de documentação compartilhável
 └── CONTEXTO_CLAUDE.md              # Este arquivo
 ```
+> Nota: `app-campo.html`, `painel-gestao.html` e `modelo_assinatura_diaria.html`
+> existem na pasta mas NÃO são rastreados pelo git (não fazem parte do deploy).
 
 ---
 
-## 16. RESUMO DO ESTADO ATUAL (20/05/2026)
+## 16. RESUMO DO ESTADO ATUAL (03/07/2026 — v4.2)
 
 **O sistema está funcionando em produção com:**
-- ✅ index.html v4.1 publicado em https://remo-apr.github.io/apr/
+- ✅ index.html **v4.2** publicado em https://remo-apr.github.io/apr/
 - ✅ Apps Script v12 implantado — recebe PDF base64 do browser e salva no Drive
-- ✅ PDF salvo no Drive = documento impresso (layout idêntico, gerado pelo html2pdf.js)
+- ✅ PDF salvo no Drive = documento impresso (gerado pelo html2pdf.js)
 - ✅ Planilha de registro com 13 colunas e links para cada PDF
 - ✅ Login de elaboradores funcionando
-- ✅ PWA offline funcionando
+- ✅ PWA offline funcionando com service worker **network-first** (sempre pega a versão mais recente quando online)
+- ✅ Auditoria completa de 9 lotes aplicada (seção 17)
 
-**Última mudança crítica (20/05/2026):**
-O PDF enviado ao Drive agora é gerado diretamente do documento HTML renderizado no browser via `html2pdf.js` (`autoSyncComPDF`), não mais reconstruído no Apps Script via Sheets. Isso garante que o PDF salvo é idêntico ao documento impresso.
+**Última mudança crítica (03/07/2026):** auditoria de correções v4.2 — ver seção 17.
 
 ---
 
-*Documento gerado em 20/05/2026. Para continuar o projeto, leia as seções 2, 3 e 4 primeiro.*
+## 17. AUDITORIA v4.2 (03/07/2026) — CORREÇÕES APLICADAS
+
+Auditoria completa do sistema (~66 defeitos confirmados, ~48 refutados). Corrigidos em 10 commits, agrupados por causa raiz. Commits no repositório `remo-apr/apr` (de `824fcf6` a `743c074`).
+
+| Lote | Tema | Essência da correção |
+|---|---|---|
+| 1 | Estado da Etapa 3 (`SEL_RISCOS`) | Fim do compartilhamento de referência de Map (clones com `new Map()`); `getRiscosParaAPR()` filtra por atividade selecionada; complemento reaproveitado ao remarcar; limpeza de chaves órfãs ao remover APR. Riscos não vazam mais entre atividades nem corrompem templates persistidos. |
+| 2 | Catálogo de riscos | Risco 7 renomeado "próx." → "**próximo a Circuitos Energizados**" (voltou a ser selecionável nas ~34 fases); risco 25 → "Máquinas e Equipamentos sem Proteção"; matcher do fallback normalizado; nível da fase = **pior risco** (máx P×S), não média. |
+| 3 | Validação & fluxo | `validar()` cobre Etapas 3 e 4 (APR não sai sem risco nem sem equipe); dots corretos na tela final (`ir('out')`); logout com reset completo do rascunho. |
+| 4 | Segurança/escape | Helper `esc()` em ~20 pontos de interpolação (XSS + `<` em observações); URL do Drive exige `/macros/`. |
+| 5 | Sync/persistência | Badge honesto "📤 Enviado ao Drive"; `fetchComTimeout` (30s); guarda de 20 MB no PDF; `try/catch` em todas as leituras de localStorage (`apr_favs` corrompido não derruba mais o app). |
+| 6 | Impressão/PDF | `page-break-inside:avoid` (assinaturas/linhas não são cortadas entre páginas); modo escuro não vaza para documento/PDF; QR do cabeçalho com `crossorigin`. |
+| 7 | PWA/service worker | `sw.js`: **network-first** para same-origin; cache versionado `apr-remo-v2`; manifesto único (removido o estático corrompido). |
+| 8 | Acessibilidade/UX | Zoom liberado (WCAG 1.4.4); alvo de toque `.ac`; dark mode do Resumo e do dot ativo; placeholders 4,5:1; `prefers-reduced-motion`. |
+| 9 | Dados menores | Grafia "Caminhão Munck"; checklist Motoserra sem "Trado de perfuração"; perigo "Queda de objetos" → risco 33. |
+
+### Decisões deixadas em aberto (NÃO são bugs pendentes — precisam de decisão de negócio)
+1. **Senha única `APR@2026` + PII dos 45 colaboradores no fonte público** — LGPD; exige mudar o modelo de login e/ou tornar o repositório privado. Mantido por opção do cliente.
+2. **Fila de sincronização offline completa** (reenviar PDF após recarregar) — feature nova (IndexedDB + quota), não fix pontual.
+3. **QR do cabeçalho 100% offline** e **restrição de impressão real** — exigem gerador de QR embutido e backend, respectivamente. Versões atuais têm fallback/mitigação.
+
+---
+
+*Documento atualizado em 03/07/2026 (v4.2). Para continuar o projeto, leia as seções 2, 3, 4 e 17 primeiro.*
