@@ -665,6 +665,9 @@ body.dark .copiloto-nota{background:#0d2a40;border-color:#243040;color:#9ec4e0}
   background:rgba(0,166,81,.6);padding:2px 8px;border-radius:10px;
   transition:background .2s}
 .fase-risco-contador.has{background:var(--remo-green)}
+.fase-risco-sugestao{font-size:11px;font-weight:700;color:#0C447C;background:#E6F1FB;
+  border:1px solid #85B7EB;padding:2px 8px;border-radius:10px}
+body.dark .fase-risco-sugestao{color:#9ec4e0;background:#0d2a40;border-color:#243040}
 @media(max-width:600px){.risco-fase-grid{grid-template-columns:1fr}}
 
 /* ─── ETAPA 3 — SELEÇÃO DE EQUIPE ─── */
@@ -735,6 +738,13 @@ body.dark .copiloto-nota{background:#0d2a40;border-color:#243040;color:#9ec4e0}
 .res-list{list-style:none;padding:0}
 .res-list li{padding:4px 0;font-size:13px;border-bottom:1px solid var(--remo-line)}
 .res-list li:last-child{border-bottom:none}
+.resumo-status{border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;font-size:13.5px;line-height:1.5}
+.resumo-status.ok{background:#e6f7ed;border:1.5px solid #00A651;color:#0f6e56;font-weight:700}
+.resumo-status.pend{background:#fff4e5;border:1.5px solid #F5C400;color:#7a5a00}
+.resumo-status.pend ul{margin:6px 0 0;padding-left:20px}
+.resumo-status.pend li{padding:2px 0}
+body.dark .resumo-status.ok{background:#0f2a1a;color:#7fd6a6}
+body.dark .resumo-status.pend{background:#2e2410;color:#e6c47a;border-color:#7a5a00}
 
 /* ─── APR OUTPUT ACTIONS ─── */
 .out-actions{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
@@ -3068,11 +3078,14 @@ function renderRiscosSel(){
         <div class="fase-risco-header">
           <div>
             <div class="fase-risco-badge">APR-${atvId} · Fase ${fIdx+1}</div>
-            <div class="fase-risco-titulo">${fase.f}</div>
+            <div class="fase-risco-titulo">${esc(fase.f)}</div>
           </div>
-          <span class="fase-risco-contador${nSel>0?' has':''}" id="contador-${atvId}-${fIdx}">
-            ${nSel} risco${nSel!==1?'s':''} sel.
-          </span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+            ${sugeridos.length>0?`<span class="fase-risco-sugestao">💡 ${sugeridos.length} sugerido${sugeridos.length!==1?'s':''} pelo copiloto</span>`:''}
+            <span class="fase-risco-contador${nSel>0?' has':''}" id="contador-${atvId}-${fIdx}">
+              ${nSel} risco${nSel!==1?'s':''} sel.
+            </span>
+          </div>
         </div>
         <div class="fase-risco-body">
           <div class="hint" style="margin-bottom:10px;font-size:11px">
@@ -3421,6 +3434,24 @@ function getMembros(){ return getEquipe().map(c=>({nome:c.nome, func:c.cargo}));
 // ═══════════════════════════════════════════════════
 // RESUMO
 // ═══════════════════════════════════════════════════
+// Lista as pendências que impedem/comprometem a geração da APR (Etapa 5).
+function resumoPendencias(){
+  const p = [];
+  if(!v('f-elaborador')) p.push('Elaborador — faça login (Etapa 1)');
+  if(!v('f-empresa'))    p.push('Empresa (Etapa 1)');
+  if(!v('f-obra'))       p.push('Obra / Projeto (Etapa 1)');
+  if(!v('f-pt'))         p.push('PT Nº (Etapa 1)');
+  if(!v('f-data'))       p.push('Data (Etapa 1)');
+  if(!document.querySelector('input[name="etapa_apr"]:checked')) p.push('Etapa da APR (Etapa 1)');
+  if(SEL_E.size===0)     p.push('Encarregado responsável (Etapa 1)');
+  if(SEL.size===0)       p.push('Atividade do dia (Etapa 2)');
+  const idsSel=[...SEL];
+  const temRisco=[...SEL_RISCOS.entries()].some(([k,mp])=>mp.size>0 && idsSel.some(id=>k.startsWith(id+'_')));
+  if(!temRisco)          p.push('Ao menos um risco avaliado (Etapa 3)');
+  if(SEL_EQUIPE.size===0)p.push('Ao menos um colaborador na equipe (Etapa 4)');
+  return p;
+}
+
 function renderResumo(){
   const m=getMembros();
   const etapaApr=document.querySelector('input[name="etapa_apr"]:checked')?.value||'—';
@@ -3432,7 +3463,13 @@ function renderResumo(){
   const ferrs=SEL_F.size ? [...SEL_F].join(', ') : 'Nenhuma';
   const usoferr=document.getElementById('ferr-sim').checked?'SIM':'NÃO';
 
+  const _pend = resumoPendencias();
+  const _bannerHtml = _pend.length===0
+    ? `<div class="resumo-status ok">✅ Tudo preenchido — a APR está pronta para ser gerada.</div>`
+    : `<div class="resumo-status pend"><strong>⚠ Faltam ${_pend.length} item${_pend.length!==1?'ns':''}</strong> antes de gerar a APR:<ul>${_pend.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+
   document.getElementById('resumo').innerHTML=`
+    ${_bannerHtml}
     <div class="res-grid">
       <div class="res-block">
         <dt>Identificação</dt>
