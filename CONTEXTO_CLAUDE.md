@@ -247,8 +247,8 @@ ENCARREGADOS[]                           // 5 encarregados com nome, funcao, dis
 MAQUINAS[]                               // máquinas (strings) — inclui "Caminhão Munck"
 CHECKLISTS{}                             // objeto chave=nome_maquina → array de itens
 LOCAIS_FIXOS[]                           // locais da SE
-CREDENCIADOS[]                           // 7 usuários com user/senha/cargo/email
-EQUIPE_CAMPO[]                           // 45 colaboradores com num/nome/cargo/equipe
+CREDENCIADOS[]                           // 5 usuários com user/senha/cargo/email
+EQUIPE_CAMPO[]                           // 27 colaboradores com num/nome/cargo/equipe
 EPIS_CADASTRO[]                          // 20 EPIs cadastrados
 RISCOS[]                                 // 35 riscos com n/p/s/r/c
 ATIVIDADES[]                             // 32 atividades com id/nome/disc/normas/fases[]
@@ -294,7 +294,7 @@ salvarSyncUrl()    // salva URL do Apps Script no localStorage
 step-1: Identificação (data, PT, elaborador, encarregado, local, escopo, máquinas, clima, etapa APR)
 step-2: Atividades (filtro + seleção por radio, 32 atividades)
 step-3: Riscos por Fase (grid por fase da atividade selecionada)
-step-4: Equipe de Campo (46 colaboradores, filtro + busca)
+step-4: Equipe de Campo (27 colaboradores, filtro + busca)
 step-5: Revisão e Geração (resumo + botão Gerar APR)
 step-out: Documento APR gerado (element #apr-out) + botão imprimir
 ```
@@ -314,15 +314,14 @@ O `#apr-out` é o que `html2pdf.js` captura para gerar o PDF.
 |---|---|---|---|---|
 | albert | APR@2026 | ALBERT KAIK FRANCISCO DE SOUZA | ENCARREGADO DE TURMA | não |
 | andre | APR@2026 | ANDRE JOSE DA SILVA | ENCARREGADO FORCA E CONTROLE | não |
-| elizandra | APR@2026 | ELIZANDRA V DE F DOS SANTOS | AUX DE SEGURANCA DO TRABALHO | sim |
 | gislaine | APR@2026 | GISLAINE PEREIRA DO NASCIMENTO | TECNICO SEGURANCA DO TRABALHO | sim |
 | jhony | APR@2026 | JHONY DOS REIS BORGES | OPERADOR DE MAQUINAS | não |
-| jose | APR@2026 | JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR | ENCARREGADO GERAL | não |
 | leandro | APR@2026 | LEANDRO SILVA FERREIRA | ENC. MONT. ELETROMECANICA | não |
+
+> Atualizado em 12/08/2026 (efetivo de obra): removidos os logins de Elizandra (aprovadora) e José Adauto — ambos fora do efetivo. **Gislaine passou a ser a única aprovadora.**
 
 ### Encarregados (seleção na Etapa 1)
 - Albert Kaik — Encarregado Civil
-- José Adauto — Encarregado Civil
 - Leandro Silva — Encarregado de Montagem
 - André da Silva — Encarregado de Elétrica
 - Marcelo de Oliveira — Supervisor de Elétrica
@@ -331,8 +330,8 @@ O `#apr-out` é o que `html2pdf.js` captura para gerar o PDF.
 - **Leandro Pizani** — Engenheiro Residente — (31) 99223-7798
 - **Gislaine Nascimento** — Técnico de Segurança — (34) 98408-3585
 
-### Equipe de Campo (45 colaboradores)
-Civil, Elétrica, Montagem, Administrativo. Nomes completos na constante `EQUIPE_CAMPO` do `index.html`.
+### Equipe de Campo (27 colaboradores)
+Civil (12), Administrativo (7), Elétrica (4), Montagem (4). Fonte: EFETIVO DE OBRA 12/08/2026. Nomes completos na constante `EQUIPE_CAMPO` do `index.html`.
 
 ### 35 Riscos (resumido)
 R01 Cansaço Físico/Mental | R02 Uso de Adorno | R03 Impacto Ambiental |
@@ -557,7 +556,7 @@ Auditoria completa do sistema (~66 defeitos confirmados, ~48 refutados). Corrigi
 | 9 | Dados menores | Grafia "Caminhão Munck"; checklist Motoserra sem "Trado de perfuração"; perigo "Queda de objetos" → risco 33. |
 
 ### Decisões deixadas em aberto (NÃO são bugs pendentes — precisam de decisão de negócio)
-1. **Senha única `APR@2026` + PII dos 45 colaboradores no fonte público** — LGPD; exige mudar o modelo de login e/ou tornar o repositório privado. Mantido por opção do cliente.
+1. **Senha única `APR@2026` + PII dos 27 colaboradores no fonte público** — LGPD; exige mudar o modelo de login e/ou tornar o repositório privado. Mantido por opção do cliente.
 2. **Fila de sincronização offline completa** (reenviar PDF após recarregar) — feature nova (IndexedDB + quota), não fix pontual.
 3. **QR do cabeçalho 100% offline** e **restrição de impressão real** — exigem gerador de QR embutido e backend, respectivamente. Versões atuais têm fallback/mitigação.
 
