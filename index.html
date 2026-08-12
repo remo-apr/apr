@@ -1723,7 +1723,6 @@ const ELAB_SESSION_KEY = 'apr_elab_session';
 // Encarregados reais do arquivo
 const ENCARREGADOS = [
   {nome:"Albert Kaik",         funcao:"Encarregado Civil",       disc:["Civil"]},
-  {nome:"José Adauto",         funcao:"Encarregado Civil",       disc:["Civil"]},
   {nome:"Leandro Silva",       funcao:"Encarregado de Montagem", disc:["Montagem"]},
   {nome:"André da Silva",      funcao:"Encarregado de Elétrica", disc:["Elétrica"]},
   {nome:"Marcelo de Oliveira", funcao:"Supervisor de Elétrica",  disc:["Elétrica"]},
@@ -1863,70 +1862,49 @@ const MODELO_DATA_REV = '03/07/2026';
 const CREDENCIADOS = [
   {n:1, nome:"ALBERT KAIK FRANCISCO DE SOUZA",        cargo:"ENCARREGADO DE TURMA",          aprovador:false, email:"",                                  user:"albert",    senha:"APR@2026", disc:"Civil"},
   {n:2, nome:"ANDRE JOSE DA SILVA",                    cargo:"ENCARREGADO FORCA E CONTROLE",  aprovador:false, email:"",                                  user:"andre",     senha:"APR@2026", disc:"Elétrica"},
-  {n:3, nome:"ELIZANDRA V DE F DOS SANTOS",            cargo:"AUX DE SEGURANCA DO TRABALHO",  aprovador:true,  email:"elizandra.santos@remo.com.br",       user:"elizandra", senha:"APR@2026", disc:null},
   {n:4, nome:"GISLAINE PEREIRA DO NASCIMENTO",         cargo:"TECNICO SEGURANCA DO TRABALHO", aprovador:true,  email:"gislaine.nascimento@remo.com.br",    user:"gislaine",  senha:"APR@2026", disc:null},
   {n:5, nome:"JHONY DOS REIS BORGES",                  cargo:"OPERADOR DE MAQUINAS",           aprovador:false, email:"",                                  user:"jhony",     senha:"APR@2026", disc:null},
-  {n:6, nome:"JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR", cargo:"ENCARREGADO GERAL",              aprovador:false, email:"",                                  user:"jose",      senha:"APR@2026", disc:"Civil"},
   {n:7, nome:"LEANDRO SILVA FERREIRA",                 cargo:"ENC. MONT. ELETROMECANICA",      aprovador:false, email:"",                                  user:"leandro",   senha:"APR@2026", disc:"Montagem"},
 ];
 // Mapa credencial n → encarregado padrão (Item 5 — cascata de disciplina)
 const CRED_ENC_DEFAULT = {
   1: "Albert Kaik",    // albert  → Equipe Civil
   2: "André da Silva", // andre   → Equipe Elétrica
-  6: "José Adauto",    // jose    → Equipe Civil
   7: "Leandro Silva",  // leandro → Equipe Montagem
 };
 // Emails dos aprovadores (destinatários fixos do envio)
 const APROVADORES_EMAIL = CREDENCIADOS.filter(c=>c.aprovador).map(c=>c.email);
 
-// ─── EQUIPE DE CAMPO (45 colaboradores) ───
+// ─── EQUIPE DE CAMPO (27 colaboradores) ───
 const EQUIPE_CAMPO = [
-  // Fonte: APR_BancoDados_REMO_v3.xlsx — aba EQUIPE DE CAMPO (atualizado 2026-05)
-  {num:1, nome:"ADRIANO AUGUSTO LINO",                          cargo:"OPERADOR DE BETONEIRA",          equipe:"Civil"},
-  {num:2, nome:"ALBERT KAIK FRANCISCO DE SOUZA",                cargo:"ENCARREGADO DE TURMA",           equipe:"Civil"},
-  {num:3, nome:"ALEXANDRE A DA SILVA LINO",                     cargo:"TECNICO DE QUALIDADE",           equipe:"Administrativo"},
-  {num:4, nome:"ALEXANDRE FIRMINO PEREIRA",                     cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
-  {num:5, nome:"ALISSON MATEUS FERREIRA SEIXAS",                cargo:"AUXILIAR ADMINISTRATIVO",        equipe:"Administrativo"},
-  {num:6, nome:"ANDRE JOSE DA SILVA",                           cargo:"ENCARREGADO FORCA E CONTROLE",   equipe:"Elétrica"},
-  {num:7, nome:"ANTONIO ALBINO DOS SANTOS",                     cargo:"CARPINTEIRO",                    equipe:"Civil"},
-  {num:8, nome:"ANTONIO HENRIQUE FERRAO",                       cargo:"ELETRICISTA FORCA CONTROLE",     equipe:"Elétrica"},
-  {num:9, nome:"CAUA CARDOSO BORGES",                           cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
-  {num:10,nome:"DANIEL BERNARDINO DE ALMEIDA FILHO",            cargo:"ANALISTA DE PLANEJAMENTO",       equipe:"Administrativo"},
-  {num:11,nome:"DANIEL DE LIMA DA SILVA",                       cargo:"ARMADOR AL",                     equipe:"Civil"},
-  {num:12,nome:"EDUARDO DUARTE COSTA",                          cargo:"ELETRICISTA FORCA CONTROLE",     equipe:"Elétrica"},
-  {num:13,nome:"EDUARDO PEGO OLIVEIRA",                         cargo:"MONTADOR DE EQUIP ELETRICOS",    equipe:"Montagem"},
-  {num:14,nome:"ELIZANDRA V DE F DOS SANTOS",                   cargo:"AUX DE SEGURANCA DO TRABALHO",   equipe:"Administrativo"},
-  {num:15,nome:"ELSA CRISTINA SILVA CARNEIRO",                  cargo:"AUXILIAR DE SERVICOS GERAIS",    equipe:"Administrativo"},
-  {num:16,nome:"EVERTON PEREIRA DE MENEZES SILVA",              cargo:"MONTADOR DE EQUIP ELETRICOS",    equipe:"Montagem"},
-  {num:17,nome:"GABRIELA MARTINS",                              cargo:"AUXILIAR ADMINISTRATIVO",        equipe:"Administrativo"},
-  {num:18,nome:"GILBERTO DE SOUZA SILVA",                       cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
-  {num:19,nome:"GISLAINE PEREIRA DO NASCIMENTO",                cargo:"TECNICO SEGURANCA DO TRABALHO",  equipe:"Administrativo"},
-  {num:20,nome:"JHONY DOS REIS BORGES",                         cargo:"OPERADOR DE MAQUINAS",           equipe:"Montagem"},
-  {num:21,nome:"JOEDSON DOS SANTOS SILVA",                      cargo:"PEDREIRO AL",                    equipe:"Civil"},
-  {num:22,nome:"JONIVAL JAIR ALVES",                            cargo:"OPERADOR DE BETONEIRA",          equipe:"Civil"},
-  {num:23,nome:"JOSE ADAUTO DOS SANTOS DA SILVA JUNIOR",        cargo:"ENCARREGADO GERAL",              equipe:"Civil"},
-  {num:24,nome:"JOSE LOPES SILVA",                              cargo:"CARPINTEIRO",                    equipe:"Civil"},
-  {num:25,nome:"JOSE MARIO DOS SANTOS FILHO",                   cargo:"OPERADOR DE MAQUINAS",           equipe:"Civil"},
-  {num:26,nome:"JOSE MODESTO DE FREITAS",                       cargo:"ELETRICISTA FORCA CONTROLE",     equipe:"Elétrica"},
-  {num:27,nome:"JOSE RODOLFO FELICIANO RODRIGUES",              cargo:"ALMOXARIFE",                     equipe:"Administrativo"},
-  {num:28,nome:"JURANDY DIAS CARVALHO JUNIOR",                  cargo:"MONTADOR SOLDADOR",              equipe:"Montagem"},
-  {num:29,nome:"LEANDRA MARIA BORGES",                          cargo:"AUXILIAR DE SERVICOS GERAIS",    equipe:"Administrativo"},
-  {num:30,nome:"LEANDRO MARTINS BORGES",                        cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
-  {num:31,nome:"LEANDRO SILVA FERREIRA",                        cargo:"ENC. MONT. ELETROMECANICA",      equipe:"Montagem"},
-  {num:32,nome:"LUCAS TIAGO SILVA OLIVEIRA",                    cargo:"MONTADOR SOLDADOR",              equipe:"Montagem"},
-  {num:33,nome:"LUIS FELLYPE CARVALHO SILVA",                   cargo:"ELETRICISTA FORCA CONTROLE",     equipe:"Elétrica"},
-  {num:34,nome:"MATEUS GABRIEL DE CAMPOS",                      cargo:"AUXILIAR DE ALMOXARIFADO",       equipe:"Administrativo"},
-  {num:35,nome:"NATAN DA SILVA DE S MOREIRA",                   cargo:"ABASTECEDOR LUBRIFICADOR",       equipe:"Civil"},
-  {num:36,nome:"OSVALDO PEREIRA NETO",                          cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
-  {num:37,nome:"PAULO DA SILVA CRUZ",                           cargo:"MONTADOR DE SUBESTACAO",         equipe:"Montagem"},
-  {num:38,nome:"REINALDO PINHEIRO DOS SANTOS SOUSA",            cargo:"CARPINTEIRO",                    equipe:"Civil"},
-  {num:39,nome:"RENATO FORTUNATO ALVES",                        cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
-  {num:40,nome:"ROMILTON RAFAEL RODRIGUES DE MORAIS BRANQUINHO",cargo:"ADMINISTRATIVO",                 equipe:"Administrativo"},
-  {num:41,nome:"RUBESMAR FELICIO",                              cargo:"CARPINTEIRO",                    equipe:"Civil"},
-  {num:42,nome:"RYAN COUTINHO FARIA",                           cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
-  {num:43,nome:"THALYS CARDOSO BORGES",                         cargo:"PEDREIRO",                       equipe:"Civil"},
-  {num:44,nome:"VITOR HUGO GOMES DO NASCIMENTO",                cargo:"AJUDANTE DE OBRA",               equipe:"Civil"},
-  {num:45,nome:"WESLEY HENRIQUE DA SILVA ANDRADE",              cargo:"PEDREIRO AL",                    equipe:"Civil"},
+  // Fonte: EFETIVO DE OBRA 12/08/2026 — SE JAGUARA (27 colaboradores)
+  {num:1, nome:"ADRIANO AUGUSTO LINO",                 cargo:"OPERADOR DE BETONEIRA",         equipe:"Civil"},
+  {num:2, nome:"ALBERT KAIK FRANCISCO DE SOUZA",       cargo:"ENCARREGADO DE TURMA",          equipe:"Civil"},
+  {num:3, nome:"ALISSON MATEUS FERREIRA SEIXAS",       cargo:"AUXILIAR ADMINISTRATIVO",       equipe:"Administrativo"},
+  {num:4, nome:"ANDRE JOSE DA SILVA",                  cargo:"ENCARREGADO FORCA E CONTROLE",  equipe:"Elétrica"},
+  {num:5, nome:"CAUA CARDOSO BORGES",                  cargo:"AJUDANTE DE OBRA",              equipe:"Civil"},
+  {num:6, nome:"DANIEL BERNARDINO DE ALMEIDA FILHO",   cargo:"ANALISTA DE PLANEJAMENTO",      equipe:"Administrativo"},
+  {num:7, nome:"DIEGO RAFAEL PEREIRA",                 cargo:"AJUDANTE DE OBRA",              equipe:"Civil"},
+  {num:8, nome:"GABRIELA MARTINS",                     cargo:"AUXILIAR ADMINISTRATIVO",       equipe:"Administrativo"},
+  {num:9, nome:"GISLAINE PEREIRA DO NASCIMENTO",       cargo:"TECNICO SEGURANCA DO TRABALHO", equipe:"Administrativo"},
+  {num:10,nome:"HIAGO RIBEIRO DA LUZ",                 cargo:"MONTADOR",                      equipe:"Montagem"},
+  {num:11,nome:"JHONY DOS REIS BORGES",                cargo:"OPERADOR DE MAQUINAS",          equipe:"Montagem"},
+  {num:12,nome:"JONIVAL JAIR ALVES",                   cargo:"OPERADOR DE BETONEIRA",         equipe:"Civil"},
+  {num:13,nome:"JOSE MARIO DOS SANTOS FILHO",          cargo:"OPERADOR DE MAQUINAS",          equipe:"Civil"},
+  {num:14,nome:"JOSE MODESTO DE FREITAS",              cargo:"ELETRICISTA FORCA CONTROLE",    equipe:"Elétrica"},
+  {num:15,nome:"JOSE RODOLFO FELICIANO RODRIGUES",     cargo:"ALMOXARIFE",                    equipe:"Administrativo"},
+  {num:16,nome:"LEANDRA MARIA BORGES",                 cargo:"AUXILIAR DE SERVICOS GERAIS",   equipe:"Administrativo"},
+  {num:17,nome:"LEANDRO MARTINS BORGES",               cargo:"AJUDANTE DE OBRA",              equipe:"Civil"},
+  {num:18,nome:"LEANDRO SILVA FERREIRA",               cargo:"ENC. MONT. ELETROMECANICA",     equipe:"Montagem"},
+  {num:19,nome:"LUCAS TIAGO SILVA OLIVEIRA",           cargo:"MONTADOR SOLDADOR",             equipe:"Montagem"},
+  {num:20,nome:"LUIS FELLYPE CARVALHO SILVA",          cargo:"ELETRICISTA FORCA CONTROLE",    equipe:"Elétrica"},
+  {num:21,nome:"NATAN DA SILVA DE S MOREIRA",          cargo:"ABASTECEDOR LUBRIFICADOR",      equipe:"Civil"},
+  {num:22,nome:"REINALDO PINHEIRO DOS SANTOS SOUSA",   cargo:"CARPINTEIRO",                   equipe:"Civil"},
+  {num:23,nome:"RENATO FORTUNATO ALVES",               cargo:"AJUDANTE DE OBRA",              equipe:"Civil"},
+  {num:24,nome:"RYAN COUTINHO FARIA",                  cargo:"AJUDANTE DE OBRA",              equipe:"Civil"},
+  {num:25,nome:"WESLEY HENRIQUE DA SILVA ANDRADE",     cargo:"PEDREIRO AL",                   equipe:"Civil"},
+  {num:26,nome:"LEANDRO DE SOUZA DAYRELL PIZANI",      cargo:"ENGENHEIRO RESIDENTE",          equipe:"Administrativo"},
+  {num:27,nome:"MARCELO DE OLIVEIRA",                  cargo:"SUPERVISOR DE ELÉTRICA",        equipe:"Elétrica"},
 ];
 
 // ─── EPIs cadastrados (banco de dados, uso futuro) ───
@@ -4496,7 +4474,7 @@ function imprimirAPR(){
   const cred=getSessionCred();
   if(!cred||!cred.aprovador){
     const nome=cred?cred.nome.split(' ')[0]:'Usuário';
-    alert(`⚠ ${nome}, a impressão da APR é restrita à equipe técnica autorizada.\n\nApenas Elizandra e Gislaine podem imprimir / gerar PDF.`);
+    alert(`⚠ ${nome}, a impressão da APR é restrita à equipe técnica autorizada.\n\nApenas a Técnica de Segurança (Gislaine) pode imprimir / gerar PDF.`);
     return;
   }
   window.print();
