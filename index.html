@@ -552,6 +552,18 @@ body.dark .atv-busca:focus{border-color:#7ab3e0}
 .fase-risco-badge{font-size:11px;font-weight:700;color:rgba(255,255,255,.7);
   background:rgba(255,255,255,.15);padding:2px 8px;border-radius:10px}
 .fase-risco-body{padding:12px 14px}
+/* ─── Editor de MEDIDAS por etapa (Etapa 3) ─── */
+.fase-medidas-editor{border:1.5px solid var(--remo-navy);border-radius:8px;background:#f4f8ff;padding:11px 13px;margin-bottom:12px}
+.fase-medidas-toplabel{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:var(--remo-navy)}
+.fme-badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:4px;background:var(--remo-yellow);color:#5a4200;font-size:10px;font-weight:800;letter-spacing:.4px;font-family:'Barlow',sans-serif}
+.fme-reset{padding:4px 9px;border:1.5px solid var(--remo-line);border-radius:4px;background:#fff;font-size:11px;font-weight:700;color:var(--remo-muted);cursor:pointer;white-space:nowrap;transition:all .18s}
+.fme-reset:hover{border-color:var(--remo-navy);color:var(--remo-navy)}
+.fase-medidas-textarea{width:100%;min-height:120px;padding:9px 11px;border:1.5px solid var(--remo-line);border-radius:6px;font-family:'Barlow',sans-serif;font-size:12.5px;line-height:1.55;color:#222;resize:vertical;box-sizing:border-box}
+.fase-medidas-textarea:focus{border-color:var(--remo-navy);outline:none}
+.rfc-btn-inserir{flex-shrink:0;padding:4px 9px;border:1.5px solid var(--remo-green);border-radius:4px;background:#fff;font-size:11px;font-weight:700;color:#0a7a3d;cursor:pointer;font-family:'Barlow',sans-serif;letter-spacing:.3px;transition:all .18s;line-height:1;white-space:nowrap;margin-left:6px}
+.rfc-btn-inserir:hover{background:#e9f9ef;border-color:var(--remo-green)}
+body.dark .fase-medidas-editor{background:#122033;border-color:#2a4a72}
+body.dark .fase-medidas-textarea{background:#0d1b2a;border-color:#243040;color:#d8e6f3}
 .risco-fase-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .risco-fase-card{border:1.5px solid var(--remo-line);border-radius:6px;
   background:#fafafa;cursor:pointer;transition:all .18s;overflow:hidden}
@@ -2881,6 +2893,9 @@ const SEL_RISCOS = new Map();
 const customRiscosFase = new Map();
 // Edições locais por fase: Map(faseKey → Map(riscoNum → {r, c}))
 const editRiscosFase = new Map();
+// Medidas de controle EDITADAS por fase: Map(faseKey → texto). Quando existe, sobrescreve o
+// texto padrão da fase no documento. É a versão que a equipe ajusta para a necessidade real.
+const MEDIDAS_EDIT = new Map();
 let _nextCId = 1000; // IDs de riscos customizados começam em 1000
 
 // Chave de fase
@@ -3021,6 +3036,7 @@ function renderRiscosSel(){
               <div class="rfc-num">Risco ${r._custom?'✦':r.n}${badgeNovo}${badgeEdit}${badgeSug}</div>
               <div class="rfc-nome" id="rfc-nome-txt-${atvId}-${fIdx}-${r.n}">${esc(nomeFinal)}</div>
             </div>
+            <button class="rfc-btn-inserir" onclick="inserirMedidaNoTexto('${atvId}',${fIdx},${r.n},event)" title="Inserir esta medida no texto da etapa">➕ inserir no texto</button>
             <button class="rfc-btn-edit" onclick="abrirEditarRisco('${atvId}',${fIdx},${r.n},event)" title="Editar risco">✏ Editar</button>
           </div>
           <div class="rfc-expand">
@@ -3074,6 +3090,11 @@ function renderRiscosSel(){
         </div>`;
       };
 
+      // Texto de medidas da etapa (editado ou padrão) — é o que vai para o documento
+      const _mk = faseKey(atvId, fIdx);
+      const _medPadrao = fase.m || '';
+      const _medAtual = MEDIDAS_EDIT.has(_mk) ? MEDIDAS_EDIT.get(_mk) : _medPadrao;
+      const _medEditado = MEDIDAS_EDIT.has(_mk) && MEDIDAS_EDIT.get(_mk) !== _medPadrao;
       const bloco = document.createElement('div');
       bloco.className = 'fase-risco-bloco';
       bloco.id = `fase-bloco-${atvId}-${fIdx}`;
@@ -3091,8 +3112,18 @@ function renderRiscosSel(){
           </div>
         </div>
         <div class="fase-risco-body">
+          <div class="fase-medidas-editor">
+            <div class="fase-medidas-toplabel">
+              <span>📝 Medidas de controle desta etapa <span class="fme-badge" id="fme-badge-${atvId}-${fIdx}"${_medEditado?'':' style="display:none"'}>EDITADO</span></span>
+              <button class="fme-reset" id="fme-reset-${atvId}-${fIdx}" onclick="resetarMedidasFase('${atvId}',${fIdx})"${_medEditado?'':' style="display:none"'}>↺ Restaurar padrão</button>
+            </div>
+            <textarea class="fase-medidas-textarea" id="fme-${atvId}-${fIdx}"
+              oninput="atualizarMedidasFase('${atvId}',${fIdx},this.value)"
+              placeholder="Texto das medidas de controle desta etapa…">${esc(_medAtual)}</textarea>
+            <div class="hint" style="font-size:10.5px;margin-top:4px">Este é o texto que vai para o documento. Ajuste conforme a necessidade real da frente. Nos riscos abaixo, use <strong>➕ inserir no texto</strong> para acrescentar uma medida.</div>
+          </div>
           <div class="hint" style="margin-bottom:10px;font-size:11px">
-            Selecione os riscos desta fase. Use <strong>Editar</strong> para ajustar um risco existente ou <strong>Incluir Risco</strong> para adicionar um novo.
+            Selecione os riscos desta fase (opcional). Use <strong>Editar</strong> para ajustar um risco ou <strong>Incluir Risco</strong> para adicionar um novo. O que define o documento é o texto de medidas acima.
           </div>
           <div class="risco-fase-grid" id="grid-${atvId}-${fIdx}">
             ${riscosParaFase.map(cardHTML).join('')}
@@ -3124,6 +3155,47 @@ function renderRiscosSel(){
       container.appendChild(bloco);
     });
   });
+}
+
+// ── Edição do texto de medidas por etapa ─────────────────────────────────────
+function _medidasPadraoFase(atvId, fIdx){
+  const atv = ATIVIDADES.find(x=>x.id===+atvId);
+  return (atv && atv.fases[+fIdx]) ? (atv.fases[+fIdx].m||'') : '';
+}
+function _atualizarSeloMedidas(atvId, fIdx){
+  const editado = MEDIDAS_EDIT.has(faseKey(atvId, fIdx));
+  const badge = document.getElementById(`fme-badge-${atvId}-${fIdx}`);
+  const reset = document.getElementById(`fme-reset-${atvId}-${fIdx}`);
+  if(badge) badge.style.display = editado ? '' : 'none';
+  if(reset) reset.style.display = editado ? '' : 'none';
+}
+function atualizarMedidasFase(atvId, fIdx, valor){
+  const k = faseKey(atvId, fIdx);
+  if((valor||'') === _medidasPadraoFase(atvId, fIdx)){ MEDIDAS_EDIT.delete(k); }
+  else { MEDIDAS_EDIT.set(k, valor); }
+  _atualizarSeloMedidas(atvId, fIdx);
+}
+function resetarMedidasFase(atvId, fIdx){
+  MEDIDAS_EDIT.delete(faseKey(atvId, fIdx));
+  const ta = document.getElementById(`fme-${atvId}-${fIdx}`);
+  if(ta) ta.value = _medidasPadraoFase(atvId, fIdx);
+  _atualizarSeloMedidas(atvId, fIdx);
+}
+function inserirMedidaNoTexto(atvId, fIdx, rNum, ev){
+  if(ev) ev.stopPropagation();
+  atvId=+atvId; fIdx=+fIdx; rNum=+rNum;
+  const k = faseKey(atvId, fIdx);
+  const edits = editRiscosFase.get(k) || new Map();
+  const ed = edits.get(rNum);
+  let base = RISCOS.find(x=>x.n===rNum) || (customRiscosFase.get(k)||[]).find(x=>x.n===rNum);
+  if(!base) return;
+  const ctrl = (ed && ed.c!=null) ? ed.c : base.c;
+  const ta = document.getElementById(`fme-${atvId}-${fIdx}`);
+  if(!ta) return;
+  const atual = (ta.value||'').trim();
+  ta.value = atual ? (atual + ' ' + ctrl) : ctrl;
+  atualizarMedidasFase(atvId, fIdx, ta.value);
+  ta.focus();
 }
 
 function toggleRiscoFase(atvId, fIdx, rNum, card){
@@ -3165,6 +3237,7 @@ function limparRiscos(){
   SEL_RISCOS.clear();
   customRiscosFase.clear();
   editRiscosFase.clear();
+  MEDIDAS_EDIT.clear();
   renderRiscosSel();
 }
 
@@ -3580,26 +3653,11 @@ function gerarAPR(){
           const _episFase = (f.e||'').split(',').map(x=>x.trim()).filter(Boolean);
           const _novosEpis = _episFase.filter(x=>{ const k=_normEpi(x); if(!k || _seenEpis.has(k)) return false; _seenEpis.add(k); return true; });
           const epiLinha = _novosEpis.length ? `<div class="apr-epi-linha"><strong>EPIs necessários para esta etapa:</strong> ${esc(_novosEpis.join(', '))}</div>` : '';
-          // Coluna MEDIDAS DE CONTROLE: EPIs + riscos selecionados (ou texto da fase como fallback)
-          const colunaMedidas = epiLinha + (riscosFase.length > 0
-            ? `<div class="apr-medidas-list">${riscosFase.map(r=>{
-                const psKey = `${id}_${i}_${r.n}`;
-                // Usa valor definido pelo usuário; se não houver, usa default do risco
-                const psVal = riscoPSFase.get(psKey) || {p: r.p||'', s: r.s||''};
-                const psN   = calcPS(psVal.p, psVal.s);
-                const psTag = psN ? `<span style="display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:800;background:${psN.bg};color:${psN.fg};margin-left:5px">${psN.icon} ${psN.label}</span>` : '';
-                return `
-                <div class="apr-medida-item">
-                  <div class="apr-medida-head">
-                    <span class="apr-medida-num">R${r.n}</span>
-                    <strong class="apr-medida-nome">${esc(r.r)}</strong>${psTag}
-                  </div>
-                  <div class="apr-medida-ctrl">${esc(r.c)}</div>
-                  ${r.comp ? `<div class="apr-medida-comp">📝 ${esc(r.comp)}</div>` : ''}
-                </div>`;
-              }).join('')}
-              </div>`
-            : esc(f.m)); // fallback: texto original se nenhum risco foi selecionado
+          // Coluna MEDIDAS DE CONTROLE: texto da etapa (editado na Etapa 3, ou o padrão da fase).
+          // Os riscos deixaram de substituir o texto — servem de apoio para compor/editar as medidas.
+          const _mkFase = faseKey(id, i);
+          const _medFase = MEDIDAS_EDIT.has(_mkFase) ? MEDIDAS_EDIT.get(_mkFase) : (f.m||'');
+          const colunaMedidas = epiLinha + esc(_medFase);
 
           // Nível médio de risco da fase
           const faseRiscosNivel = riscosFase.length > 0 ? riscosFase : getRiscosFromFaseStr(f.p);
@@ -4130,7 +4188,7 @@ function gerarAPR(){
 function nova(){
   // Novas APRs são persistidas em localStorage — não removê-las ao iniciar nova APR
   SEL.clear(); SEL_L.clear(); SEL_E.clear(); SEL_M.clear(); SEL_ESC.clear(); SEL_EQUIPE.clear(); SEL_RISCOS.clear();
-  customRiscosFase.clear(); editRiscosFase.clear(); riscoPSFase.clear(); SEL_M_QTD.clear(); _nextCId = 1000;
+  customRiscosFase.clear(); editRiscosFase.clear(); riscoPSFase.clear(); SEL_M_QTD.clear(); MEDIDAS_EDIT.clear(); _nextCId = 1000;
 
   // Limpar radio de atividade
   document.querySelectorAll('input[name="atv_sel"]').forEach(r=>r.checked=false);
@@ -4421,6 +4479,7 @@ function logoutElaborador(){
   SEL_RISCOS.clear();
   SEL_EQUIPE.clear();
   customRiscosFase.clear();
+  MEDIDAS_EDIT.clear();
   editRiscosFase.clear();
   riscoPSFase.clear();
 
