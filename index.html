@@ -3597,6 +3597,29 @@ function renderResumo(){
 // ═══════════════════════════════════════════════════
 // GERAR APR
 // ═══════════════════════════════════════════════════
+// Ordena os itens numerados de um texto de medidas em ordem crescente (os números
+// correspondem aos riscos). Preserva texto sem número (preâmbulo) e itens sem numeração.
+function _ordenarMedidas(txt){
+  txt = (txt||'').trim();
+  if(!txt) return txt;
+  const re = /(^|[.;]\s+)(\d{1,2})\s-\s/g;
+  const marks = [];
+  let m;
+  while((m = re.exec(txt))){
+    marks.push({num: parseInt(m[2],10), numAt: m.index + m[1].length});
+    re.lastIndex = m.index + m[0].length;
+  }
+  if(marks.length < 2) return txt; // 0 ou 1 item numerado — nada a ordenar
+  const preamble = txt.slice(0, marks[0].numAt).replace(/[.;\s]+$/,'').trim();
+  const items = marks.map((mk, i)=>{
+    const end = (i+1 < marks.length) ? marks[i+1].numAt : txt.length;
+    return { num: mk.num, ord: i, text: txt.slice(mk.numAt, end).replace(/[.;\s]+$/,'').trim() };
+  });
+  items.sort((a,b)=> a.num - b.num || a.ord - b.ord); // estável, por número
+  const body = items.map(x=>x.text).join('. ') + '.';
+  return preamble ? (preamble + '. ' + body) : body;
+}
+
 function gerarAPR(){
   const numRastreio = gerarNumRastreio();
   const membros=getMembros();
@@ -3674,7 +3697,7 @@ function gerarAPR(){
           // Os riscos deixaram de substituir o texto — servem de apoio para compor/editar as medidas.
           const _mkFase = faseKey(id, i);
           const _medFase = MEDIDAS_EDIT.has(_mkFase) ? MEDIDAS_EDIT.get(_mkFase) : (f.m||'');
-          const colunaMedidas = epiLinha + esc(_medFase);
+          const colunaMedidas = epiLinha + esc(_ordenarMedidas(_medFase));
 
           // Nível médio de risco da fase
           const faseRiscosNivel = riscosFase.length > 0 ? riscosFase : getRiscosFromFaseStr(f.p);
