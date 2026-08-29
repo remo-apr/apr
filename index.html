@@ -4028,13 +4028,7 @@ function gerarAPR(){
     <!-- ATIVIDADES -->
     ${atvHtml}
 
-    <!-- RISCOS -->
-    <div class="apr-riscos">
-      <div class="apr-riscos-title">${riscosParaAPR.length > 0
-        ? `Riscos Selecionados e Medidas de Controle (${riscosParaAPR.length} risco${riscosParaAPR.length!==1?'s':''})`
-        : 'Riscos Identificados e Condições de Controle'}</div>
-      <div class="risco-grid">${riscosHtml}</div>
-    </div>
+    <!-- (Seção "RISCOS SELECIONADOS" removida — os riscos e medidas já aparecem por etapa na tabela principal) -->
 
     <!-- ASSINATURAS DIÁRIAS UNIFICADAS -->
     ${sigUnificadoHtml}
