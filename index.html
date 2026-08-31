@@ -923,6 +923,8 @@ body.dark .resumo-status.pend{background:#2e2410;color:#e6c47a;border-color:#7a5
   .apr-sig-scroll{overflow:visible!important}
   .apr-sig-table th{padding:4px 3px!important;font-size:8px!important;letter-spacing:.4px}
   .apr-sig-table td{height:28px!important;font-size:10px!important;padding:2px 3px!important}
+  .sig-assinar-lbl{visibility:hidden!important}   /* célula não assinada imprime em branco (caneta) */
+  .sig-tap-hint{display:none!important}           /* dica de toque não vai para o papel */
 
   /* ── Observações do Dia ── */
   .apr-obs-dia{padding:7px 12px!important}
@@ -1629,6 +1631,32 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
     <div class="email-modal-footer">
       <button class="btn-email-cancel" onclick="fecharModalEmail()">Cancelar</button>
       <button class="btn-email-send" onclick="enviarEmail()">Enviar E-mail</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE ASSINATURA DIGITAL (Etapa 3) -->
+<div id="sig-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,25,40,.62);z-index:9999;align-items:center;justify-content:center;padding:16px" onclick="fecharAssinatura(event)">
+  <div style="background:#fff;border-radius:12px;max-width:430px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.35);overflow:hidden" onclick="event.stopPropagation()">
+    <div style="background:#1B3E6B;color:#fff;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:.5px;font-size:16px;text-transform:uppercase">&#9997;&#65039; Assinatura Digital</span>
+      <button onclick="fecharAssinatura()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1">&times;</button>
+    </div>
+    <div style="padding:16px 18px">
+      <div id="sig-quem" style="font-size:14px;color:#1B3E6B;margin-bottom:2px"></div>
+      <div id="sig-dia" style="font-size:11px;color:#888;margin-bottom:10px"></div>
+      <div style="border:2px dashed #b8c4d4;border-radius:8px;background:#fbfcfe;position:relative">
+        <canvas id="sig-canvas" width="384" height="150" style="width:100%;height:150px;touch-action:none;display:block;border-radius:8px"></canvas>
+        <div id="sig-hint" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#c2ccd8;font-size:13px;pointer-events:none">Assine aqui com o dedo</div>
+      </div>
+      <div style="font-size:10.5px;color:#999;margin-top:7px;line-height:1.4">Registrada com nome, data e hora &mdash; sai na impress&atilde;o da AR.</div>
+    </div>
+    <div style="padding:12px 18px;background:#f5f2ed;display:flex;gap:10px;justify-content:space-between;align-items:center">
+      <button onclick="limparAssinatura()" style="background:#fff;border:1.5px solid #cbd3dd;color:#33475b;border-radius:7px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:13px">Limpar</button>
+      <div style="display:flex;gap:8px">
+        <button onclick="fecharAssinatura()" style="background:#fff;border:1.5px solid #cbd3dd;color:#7a8698;border-radius:7px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:13px">Cancelar</button>
+        <button onclick="confirmarAssinatura()" style="background:#0b6e34;border:none;color:#fff;border-radius:7px;padding:9px 20px;font-weight:800;cursor:pointer;font-size:13px">&#10003; Confirmar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -3620,6 +3648,55 @@ function _ordenarMedidas(txt){
   return preamble ? (preamble + '. ' + body) : body;
 }
 
+// ═══ ETAPA 3: ASSINATURA DIGITAL NA TELA (tablet) ══════════════════════════════
+// Acesso único do encarregado/supervisor; cada colaborador assina a sua célula do
+// dia da AR no canvas. A imagem é gravada (nome + data/hora) e persiste em localStorage.
+const SIGS_DIG = new Map();                 // `${atvId}|${dataISO}|${nome}` -> {img, ts, por}
+const SIGS_KEY = 'apr_sigs_dig';
+let SIG_PEOPLE = [];                         // registro por renderização (idx -> alvo)
+let _sigCtx=null, _sigInk=false, _sigAlvo=null, _sigLast=null, _sigDrawing=false;
+function sigKey(atvId, dataISO, nome){ return atvId+'|'+dataISO+'|'+nome; }
+function carregarSigs(){ try{ const raw=localStorage.getItem(SIGS_KEY); if(raw){ const o=JSON.parse(raw); Object.keys(o).forEach(k=>SIGS_DIG.set(k,o[k])); } }catch(e){} }
+function salvarSigs(){ try{ const o={}; SIGS_DIG.forEach((v,k)=>{o[k]=v;}); localStorage.setItem(SIGS_KEY, JSON.stringify(o)); }catch(e){} }
+carregarSigs();
+function _sigCellHtml(sig){
+  return '<img src="'+sig.img+'" alt="assinatura" style="max-height:38px;max-width:100%;display:block;margin:0 auto">'
+       + '<div style="font-size:6.5px;color:#8a8a8a;text-align:center;margin-top:1px;line-height:1">'+sig.ts+'</div>';
+}
+function _sigPos(e){ const cv=document.getElementById('sig-canvas'); const r=cv.getBoundingClientRect(); const t=(e.touches&&e.touches[0])?e.touches[0]:e; return {x:(t.clientX-r.left)*(cv.width/r.width), y:(t.clientY-r.top)*(cv.height/r.height)}; }
+function _sigStart(e){ _sigDrawing=true; _sigLast=_sigPos(e); e.preventDefault(); }
+function _sigMove(e){ if(!_sigDrawing||!_sigCtx) return; const p=_sigPos(e); _sigCtx.beginPath(); _sigCtx.moveTo(_sigLast.x,_sigLast.y); _sigCtx.lineTo(p.x,p.y); _sigCtx.stroke(); _sigLast=p; if(!_sigInk){ _sigInk=true; const h=document.getElementById('sig-hint'); if(h) h.style.display='none'; } e.preventDefault(); }
+function _sigEnd(){ _sigDrawing=false; }
+function _sigWire(cv){ if(cv._wired) return; cv.addEventListener('mousedown',_sigStart); cv.addEventListener('mousemove',_sigMove); window.addEventListener('mouseup',_sigEnd); cv.addEventListener('touchstart',_sigStart,{passive:false}); cv.addEventListener('touchmove',_sigMove,{passive:false}); cv.addEventListener('touchend',_sigEnd); cv._wired=true; }
+function abrirAssinatura(idx){
+  const p = SIG_PEOPLE[idx]; if(!p) return;
+  _sigAlvo = p;
+  document.getElementById('sig-quem').innerHTML = '<strong>'+esc(p.nomeExib)+'</strong>';
+  document.getElementById('sig-dia').textContent = 'Assinatura do dia da AR · '+p.diaLabel;
+  document.getElementById('sig-overlay').style.display='flex';
+  const cv=document.getElementById('sig-canvas');
+  const rect=cv.getBoundingClientRect();
+  cv.width = Math.round(rect.width)||384; cv.height = Math.round(rect.height)||150;
+  _sigCtx = cv.getContext('2d'); _sigCtx.clearRect(0,0,cv.width,cv.height);
+  _sigCtx.lineWidth=2.4; _sigCtx.lineCap='round'; _sigCtx.lineJoin='round'; _sigCtx.strokeStyle='#10233a';
+  _sigInk=false; const h=document.getElementById('sig-hint'); if(h) h.style.display='flex';
+  _sigWire(cv);
+}
+function limparAssinatura(){ const cv=document.getElementById('sig-canvas'); if(_sigCtx) _sigCtx.clearRect(0,0,cv.width,cv.height); _sigInk=false; const h=document.getElementById('sig-hint'); if(h) h.style.display='flex'; }
+function fecharAssinatura(e){ if(e && e.target && e.target.id!=='sig-overlay') return; document.getElementById('sig-overlay').style.display='none'; _sigAlvo=null; }
+function confirmarAssinatura(){
+  if(!_sigAlvo) return;
+  if(!_sigInk){ alert('Assine no quadro antes de confirmar.'); return; }
+  const cv=document.getElementById('sig-canvas');
+  const img=cv.toDataURL('image/png');
+  const ts=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  SIGS_DIG.set(sigKey(_sigAlvo.atvId,_sigAlvo.dataISO,_sigAlvo.nome), {img:img, ts:ts, por:_sigAlvo.nome});
+  salvarSigs();
+  const cell=document.getElementById(_sigAlvo.cellId);
+  if(cell){ cell.innerHTML=_sigCellHtml({img:img, ts:ts}); cell.removeAttribute('onclick'); cell.style.cursor='default'; }
+  document.getElementById('sig-overlay').style.display='none'; _sigAlvo=null;
+}
+
 function gerarAPR(){
   const numRastreio = gerarNumRastreio();
   const membros=getMembros();
@@ -3778,16 +3855,36 @@ function gerarAPR(){
              + '</th>';
     }
 
-    // Monta linha de pessoa (9 colunas: nome, cargo, 7 dias p/ assinatura)
-    var makeRow = function(nome, cargo, bgRow){
+    // Registro de assinaturas digitais desta renderização + rótulo do dia da APR
+    SIG_PEOPLE = [];
+    var _aprDiaLabel = '';
+    for(var _z=0; _z<7; _z++){ if(datas[_z].isApr){ _aprDiaLabel = datas[_z].dd + '/' + datas[_z].mm; } }
+    var _atvIdSig = _atvSel ? _atvSel.id : 0;
+
+    // Monta linha de pessoa (9 colunas: nome, cargo, 7 dias). A célula do DIA DA APR
+    // vira assinável digitalmente (tap → canvas) quando há nomeKey (encarregado/equipe).
+    var makeRow = function(nomeExib, cargo, bgRow, nomeKey){
       var cells = '';
       for(var j=0; j<7; j++){
         var d = datas[j];
         var bgC = d.isApr ? 'background:#e6f7ed;' : (d.fimSem ? 'background:#f9f7f4;' : '');
-        cells += '<td style="border:1px solid #ddd;height:42px;' + bgC + '"></td>';
+        if(d.isApr && nomeKey){
+          var idx = SIG_PEOPLE.length;
+          var cellId = 'sigcell-' + idx;
+          SIG_PEOPLE.push({atvId:_atvIdSig, dataISO:dataStr, nome:nomeKey, nomeExib:nomeKey, diaLabel:_aprDiaLabel, cellId:cellId});
+          var sig = SIGS_DIG.get(sigKey(_atvIdSig, dataStr, nomeKey));
+          if(sig){
+            cells += '<td id="' + cellId + '" style="border:1px solid #ddd;height:42px;' + bgC + 'text-align:center;padding:1px 2px">' + _sigCellHtml(sig) + '</td>';
+          } else {
+            cells += '<td id="' + cellId + '" onclick="abrirAssinatura(' + idx + ')" style="border:1px solid #ddd;height:42px;' + bgC + 'text-align:center;cursor:pointer">'
+                   + '<span class="sig-assinar-lbl" style="font-size:9px;color:#0b6e34;font-weight:700;letter-spacing:.3px">&#9997;&#65039; Assinar</span></td>';
+          }
+        } else {
+          cells += '<td style="border:1px solid #ddd;height:42px;' + bgC + '"></td>';
+        }
       }
       return '<tr style="' + bgRow + '">'
-           + '<td style="padding:5px 8px;border:1px solid #ddd;font-size:11px;font-weight:600;word-break:break-word">' + nome + '</td>'
+           + '<td style="padding:5px 8px;border:1px solid #ddd;font-size:11px;font-weight:600;word-break:break-word">' + nomeExib + '</td>'
            + '<td style="padding:5px 8px;border:1px solid #ddd;font-size:10px;color:#555;word-break:break-word">' + cargo + '</td>'
            + cells + '</tr>';
     };
@@ -3816,14 +3913,14 @@ function gerarAPR(){
       rowsHtml += makeSep('Encarregado(s) Responsável(is)', '#007a3d', '#e6f7ed');
       rowsHtml += [...SEL_E].map(function(nome){
         var enc = ENCARREGADOS.find(function(e){ return e.nome===nome; });
-        return makeRow('<strong>' + nome + '</strong>', enc ? enc.funcao : 'Encarregado', 'background:#fff8f3');
+        return makeRow('<strong>' + nome + '</strong>', enc ? enc.funcao : 'Encarregado', 'background:#fff8f3', nome);
       }).join('');
     }
 
     // Equipe de campo
     rowsHtml += makeSep('Equipe de Campo', '#444', '#f5f2ed');
     if(equipe3.length){
-      rowsHtml += equipe3.map(function(c){ return makeRow(c.nome, c.cargo, ''); }).join('');
+      rowsHtml += equipe3.map(function(c){ return makeRow(c.nome, c.cargo, '', c.nome); }).join('');
     } else {
       // 6 linhas em branco para preenchimento manual
       for(var k=0; k<6; k++){ rowsHtml += makeRow('', '', ''); }
@@ -3837,6 +3934,7 @@ function gerarAPR(){
 
     sigUnificadoHtml = '<div class="apr-ass apr-sig-wrap">'
       + '<div class="apr-ass-title">Declaração de Ciência — Assinaturas Diárias da Equipe</div>'
+      + '<div class="sig-tap-hint" style="font-size:10.5px;color:#0b6e34;padding:2px 2px 8px;font-weight:600">&#9997;&#65039; Toque na célula verde do dia para assinar digitalmente na tela do tablet.</div>'
       + '<div class="apr-sig-scroll">'
       + '<table class="apr-sig-table" style="width:100%;border-collapse:collapse;table-layout:fixed">'
       + '<colgroup>'
