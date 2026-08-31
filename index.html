@@ -1221,6 +1221,8 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
   <div class="eyebrow">Etapa 1 de 5</div>
   <div class="h1">Identificação da Obra</div>
   <div class="sub">Preencha os dados da frente de trabalho. Os campos Locais e Encarregados serão atualizados automaticamente após selecionar as atividades.</div>
+  <!-- Lista de APRs aguardando validação (Etapa 4.1b) — validação SOMENTE pela TST -->
+  <div id="pre-pendentes" class="no-print" style="display:none;margin-bottom:16px"></div>
 
   <div class="card">
     <div class="card-title">Dados Gerais</div>
@@ -2455,6 +2457,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Carregar novas APRs persistidas em sessões anteriores
   carregarNovasAPRs();
+
+  // Instâncias de AR + lista de aguardando validação (Etapa 4.1)
+  carregarARs();
+  renderPendentesValidacao();
 
   // Atividades
   renderAtv();
@@ -3812,12 +3818,13 @@ function validarARAtual(){
   inst.validador=cred.nome;
   inst.validadoEm=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   salvarARs();
+  renderPendentesValidacao();
   alert('✅ Validada por '+cred.nome+'. Agora é uma AR aberta — disponível em DURANTE ATIVIDADE.');
   gerarAPR();
 }
 // Navegação entre telas (fora do wizard numérico)
 function _mostrarView(id){ document.querySelectorAll('.step').forEach(s=>s.classList.remove('on')); const el=document.getElementById(id); if(el) el.classList.add('on'); window.scrollTo({top:0,behavior:'smooth'}); }
-function voltarWizard(){ document.querySelectorAll('input[name="etapa_apr"]').forEach(r=>r.checked=(r.id==='ea1')); _mostrarView('step-1'); step=1; }
+function voltarWizard(){ document.querySelectorAll('input[name="etapa_apr"]').forEach(r=>r.checked=(r.id==='ea1')); renderPendentesValidacao(); _mostrarView('step-1'); step=1; }
 function mostrarDurante(){
   carregarARs();
   const abertas = ARS.filter(a=>a.estado==='aberta');
@@ -3856,6 +3863,37 @@ function irPosLista(){
   _mostrarView('step-pos');
 }
 function irPosDaAR(id){ alert('Módulo PÓS-ATIVIDADE em construção (Etapa 4.2). Aqui o responsável responderá as 3 perguntas do dia.'); }
+
+// Lista de APRs aguardando validação (rascunhos) — exibida no PRÉ. Validação SÓ pela TST.
+function renderPendentesValidacao(){
+  const cont=document.getElementById('pre-pendentes'); if(!cont) return;
+  carregarARs();
+  const rascunhos = ARS.filter(a=>a.estado==='rascunho');
+  const cred=getSessionCred();
+  const isTST = !!(cred && cred.aprovador);
+  if(!rascunhos.length){ cont.style.display='none'; cont.innerHTML=''; return; }
+  cont.style.display='block';
+  cont.innerHTML =
+    '<div style="background:#fff8e6;border:1.5px solid #f0c14b;border-radius:10px;padding:14px 16px">'
+    + '<div style="font-weight:800;color:#8a6a00;font-size:14px;margin-bottom:4px">&#128276; '+rascunhos.length+' APR(s) aguardando valida&ccedil;&atilde;o</div>'
+    + '<div style="font-size:11.5px;color:#a07d1a;margin-bottom:8px">'+(isTST?'Voc&ecirc; (TST) pode abrir e validar.':'Somente a equipe t&eacute;cnica (TST) valida. Fa&ccedil;a login como validador para validar.')+'</div>'
+    + rascunhos.map(a=>'<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 0;border-top:1px solid #f0dca8">'
+        + '<div style="font-size:13px;color:#444;min-width:180px;flex:1"><b>'+esc(a.atividadeNome)+'</b><br>'
+        + '<span style="font-size:11.5px;color:#777">Resp.: '+esc(a.responsavel||'—')+' &middot; Elaborada por '+esc(a.elaborador||'—')+' &middot; '+esc(a.data||'—')+'</span></div>'
+        + '<div style="display:flex;gap:6px;align-items:center">'
+        + '<button class="btn-act'+(isTST?' prim':'')+'" onclick="abrirARInstancia(\''+a.id+'\')">'+(isTST?'Abrir e validar':'Abrir')+'</button>'
+        + '<button class="btn-act" title="Descartar" onclick="descartarARInstancia(\''+a.id+'\')" style="padding:6px 10px;color:#a01919">&times;</button>'
+        + '</div></div>').join('')
+    + '</div>';
+}
+function descartarARInstancia(id){
+  const inst=ARS.find(a=>a.id===id); if(!inst) return;
+  if(!confirm('Descartar a APR "'+inst.atividadeNome+'" (resp.: '+(inst.responsavel||'—')+')?\nEsta ação não pode ser desfeita.')) return;
+  ARS = ARS.filter(a=>a.id!==id);
+  salvarARs();
+  if(_arAtual===id) _arAtual=null;
+  renderPendentesValidacao();
+}
 
 function gerarAPR(){
   const numRastreio = gerarNumRastreio();
@@ -4505,6 +4543,7 @@ function gerarAPR(){
 function nova(){
   // Nova elaboração = nova instância de AR (não vinculada a nenhuma AR aberta existente)
   _arAtual = null;
+  setTimeout(renderPendentesValidacao, 0);
   // Novas APRs são persistidas em localStorage — não removê-las ao iniciar nova APR
   SEL.clear(); SEL_L.clear(); SEL_E.clear(); SEL_M.clear(); SEL_ESC.clear(); SEL_EQUIPE.clear(); SEL_RISCOS.clear();
   customRiscosFase.clear(); editRiscosFase.clear(); riscoPSFase.clear(); SEL_M_QTD.clear(); MEDIDAS_EDIT.clear(); _nextCId = 1000;
@@ -4726,6 +4765,7 @@ function loginElaborador(){
   // Salvar sessão (expira ao fechar aba) — tolerante a armazenamento desabilitado
   try{ sessionStorage.setItem(ELAB_SESSION_KEY, JSON.stringify({n:cred.n, nome:cred.nome, cargo:cred.cargo})); }catch(e){}
   aplicarLoginElaborador(cred);
+  renderPendentesValidacao(); // atualiza a lista de pendentes (habilita validar p/ TST)
 }
 
 function aplicarLoginElaborador(cred){
@@ -4817,6 +4857,8 @@ function logoutElaborador(){
   renderAtv();
   aplicarFiltrosEquipe();
 
+  _arAtual = null;
+  renderPendentesValidacao();
   setTimeout(() => document.getElementById('elab-user-input')?.focus(), 50);
   atualizarCompletude();
 }
