@@ -1613,7 +1613,7 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
     </div>
     <div class="email-modal-body">
       <div class="email-field">
-        <label>Para (aprovadores)</label>
+        <label>Para (validadores)</label>
         <div class="email-to-list" id="email-to-list"></div>
       </div>
       <div class="email-field">
@@ -2787,11 +2787,11 @@ function renderAtv(){
     const pendAprov = a._nova && !a._aprovada;
     const novaBadge = a._nova
       ? (pendAprov
-          ? '<span class="nova-badge pend">🔔 AGUARDA APROVAÇÃO</span>'
-          : '<span class="nova-badge aprov">✓ APROVADA</span>')
+          ? '<span class="nova-badge pend">🔔 AGUARDA VALIDAÇÃO</span>'
+          : '<span class="nova-badge aprov">✓ VALIDADA (AR)</span>')
       : '';
     const aprvBtn = pendAprov && isAprovador
-      ? `<button class="btn-aprovar" onclick="aprovarAPR(${a.id},event)">✓ Aprovar esta APR</button>`
+      ? `<button class="btn-aprovar" onclick="aprovarAPR(${a.id},event)">✓ Validar (torna AR)</button>`
       : '';
     const remvBtn = a._nova && isAprovador
       ? `<button class="btn-remover-nova" onclick="removerNovaAPR(${a.id},event)" title="Remover esta APR">✕</button>`
@@ -4117,7 +4117,7 @@ function gerarAPR(){
       <div class="apr-cd-item"><span>Nº de rastreio</span><strong>${numRastreio}</strong></div>
       <div class="apr-cd-item"><span>Elaborado por</span><strong>${elaboradorNome}</strong></div>
       <div class="apr-cd-item"><span>Gerado digitalmente em</span><strong>${geradoEmFmt}</strong></div>
-      <div class="apr-cd-item"><span>Aprovação</span><strong>${_aprovInfo ? _aprovInfo : 'Conforme assinatura da equipe técnica'}</strong></div>
+      <div class="apr-cd-item"><span>Validação</span><strong>${_aprovInfo ? _aprovInfo : 'Aguardando validação da equipe técnica'}</strong></div>
     </div>
 
     ${escopo?`<div class="apr-secao" style="padding:14px 18px;background:#f5f2ed;border-bottom:1px solid var(--remo-line);font-size:13px"><b>Escopo:</b> ${esc(escopo)}</div>`:''}
@@ -4580,17 +4580,17 @@ function aprovarAPR(id, e){
   // Trilha de auditoria: só um aprovador autenticado pode aprovar, com confirmação.
   const cred=getSessionCred();
   if(!cred || !cred.aprovador){
-    alert('Apenas a equipe técnica autorizada (aprovadores) pode aprovar uma APR.\nFaça login como aprovador na Etapa 1.');
+    alert('Apenas a equipe técnica autorizada pode validar uma APR.\nFaça login como validador (Técnico de Segurança) na Etapa 1.');
     return;
   }
-  if(!confirm(`Confirmar aprovação da APR "${atv.nome}"?\n\nAprovador: ${cred.nome}\nEsta ação registra seu nome e a data/hora no documento.`)) return;
+  if(!confirm(`Confirmar validação da APR "${atv.nome}"?\n\nAo validar, a APR passa a ser AR (Análise de Risco), liberada para execução.\nValidado por: ${cred.nome}\nEsta ação registra seu nome e a data/hora no documento.`)) return;
   atv._aprovada=true;
   atv._aprovadoPor = cred.nome;
   atv._aprovadoEm  = new Date().toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   atualizarNovaAPRPersistida(+id); // persistir aprovação (quem/quando) em localStorage
   const selId=SEL.size ? [...SEL][0] : null;
   renderAtv();
-  alert(`✅ APR aprovada por ${cred.nome} em ${atv._aprovadoEm}.`);
+  alert(`✅ APR validada por ${cred.nome} em ${atv._aprovadoEm}. Agora é uma AR liberada para execução.`);
   // Restaurar seleção
   if(selId){
     setTimeout(()=>{
@@ -4677,16 +4677,16 @@ function abrirModalEmailNovaAPR(nomeAtv, equipe){
   const elab  = v('f-elaborador') || 'Não informado';
   const obra  = v('f-obra') || 'SE JAGUARA 345 kV';
 
-  assunto.value = `[NOVA APR — AGUARDA APROVAÇÃO] ${nomeAtv} — ${obra}`;
+  assunto.value = `[NOVA APR — AGUARDA VALIDAÇÃO] ${nomeAtv} — ${obra}`;
   msg.value =
     `Prezados,\n\n` +
-    `Uma nova APR foi criada e aguarda aprovação da equipe técnica.\n\n` +
+    `Uma nova APR foi criada e aguarda validação da equipe técnica.\n\n` +
     `Atividade: ${nomeAtv}\n` +
     `Equipe: ${equipe}\n` +
     `Criado por: ${elab}\n` +
     `Obra: ${obra}\n` +
     `Data: ${data}\n\n` +
-    `Por favor, acesse o sistema APR REMO para revisar e aprovar.\n\n` +
+    `Por favor, acesse o sistema APR REMO para revisar e validar.\n\n` +
     `Atenciosamente,\n${elab}\nREMO ENGENHARIA — SE JAGUARA 345 kV`;
 
   status.className = 'email-status';
@@ -4714,7 +4714,7 @@ function enviarEmail(){
 
   if(APROVADORES_EMAIL.length === 0){
     status.className = 'email-status err';
-    status.textContent = 'Nenhum aprovador com e-mail cadastrado.';
+    status.textContent = 'Nenhum validador com e-mail cadastrado.';
     return;
   }
 
@@ -4967,7 +4967,7 @@ function salvarNovaAPR(){
   // Item 3 — Notificar equipe técnica da nova APR para aprovação
   if(APROVADORES_EMAIL.length > 0){
     setTimeout(()=>{
-      if(confirm(`✉ Nova APR "${nome}" criada!\n\nDeseja notificar a equipe técnica para aprovação?`)){
+      if(confirm(`✉ Nova APR "${nome}" criada!\n\nDeseja notificar a equipe técnica para validação?`)){
         abrirModalEmailNovaAPR(nome, disc === 'Civil,Elétrica,Montagem' ? 'Todas as equipes' : disc);
       }
     }, 250);
