@@ -4107,11 +4107,16 @@ function gerarAPR(){
   const equipe3 = getEquipe();
 
   // ── Tabela unificada: Calendário + Assinaturas Diárias ─────────────────
-  const dataStr = v('f-data'); // YYYY-MM-DD
+  const dataStr = v('f-data'); // YYYY-MM-DD (data planejada da APR)
+  // AR aberta → dia assinável e semana giram em torno de HOJE (multi-dia);
+  // rascunho/elaboração → em torno da data planejada (f-data).
+  const _instGrid = (typeof _instanciaAtual==='function') ? _instanciaAtual() : null;
+  const _ehAbertaGrid = !!(_instGrid && (_instGrid.estado==='aberta' || _instGrid.estado==='finalizada'));
+  const _gridRefStr = _ehAbertaGrid ? _hojeISO() : dataStr;
   let sigUnificadoHtml = '';
-  if(dataStr){
-    const dataApr = new Date(dataStr + 'T12:00:00'); // evitar problema de fuso
-    // Encontrar segunda-feira da semana da data selecionada
+  if(_gridRefStr){
+    const dataApr = new Date(_gridRefStr + 'T12:00:00'); // dia ativo (assinável)
+    // Encontrar segunda-feira da semana do dia ativo
     const diaSemana = dataApr.getDay(); // 0=dom, 1=seg … 6=sab
     const diffSeg = (diaSemana === 0) ? -6 : 1 - diaSemana;
     const seg = new Date(dataApr);
@@ -4127,9 +4132,10 @@ function gerarAPR(){
       dia.setDate(seg.getDate() + i);
       const dd = String(dia.getDate()).padStart(2,'0');
       const mm = String(dia.getMonth()+1).padStart(2,'0');
+      const iso = dia.getFullYear() + '-' + mm + '-' + dd;
       const isApr = dia.toDateString() === dataApr.toDateString();
       const fimSem = i >= 5;
-      datas.push({dd, mm, isApr, fimSem});
+      datas.push({dd, mm, iso, isApr, fimSem});
       const bgTh = isApr
         ? 'background:linear-gradient(90deg,#1B3E6B,#00A651);'
         : (fimSem ? 'background:#5a7fa8;' : 'background:#1B3E6B;');
@@ -4137,33 +4143,33 @@ function gerarAPR(){
              + 'padding:5px 2px;border:1px solid #bbb;color:#fff;' + bgTh + '">'
              + diasSemana[i] + '<br>'
              + '<span style="font-size:8px;font-weight:400;opacity:.9">' + dd + '/' + mm + '</span>'
-             + (isApr ? '<br><span style="font-size:7px;background:rgba(255,255,255,.25);border-radius:2px;padding:0 2px">▶ APR</span>' : '')
+             + (isApr ? '<br><span style="font-size:7px;background:rgba(255,255,255,.25);border-radius:2px;padding:0 2px">▶ ' + (_ehAbertaGrid?'HOJE':'APR') + '</span>' : '')
              + '</th>';
     }
 
-    // Registro de assinaturas digitais desta renderização + rótulo do dia da APR
+    // Registro de assinaturas digitais desta renderização
     SIG_PEOPLE = [];
-    var _aprDiaLabel = '';
-    for(var _z=0; _z<7; _z++){ if(datas[_z].isApr){ _aprDiaLabel = datas[_z].dd + '/' + datas[_z].mm; } }
     var _atvIdSig = (typeof _arAtual!=='undefined' && _arAtual) ? _arAtual : ('atv'+(_atvSel ? _atvSel.id : 0));
 
-    // Monta linha de pessoa (9 colunas: nome, cargo, 7 dias). A célula do DIA DA APR
-    // vira assinável digitalmente (tap → canvas) quando há nomeKey (encarregado/equipe).
+    // Monta linha de pessoa (9 colunas: nome, cargo, 7 dias). Cada dia exibe a assinatura
+    // já gravada; o DIA ATIVO (hoje, p/ AR aberta) fica assinável (tap → canvas).
     var makeRow = function(nomeExib, cargo, bgRow, nomeKey){
       var cells = '';
       for(var j=0; j<7; j++){
         var d = datas[j];
         var bgC = d.isApr ? 'background:#e6f7ed;' : (d.fimSem ? 'background:#f9f7f4;' : '');
-        if(d.isApr && nomeKey){
-          var idx = SIG_PEOPLE.length;
-          var cellId = 'sigcell-' + idx;
-          SIG_PEOPLE.push({atvId:_atvIdSig, dataISO:dataStr, nome:nomeKey, nomeExib:nomeKey, diaLabel:_aprDiaLabel, cellId:cellId});
-          var sig = SIGS_DIG.get(sigKey(_atvIdSig, dataStr, nomeKey));
+        if(nomeKey){
+          var sig = SIGS_DIG.get(sigKey(_atvIdSig, d.iso, nomeKey));
           if(sig){
-            cells += '<td id="' + cellId + '" style="border:1px solid #ddd;height:42px;' + bgC + 'text-align:center;padding:1px 2px">' + _sigCellHtml(sig) + '</td>';
-          } else {
+            cells += '<td style="border:1px solid #ddd;height:42px;' + bgC + 'text-align:center;padding:1px 2px">' + _sigCellHtml(sig) + '</td>';
+          } else if(d.isApr){
+            var idx = SIG_PEOPLE.length;
+            var cellId = 'sigcell-' + idx;
+            SIG_PEOPLE.push({atvId:_atvIdSig, dataISO:d.iso, nome:nomeKey, nomeExib:nomeKey, diaLabel:d.dd + '/' + d.mm, cellId:cellId});
             cells += '<td id="' + cellId + '" onclick="abrirAssinatura(' + idx + ')" style="border:1px solid #ddd;height:42px;' + bgC + 'text-align:center;cursor:pointer">'
                    + '<span class="sig-assinar-lbl" style="font-size:9px;color:#0b6e34;font-weight:700;letter-spacing:.3px">&#9997;&#65039; Assinar</span></td>';
+          } else {
+            cells += '<td style="border:1px solid #ddd;height:42px;' + bgC + '"></td>';
           }
         } else {
           cells += '<td style="border:1px solid #ddd;height:42px;' + bgC + '"></td>';
@@ -4471,6 +4477,30 @@ function gerarAPR(){
     ? '<div style="margin-top:9px;display:inline-block;padding:3px 13px;border-radius:4px;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:13px;letter-spacing:1px;background:#e6f7ed;color:#0b6e34;border:1.5px solid #0b6e34">&#10003; AR VALIDADA &mdash; LIBERADA PARA EXECU&Ccedil;&Atilde;O</div>'
     : '<div style="margin-top:9px;display:inline-block;padding:3px 13px;border-radius:4px;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:13px;letter-spacing:1px;background:#fff3cd;color:#7a5c00;border:1.5px solid #b8860b">&#9679; APR EM ELABORA&Ccedil;&Atilde;O &mdash; AGUARDANDO VALIDA&Ccedil;&Atilde;O</div>';
 
+  // ── Registros de Encerramento (Pós-Atividade) por dia — Etapa 4.3 ──
+  let posLogHtml = '';
+  if(_instDoc && _instDoc.dias){
+    const _diasPos = Object.keys(_instDoc.dias).filter(d=>_instDoc.dias[d] && _instDoc.dias[d].pos).sort();
+    if(_diasPos.length){
+      const _linha=(rot,val)=> val ? '<div style="margin-top:3px"><b>'+rot+':</b> '+esc(val)+'</div>' : '';
+      posLogHtml = '<div class="apr-ass apr-sig-wrap" style="page-break-inside:avoid">'
+        + '<div class="apr-ass-title">Registros de Encerramento &mdash; P&oacute;s-Atividade</div>'
+        + _diasPos.map(function(d){
+            const p=_instDoc.dias[d].pos;
+            const diaBR=d.split('-').reverse().join('/');
+            return '<div style="border:1px solid var(--remo-line);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12px;color:#222;background:#fbfbfb">'
+              + '<div style="font-weight:800;color:var(--remo-navy);font-size:12.5px;margin-bottom:4px">Dia '+diaBR+'</div>'
+              + '<div><b>1. Conforme o planejado?</b> '+esc(p.q1||'—')+'</div>'+ (p.q1==='Não'?_linha('Descrição', p.q1txt):'')
+              + '<div style="margin-top:3px"><b>2. Incidente / acidente / desvio?</b> '+esc(p.q2||'—')+'</div>'+ (p.q2==='Sim'?_linha('Relato', p.q2txt):'')
+              + (p.engenheiro?('<div style="margin-top:4px;background:#eef4fb;border:1px solid #cfe0f2;border-radius:6px;padding:6px 8px"><b>Engenheiro Respons&aacute;vel pela Obra:</b> '+esc(p.engenheiro)+'</div>'):'')
+              + _linha('3. Informa&ccedil;&atilde;o adicional', p.q3txt)
+              + '<div style="margin-top:5px;font-size:10.5px;color:#888">Respondido por '+esc(p.respondidoPor||'—')+(p.ts?' &middot; '+esc(p.ts):'')+'</div>'
+              + '</div>';
+          }).join('')
+        + '</div>';
+    }
+  }
+
   document.getElementById('apr-out').innerHTML=`
     <!-- CABEÇALHO -->
     <div class="apr-head">
@@ -4525,6 +4555,9 @@ function gerarAPR(){
 
     <!-- ASSINATURAS DIÁRIAS UNIFICADAS -->
     ${sigUnificadoHtml}
+
+    <!-- REGISTROS DE ENCERRAMENTO (PÓS-ATIVIDADE) -->
+    ${posLogHtml}
 
     <!-- BARRA DE RASTREIO + QR CODE -->
     <div class="apr-rastreio-bar" style="display:flex;align-items:center;justify-content:space-between;gap:16px;
