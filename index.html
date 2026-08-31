@@ -1284,27 +1284,27 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
       <label>Etapa da APR <span class="req">*</span></label>
       <div class="etapa-apr-row">
         <div class="ea-opt">
-          <input type="radio" name="etapa_apr" id="ea1" value="Pré Atividade">
+          <input type="radio" name="etapa_apr" id="ea1" value="Pré Atividade" checked>
           <label for="ea1">
             <span class="ea-icon">📋</span>
             <span class="ea-label">Pré Atividade</span>
-            <span class="ea-desc">Antes do início dos serviços</span>
+            <span class="ea-desc">Nova APR / elaboração</span>
           </label>
         </div>
         <div class="ea-opt">
           <input type="radio" name="etapa_apr" id="ea2" value="Durante Atividade">
-          <label for="ea2">
+          <label for="ea2" onclick="event.preventDefault(); mostrarDurante();">
             <span class="ea-icon">⚙️</span>
             <span class="ea-label">Durante Atividade</span>
-            <span class="ea-desc">Em execução / serviços em andamento</span>
+            <span class="ea-desc">Ver ARs abertas ▸</span>
           </label>
         </div>
         <div class="ea-opt">
           <input type="radio" name="etapa_apr" id="ea3" value="Pós Atividade">
-          <label for="ea3">
+          <label for="ea3" onclick="event.preventDefault(); irPosLista();">
             <span class="ea-icon">✅</span>
             <span class="ea-label">Pós Atividade</span>
-            <span class="ea-desc">Encerramento e verificação final</span>
+            <span class="ea-desc">Encerrar o dia ▸</span>
           </label>
         </div>
       </div>
@@ -1601,7 +1601,7 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
         Enviar por E-mail
       </button>
-      <button class="btn-gen" onclick="gerarAPR()">&#10003; Gerar APR</button>
+      <button class="btn-gen" onclick="gerarAPRePersistir()">&#10003; Gerar APR</button>
     </div>
   </div>
 </div>
@@ -1723,6 +1723,8 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
   <div class="sub no-print">Imprima ou exporte como PDF (Ctrl+P → Salvar como PDF).</div>
   <div class="out-actions">
     <button class="btn-act prim" onclick="imprimirAPR()">🖨 Imprimir / PDF</button>
+    <button class="btn-act" id="btn-validar-ar" onclick="validarARAtual()"
+      style="display:none;background:var(--remo-green);border-color:var(--remo-green);color:#fff">✓ Validar (torna AR)</button>
     <button class="btn-act" onclick="nova()">↩ Nova APR</button>
     <button class="btn-act" id="btn-exportar-novas" onclick="exportarNovasAPRs()"
       style="display:none;background:var(--remo-green);border-color:var(--remo-green);color:#fff">
@@ -1731,6 +1733,24 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
     <span class="sync-badge" id="sync-status" style="display:none"></span>
   </div>
   <div class="apr" id="apr-out"></div>
+</div>
+
+<!-- ══════════ DURANTE ATIVIDADE — ARs abertas (Etapa 4.1) ══════════ -->
+<div class="step" id="step-durante">
+  <div class="out-actions no-print"><button class="btn-act" onclick="voltarWizard()">↩ Voltar ao início</button></div>
+  <div class="eyebrow no-print">Durante Atividade</div>
+  <div class="h1 no-print">ARs em Aberto</div>
+  <div class="sub no-print">Análises de Risco validadas e em ciclo diário (não finalizadas). Abra para coletar as assinaturas do dia ou imprimir.</div>
+  <div id="durante-list"></div>
+</div>
+
+<!-- ══════════ PÓS ATIVIDADE — encerramento do dia (Etapa 4.1 stub → 4.2) ══════════ -->
+<div class="step" id="step-pos">
+  <div class="out-actions no-print"><button class="btn-act" onclick="voltarWizard()">↩ Voltar ao início</button></div>
+  <div class="eyebrow no-print">Pós Atividade</div>
+  <div class="h1 no-print">Encerramento do Dia</div>
+  <div class="sub no-print">Selecione uma AR aberta para responder as perguntas de encerramento do dia.</div>
+  <div id="pos-list"></div>
 </div>
 
 </div><!-- /wrap -->
@@ -3697,6 +3717,146 @@ function confirmarAssinatura(){
   document.getElementById('sig-overlay').style.display='none'; _sigAlvo=null;
 }
 
+// ═══ ETAPA 4.1: INSTÂNCIAS DE AR + CICLO DE VIDA (PRÉ → DURANTE → PÓS) ═════════════
+// Cada AR gerada é uma INSTÂNCIA persistida (snapshot do formulário + estado).
+// Identidade = atividade + responsável (encarregado/supervisor). Estados:
+// 'rascunho' (não validada) → 'aberta' (AR, ciclo diário) → 'finalizada' (encerrada).
+const ARS_KEY = 'apr_instancias';
+let ARS = [];
+let _arAtual = null;   // id da instância carregada (null = elaboração de uma nova)
+function carregarARs(){ try{ const r=JSON.parse(localStorage.getItem(ARS_KEY)||'[]'); ARS = Array.isArray(r)?r:[]; }catch(e){ ARS=[]; } }
+function salvarARs(){ try{ localStorage.setItem(ARS_KEY, JSON.stringify(ARS)); }catch(e){} }
+carregarARs();
+function _novoIdAR(){ return 'AR-' + Date.now().toString(36).toUpperCase() + '-' + Math.floor(Math.random()*46656).toString(36).toUpperCase(); }
+function _instanciaAtual(){ return _arAtual ? ARS.find(a=>a.id===_arAtual) : null; }
+
+function snapshotEstadoAR(){
+  const gv = id => { const el=document.getElementById(id); return el ? el.value : ''; };
+  const rc = name => { const el=document.querySelector('input[name="'+name+'"]:checked'); return el ? el.value : ''; };
+  return {
+    SEL:[...SEL], SEL_L:[...SEL_L], SEL_E:[...SEL_E], SEL_M:[...SEL_M], SEL_F:[...SEL_F], SEL_ESC:[...SEL_ESC],
+    SEL_EQUIPE:[...SEL_EQUIPE], SEL_M_QTD:[...SEL_M_QTD.entries()],
+    SEL_RISCOS:[...SEL_RISCOS.entries()].map(([k,m])=>[k,[...m.entries()]]),
+    editRiscosFase:[...editRiscosFase.entries()].map(([k,m])=>[k,[...m.entries()]]),
+    customRiscosFase:[...customRiscosFase.entries()].map(([k,v])=>[k,v]),
+    riscoPSFase:[...riscoPSFase.entries()],
+    MEDIDAS_EDIT:[...MEDIDAS_EDIT.entries()],
+    form:{ data:gv('f-data'), elaborador:gv('f-elaborador'), pt:gv('f-pt'), obs:gv('f-obs'), obra:gv('f-obra'),
+           etapa_apr:rc('etapa_apr'), clima:rc('clima'),
+           maq:!!(document.getElementById('maq-sim')||{}).checked, ferr:!!(document.getElementById('ferr-sim')||{}).checked }
+  };
+}
+function restaurarEstadoAR(snap){
+  if(!snap) return;
+  SEL.clear();SEL_L.clear();SEL_E.clear();SEL_M.clear();SEL_F.clear();SEL_ESC.clear();SEL_EQUIPE.clear();
+  SEL_M_QTD.clear();SEL_RISCOS.clear();editRiscosFase.clear();customRiscosFase.clear();riscoPSFase.clear();MEDIDAS_EDIT.clear();
+  (snap.SEL||[]).forEach(x=>SEL.add(x));
+  (snap.SEL_L||[]).forEach(x=>SEL_L.add(x));
+  (snap.SEL_E||[]).forEach(x=>SEL_E.add(x));
+  (snap.SEL_M||[]).forEach(x=>SEL_M.add(x));
+  (snap.SEL_F||[]).forEach(x=>SEL_F.add(x));
+  (snap.SEL_ESC||[]).forEach(x=>SEL_ESC.add(x));
+  (snap.SEL_EQUIPE||[]).forEach(x=>SEL_EQUIPE.add(x));
+  (snap.SEL_M_QTD||[]).forEach(([k,vv])=>SEL_M_QTD.set(k,vv));
+  (snap.SEL_RISCOS||[]).forEach(([k,arr])=>SEL_RISCOS.set(k,new Map(arr)));
+  (snap.editRiscosFase||[]).forEach(([k,arr])=>editRiscosFase.set(k,new Map(arr)));
+  (snap.customRiscosFase||[]).forEach(([k,vv])=>customRiscosFase.set(k,vv));
+  (snap.riscoPSFase||[]).forEach(([k,vv])=>riscoPSFase.set(k,vv));
+  (snap.MEDIDAS_EDIT||[]).forEach(([k,vv])=>MEDIDAS_EDIT.set(k,vv));
+  const f=snap.form||{};
+  const sv=(id,val)=>{ const el=document.getElementById(id); if(el) el.value=val||''; };
+  sv('f-data',f.data);sv('f-elaborador',f.elaborador);sv('f-pt',f.pt);sv('f-obs',f.obs);sv('f-obra',f.obra);
+  document.querySelectorAll('input[name="etapa_apr"]').forEach(r=>r.checked=(r.value===f.etapa_apr));
+  document.querySelectorAll('input[name="clima"]').forEach(r=>r.checked=(r.value===f.clima));
+  const ms=document.getElementById('maq-sim'),mn=document.getElementById('maq-nao'); if(ms) ms.checked=!!f.maq; if(mn) mn.checked=!f.maq;
+  const fs=document.getElementById('ferr-sim'),fn=document.getElementById('ferr-nao'); if(fs) fs.checked=!!f.ferr; if(fn) fn.checked=!f.ferr;
+}
+function _responsavelAtual(){ return [...SEL_E][0] || (document.getElementById('f-elaborador')||{}).value || '—'; }
+
+// Cria/atualiza a instância (rascunho) a partir do estado atual — chamado pelo botão "Gerar APR".
+function upsertARInstancia(){
+  const atvId = [...SEL][0];
+  if(atvId==null) return null;
+  const atv = ATIVIDADES.find(a=>a.id===atvId);
+  const snap = snapshotEstadoAR();
+  let inst = _instanciaAtual();
+  if(!inst){ inst = { id:_novoIdAR(), estado:'rascunho', criadoEm:new Date().toISOString(), dias:{} }; ARS.push(inst); _arAtual = inst.id; }
+  inst.atividadeId = atvId;
+  inst.atividadeNome = atv ? atv.nome : ('APR-'+atvId);
+  inst.responsavel = _responsavelAtual();
+  inst.elaborador = snap.form.elaborador;
+  inst.data = snap.form.data;
+  inst.snap = snap;
+  inst.atualizadoEm = new Date().toISOString();
+  salvarARs();
+  return inst;
+}
+// Botão "Gerar APR": renderiza e persiste a instância (só rebaixa a rascunho se ainda não validada)
+function gerarAPRePersistir(){
+  gerarAPR();
+  const inst = _instanciaAtual();
+  if(inst && (inst.estado==='aberta'||inst.estado==='finalizada')){ return; } // AR já validada: não sobrescrever
+  upsertARInstancia();
+  gerarAPR(); // re-render para refletir estado da instância (código/nome)
+}
+// Validação (TST) da AR atualmente exibida → vira AR aberta
+function validarARAtual(){
+  const cred=getSessionCred();
+  if(!cred || !cred.aprovador){ alert('Apenas a equipe técnica autorizada pode validar.\nFaça login como validador (Técnico de Segurança) na Etapa 1.'); return; }
+  let inst = _instanciaAtual();
+  if(!inst){ inst = upsertARInstancia(); }
+  if(!inst){ alert('Gere a APR antes de validar.'); return; }
+  if(inst.estado!=='rascunho'){ alert('Esta AR já está validada.'); return; }
+  if(!confirm('Validar a APR "'+inst.atividadeNome+'" (resp.: '+inst.responsavel+')?\n\nAo validar, passa a ser AR aberta, liberada para o ciclo diário (DURANTE).\nValidado por: '+cred.nome)) return;
+  inst.estado='aberta';
+  inst.validador=cred.nome;
+  inst.validadoEm=new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  salvarARs();
+  alert('✅ Validada por '+cred.nome+'. Agora é uma AR aberta — disponível em DURANTE ATIVIDADE.');
+  gerarAPR();
+}
+// Navegação entre telas (fora do wizard numérico)
+function _mostrarView(id){ document.querySelectorAll('.step').forEach(s=>s.classList.remove('on')); const el=document.getElementById(id); if(el) el.classList.add('on'); window.scrollTo({top:0,behavior:'smooth'}); }
+function voltarWizard(){ document.querySelectorAll('input[name="etapa_apr"]').forEach(r=>r.checked=(r.id==='ea1')); _mostrarView('step-1'); step=1; }
+function mostrarDurante(){
+  carregarARs();
+  const abertas = ARS.filter(a=>a.estado==='aberta');
+  const cont=document.getElementById('durante-list');
+  cont.innerHTML = abertas.length
+    ? abertas.map(a=>'<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">'
+        + '<div><div style="font-weight:800;color:var(--remo-navy);font-size:15px">'+esc(a.atividadeNome)+'</div>'
+        + '<div style="font-size:12px;color:#666;margin-top:3px">Respons&aacute;vel: <b>'+esc(a.responsavel||'—')+'</b> &middot; Criada: '+esc(a.data||'—')+' &middot; Validada por '+esc(a.validador||'—')+'</div></div>'
+        + '<div style="display:flex;gap:8px"><button class="btn-act prim" onclick="abrirARInstancia(\''+a.id+'\')">Abrir</button>'
+        + '<button class="btn-act" onclick="irPosDaAR(\''+a.id+'\')">P&Oacute;S</button></div></div>').join('')
+    : '<div style="padding:24px;color:#888;text-align:center">Nenhuma AR aberta. Crie e valide uma APR no <b>PR&Eacute; ATIVIDADE</b>.</div>';
+  _mostrarView('step-durante');
+}
+function abrirARInstancia(id){
+  const inst=ARS.find(a=>a.id===id); if(!inst) return;
+  _arAtual=inst.id;
+  restaurarEstadoAR(inst.snap);
+  // etapa exibida conforme o estado da AR
+  const etapaVal = inst.estado==='finalizada' ? 'Pós Atividade' : (inst.estado==='aberta' ? 'Durante Atividade' : 'Pré Atividade');
+  document.querySelectorAll('input[name="etapa_apr"]').forEach(r=>r.checked=(r.value===etapaVal));
+  gerarAPR();
+  _mostrarView('step-out');
+}
+// PÓS (stub 4.1 — módulo completo na 4.2)
+function irPosLista(){
+  carregarARs();
+  const abertas = ARS.filter(a=>a.estado==='aberta');
+  const cont=document.getElementById('pos-list');
+  cont.innerHTML = (abertas.length
+    ? abertas.map(a=>'<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">'
+        + '<div><div style="font-weight:800;color:var(--remo-navy);font-size:15px">'+esc(a.atividadeNome)+'</div>'
+        + '<div style="font-size:12px;color:#666;margin-top:3px">Respons&aacute;vel: <b>'+esc(a.responsavel||'—')+'</b></div></div>'
+        + '<button class="btn-act" onclick="irPosDaAR(\''+a.id+'\')">Encerrar dia</button></div>').join('')
+    : '<div style="padding:24px;color:#888;text-align:center">Nenhuma AR aberta para encerrar.</div>')
+    + '<div style="padding:14px;color:#8a6a00;background:#fff3cd;border-radius:8px;margin-top:8px;font-size:13px">🚧 Módulo PÓS (3 perguntas + campo do engenheiro) será ativado na próxima etapa (4.2).</div>';
+  _mostrarView('step-pos');
+}
+function irPosDaAR(id){ alert('Módulo PÓS-ATIVIDADE em construção (Etapa 4.2). Aqui o responsável responderá as 3 perguntas do dia.'); }
+
 function gerarAPR(){
   const numRastreio = gerarNumRastreio();
   const membros=getMembros();
@@ -3859,7 +4019,7 @@ function gerarAPR(){
     SIG_PEOPLE = [];
     var _aprDiaLabel = '';
     for(var _z=0; _z<7; _z++){ if(datas[_z].isApr){ _aprDiaLabel = datas[_z].dd + '/' + datas[_z].mm; } }
-    var _atvIdSig = _atvSel ? _atvSel.id : 0;
+    var _atvIdSig = (typeof _arAtual!=='undefined' && _arAtual) ? _arAtual : ('atv'+(_atvSel ? _atvSel.id : 0));
 
     // Monta linha de pessoa (9 colunas: nome, cargo, 7 dias). A célula do DIA DA APR
     // vira assinável digitalmente (tap → canvas) quando há nomeKey (encarregado/equipe).
@@ -4168,15 +4328,18 @@ function gerarAPR(){
   const geradoEmFmt = _agora.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const _dataCod = (v('f-data')||'').replace(/-/g,'') || 'AAAAMMDD';
   const _atvCod  = _atvSel ? String(_atvSel.id).padStart(2,'0') : '00';
-  const codigoDoc = `${(_atvSel && _atvSel._aprovada) ? 'AR' : 'APR'}-SEJAG-345-${_atvCod}-${_dataCod}-REV${MODELO_REVISAO}`;
+  // ── REDESIGN: APR (rascunho) vira AR ao ser validada. O status vem da INSTÂNCIA de AR
+  //    atual (identidade por responsável); fallback à flag da atividade p/ compatibilidade. ──
+  const _instDoc = (typeof _instanciaAtual==='function') ? _instanciaAtual() : null;
+  const _isAR = _instDoc ? (_instDoc.estado==='aberta' || _instDoc.estado==='finalizada') : !!(_atvSel && _atvSel._aprovada);
+  const codigoDoc = `${_isAR ? 'AR' : 'APR'}-SEJAG-345-${_atvCod}-${_dataCod}-REV${MODELO_REVISAO}`;
   const elaboradorNome = esc(v('f-elaborador')) || '—';
-  // Carimbo de aprovação: SOMENTE se houver aprovação digital real (nunca fabricar).
-  const _aprovInfo = (_atvSel && _atvSel._aprovada && _atvSel._aprovadoPor)
-    ? esc(_atvSel._aprovadoPor) + (_atvSel._aprovadoEm ? ' · ' + esc(_atvSel._aprovadoEm) : '')
-    : null;
-  // ── REDESIGN Etapa 1: o documento nasce APR (rascunho, em elaboração) e, ao ser
-  //    validado pela equipe técnica (TST), passa a se chamar AR (liberada p/ execução). ──
-  const _isAR = !!(_atvSel && _atvSel._aprovada);
+  // Carimbo de validação: SOMENTE se houver validação digital real (nunca fabricar).
+  const _aprovInfo = (_instDoc && _instDoc.validador)
+    ? esc(_instDoc.validador) + (_instDoc.validadoEm ? ' · ' + esc(_instDoc.validadoEm) : '')
+    : ((_atvSel && _atvSel._aprovada && _atvSel._aprovadoPor)
+        ? esc(_atvSel._aprovadoPor) + (_atvSel._aprovadoEm ? ' · ' + esc(_atvSel._aprovadoEm) : '')
+        : null);
   const _tipoDocNome = _isAR ? 'Análise de Risco – AR' : 'Análise Preliminar de Risco – APR';
   const _statusBadge = _isAR
     ? '<div style="margin-top:9px;display:inline-block;padding:3px 13px;border-radius:4px;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:13px;letter-spacing:1px;background:#e6f7ed;color:#0b6e34;border:1.5px solid #0b6e34">&#10003; AR VALIDADA &mdash; LIBERADA PARA EXECU&Ccedil;&Atilde;O</div>'
@@ -4271,6 +4434,14 @@ function gerarAPR(){
   const btnExp = document.getElementById('btn-exportar-novas');
   if(btnExp) btnExp.style.display = ATIVIDADES.some(a=>a._nova) ? 'inline-flex' : 'none';
 
+  // Botão "Validar (torna AR)": visível ao validador (TST) enquanto a AR for rascunho
+  const btnVal = document.getElementById('btn-validar-ar');
+  if(btnVal){
+    const _credV = getSessionCred();
+    const _instV = _instanciaAtual();
+    btnVal.style.display = (_credV && _credV.aprovador && SEL.size>0 && (!_instV || _instV.estado==='rascunho')) ? 'inline-flex' : 'none';
+  }
+
   // Item 8 – Salvar no histórico local
   salvarHistoricoLocal({
     num: numRastreio,
@@ -4332,14 +4503,16 @@ function gerarAPR(){
 }
 
 function nova(){
+  // Nova elaboração = nova instância de AR (não vinculada a nenhuma AR aberta existente)
+  _arAtual = null;
   // Novas APRs são persistidas em localStorage — não removê-las ao iniciar nova APR
   SEL.clear(); SEL_L.clear(); SEL_E.clear(); SEL_M.clear(); SEL_ESC.clear(); SEL_EQUIPE.clear(); SEL_RISCOS.clear();
   customRiscosFase.clear(); editRiscosFase.clear(); riscoPSFase.clear(); SEL_M_QTD.clear(); MEDIDAS_EDIT.clear(); _nextCId = 1000;
 
   // Limpar radio de atividade
   document.querySelectorAll('input[name="atv_sel"]').forEach(r=>r.checked=false);
-  // Limpar Etapa da APR
-  document.querySelectorAll('input[name="etapa_apr"]').forEach(r=>r.checked=false);
+  // Etapa da APR volta ao padrão PRÉ (nova elaboração)
+  document.querySelectorAll('input[name="etapa_apr"]').forEach(r=>r.checked=(r.id==='ea1'));
   // Limpar clima
   document.querySelectorAll('input[name="clima"]').forEach(r=>r.checked=false);
   document.getElementById('clima-alert').classList.remove('show');
