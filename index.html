@@ -4070,12 +4070,19 @@ function gerarAPR(){
   const geradoEmFmt = _agora.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   const _dataCod = (v('f-data')||'').replace(/-/g,'') || 'AAAAMMDD';
   const _atvCod  = _atvSel ? String(_atvSel.id).padStart(2,'0') : '00';
-  const codigoDoc = `APR-SEJAG-345-${_atvCod}-${_dataCod}-REV${MODELO_REVISAO}`;
+  const codigoDoc = `${(_atvSel && _atvSel._aprovada) ? 'AR' : 'APR'}-SEJAG-345-${_atvCod}-${_dataCod}-REV${MODELO_REVISAO}`;
   const elaboradorNome = esc(v('f-elaborador')) || '—';
   // Carimbo de aprovação: SOMENTE se houver aprovação digital real (nunca fabricar).
   const _aprovInfo = (_atvSel && _atvSel._aprovada && _atvSel._aprovadoPor)
     ? esc(_atvSel._aprovadoPor) + (_atvSel._aprovadoEm ? ' · ' + esc(_atvSel._aprovadoEm) : '')
     : null;
+  // ── REDESIGN Etapa 1: o documento nasce APR (rascunho, em elaboração) e, ao ser
+  //    validado pela equipe técnica (TST), passa a se chamar AR (liberada p/ execução). ──
+  const _isAR = !!(_atvSel && _atvSel._aprovada);
+  const _tipoDocNome = _isAR ? 'Análise de Risco – AR' : 'Análise Preliminar de Risco – APR';
+  const _statusBadge = _isAR
+    ? '<div style="margin-top:9px;display:inline-block;padding:3px 13px;border-radius:4px;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:13px;letter-spacing:1px;background:#e6f7ed;color:#0b6e34;border:1.5px solid #0b6e34">&#10003; AR VALIDADA &mdash; LIBERADA PARA EXECU&Ccedil;&Atilde;O</div>'
+    : '<div style="margin-top:9px;display:inline-block;padding:3px 13px;border-radius:4px;font-family:\'Barlow Condensed\',sans-serif;font-weight:900;font-size:13px;letter-spacing:1px;background:#fff3cd;color:#7a5c00;border:1.5px solid #b8860b">&#9679; APR EM ELABORA&Ccedil;&Atilde;O &mdash; AGUARDANDO VALIDA&Ccedil;&Atilde;O</div>';
 
   document.getElementById('apr-out').innerHTML=`
     <!-- CABEÇALHO -->
@@ -4083,8 +4090,9 @@ function gerarAPR(){
       <div class="apr-head-stripe"></div>
       <div class="apr-head-body">
         <div class="apr-head-t"><em>REMO</em> ENGENHARIA</div>
-        <div class="apr-head-t" style="font-size:18px;opacity:.85;margin-top:2px">Análise Preliminar de Risco – APR</div>
+        <div class="apr-head-t" style="font-size:18px;opacity:.85;margin-top:2px">${_tipoDocNome}</div>
         <div class="apr-head-s" style="margin-top:6px">SE JAGUARA 345 kV · ${new Date(v('f-data')+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long",year:"numeric"})}</div>
+        ${_statusBadge}
       </div>
     </div>
 
@@ -4153,7 +4161,7 @@ function gerarAPR(){
              crossorigin="anonymous"
              style="display:block"
              onerror="this.parentElement.innerHTML='<div style=\\'font-family:monospace;font-size:7px;color:#1B3E6B;padding:4px;text-align:center;line-height:1.6;width:100px\\'><strong>RASTREIO</strong><br>${numRastreio.replace(/-/g,'-&#8203;')}</div>'">
-        <div style="font-size:7px;color:#1B3E6B;font-weight:700;letter-spacing:.5px;margin-top:3px;text-transform:uppercase">Verificar APR</div>
+        <div style="font-size:7px;color:#1B3E6B;font-weight:700;letter-spacing:.5px;margin-top:3px;text-transform:uppercase">Verificar ${_isAR ? 'AR' : 'APR'}</div>
       </div>
     </div>
     <div class="apr-rodape">⚠ Regras de Ouro: Chuva com raios → PARALISAR IMEDIATAMENTE &nbsp;|&nbsp; APR obrigatória antes de iniciar &nbsp;|&nbsp; EPI básico obrigatório em todas as frentes &nbsp;|&nbsp; <span style="opacity:.6">APR Sistema ${APP_VERSAO}</span></div>
