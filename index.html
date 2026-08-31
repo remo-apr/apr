@@ -3862,7 +3862,95 @@ function irPosLista(){
     + '<div style="padding:14px;color:#8a6a00;background:#fff3cd;border-radius:8px;margin-top:8px;font-size:13px">🚧 Módulo PÓS (3 perguntas + campo do engenheiro) será ativado na próxima etapa (4.2).</div>';
   _mostrarView('step-pos');
 }
-function irPosDaAR(id){ alert('Módulo PÓS-ATIVIDADE em construção (Etapa 4.2). Aqui o responsável responderá as 3 perguntas do dia.'); }
+// ── Módulo PÓS-ATIVIDADE (Etapa 4.2): 3 perguntas do dia + campo opcional do engenheiro ──
+function _hojeISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _posRevela(){
+  const q1=document.querySelector('input[name="pos-q1"]:checked');
+  const q1t=document.getElementById('pos-q1txt'); if(q1t) q1t.style.display=(q1&&q1.value==='Não')?'block':'none';
+  const q2=document.querySelector('input[name="pos-q2"]:checked');
+  const sim2=!!(q2&&q2.value==='Sim');
+  const q2t=document.getElementById('pos-q2txt'); if(q2t) q2t.style.display=sim2?'block':'none';
+  const eng=document.getElementById('pos-eng-wrap'); if(eng) eng.style.display=sim2?'block':'none';
+}
+function irPosDaAR(id){
+  const inst=ARS.find(a=>a.id===id); if(!inst){ irPosLista(); return; }
+  const hoje=_hojeISO();
+  const rec=(inst.dias && inst.dias[hoje] && inst.dias[hoje].pos) ? inst.dias[hoje].pos : {};
+  const cred=getSessionCred();
+  const _ta='width:100%;border:1px solid #cbd3dd;border-radius:7px;padding:8px 10px;font-family:inherit;font-size:13px;box-sizing:border-box';
+  const _ck=(n,v)=> (rec[n]===v?'checked':'');
+  const cont=document.getElementById('pos-list');
+  cont.innerHTML =
+    '<button class="btn-act" onclick="irPosLista()">↩ Voltar à lista</button>'
+    + '<div class="card" style="margin-top:12px">'
+    + '<div style="font-weight:800;color:var(--remo-navy);font-size:16px">'+esc(inst.atividadeNome)+'</div>'
+    + '<div style="font-size:12px;color:#666;margin:3px 0 16px">Respons&aacute;vel: <b>'+esc(inst.responsavel||'—')+'</b> &middot; Encerramento do dia '+hoje.split('-').reverse().join('/')+'</div>'
+    // Q1
+    + '<div style="margin-bottom:16px">'
+    + '<div style="font-weight:700;margin-bottom:6px">1. A atividade ocorreu conforme o planejado?</div>'
+    + '<label style="margin-right:18px"><input type="radio" name="pos-q1" value="Sim" onchange="_posRevela()" '+_ck('q1','Sim')+'> Sim</label>'
+    + '<label><input type="radio" name="pos-q1" value="Não" onchange="_posRevela()" '+_ck('q1','Não')+'> Não</label>'
+    + '<textarea id="pos-q1txt" rows="2" placeholder="Descreva o que fugiu do planejado" style="display:none;margin-top:8px;'+_ta+'">'+esc(rec.q1txt||'')+'</textarea>'
+    + '</div>'
+    // Q2
+    + '<div style="margin-bottom:16px">'
+    + '<div style="font-weight:700;margin-bottom:6px">2. Houve incidente, acidente ou desvio?</div>'
+    + '<label style="margin-right:18px"><input type="radio" name="pos-q2" value="Sim" onchange="_posRevela()" '+_ck('q2','Sim')+'> Sim</label>'
+    + '<label><input type="radio" name="pos-q2" value="Não" onchange="_posRevela()" '+_ck('q2','Não')+'> Não</label>'
+    + '<textarea id="pos-q2txt" rows="2" placeholder="Descreva o incidente / acidente / desvio" style="display:none;margin-top:8px;'+_ta+'">'+esc(rec.q2txt||'')+'</textarea>'
+    + '<div id="pos-eng-wrap" style="display:none;margin-top:10px;background:#eef4fb;border:1px solid #cfe0f2;border-radius:8px;padding:10px 12px">'
+    + '<div style="font-weight:700;font-size:12.5px;color:#1B3E6B;margin-bottom:3px">Campo do Engenheiro Respons&aacute;vel pela Obra <span style="font-weight:400;color:#5c6b82">(opcional)</span></div>'
+    + '<div style="font-size:11px;color:#5c6b82;margin-bottom:6px">Orienta&ccedil;&atilde;o / informa&ccedil;&atilde;o adicional sobre o relato. N&atilde;o obrigat&oacute;rio e n&atilde;o paralisa a AR.</div>'
+    + '<textarea id="pos-eng" rows="2" placeholder="Observa&ccedil;&atilde;o do engenheiro (opcional)" style="'+_ta+'">'+esc(rec.engenheiro||'')+'</textarea>'
+    + '</div>'
+    + '</div>'
+    // Q3
+    + '<div style="margin-bottom:16px">'
+    + '<div style="font-weight:700;margin-bottom:6px">3. Alguma informa&ccedil;&atilde;o adicional sobre a atividade? <span style="font-weight:400;color:#888">(opcional)</span></div>'
+    + '<textarea id="pos-q3txt" rows="2" placeholder="Informa&ccedil;&atilde;o adicional (opcional)" style="'+_ta+'">'+esc(rec.q3txt||'')+'</textarea>'
+    + '</div>'
+    + '<div style="font-size:11px;color:#888;margin-bottom:14px">Respondido por: <b>'+esc((cred&&cred.nome)||inst.elaborador||'—')+'</b> (respons&aacute;vel / autor)'+(rec.ts?' &middot; &uacute;ltimo registro: '+esc(rec.ts):'')+'</div>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<button class="btn-act" onclick="salvarPos(\''+id+'\',true)">💾 Salvar respostas</button>'
+    + '<button class="btn-act prim" onclick="finalizarAR(\''+id+'\')">✓ Atividade conclu&iacute;da — Finalizar AR</button>'
+    + '<button class="btn-act" onclick="seguirNovoDia(\''+id+'\')">↻ Seguir (novo dia)</button>'
+    + '</div></div>';
+  _posRevela();
+  _mostrarView('step-pos');
+}
+function _lerPos(id){
+  const g=(n)=>{const el=document.querySelector('input[name="'+n+'"]:checked'); return el?el.value:'';};
+  const t=(i)=>{const el=document.getElementById(i); return el?el.value.trim():'';};
+  return { q1:g('pos-q1'), q1txt:t('pos-q1txt'), q2:g('pos-q2'), q2txt:t('pos-q2txt'), engenheiro:t('pos-eng'), q3txt:t('pos-q3txt') };
+}
+function salvarPos(id, avisar){
+  const inst=ARS.find(a=>a.id===id); if(!inst) return null;
+  const dados=_lerPos(id);
+  if(!dados.q1 || !dados.q2){ if(avisar) alert('Responda as perguntas 1 e 2 antes de salvar.'); return null; }
+  const cred=getSessionCred();
+  const hoje=_hojeISO();
+  inst.dias = inst.dias || {};
+  inst.dias[hoje] = inst.dias[hoje] || {};
+  inst.dias[hoje].pos = Object.assign(dados, { respondidoPor:(cred&&cred.nome)||inst.elaborador||'—', ts:new Date().toLocaleString('pt-BR') });
+  salvarARs();
+  if(avisar) alert('💾 Respostas do dia salvas.');
+  return inst.dias[hoje].pos;
+}
+function finalizarAR(id){
+  const dados=_lerPos(id);
+  if(!dados.q1 || !dados.q2){ alert('Responda as perguntas 1 e 2 antes de finalizar.'); return; }
+  if(!confirm('Finalizar a AR "'+(ARS.find(a=>a.id===id)||{}).atividadeNome+'"?\n\nEla sai do ciclo diário (DURANTE) e é arquivada como concluída.')) return;
+  salvarPos(id,false);
+  const inst=ARS.find(a=>a.id===id); if(inst){ inst.estado='finalizada'; inst.finalizadoEm=new Date().toLocaleString('pt-BR'); salvarARs(); }
+  alert('✅ AR finalizada e arquivada.');
+  irPosLista();
+}
+function seguirNovoDia(id){
+  const salvo=salvarPos(id,false);
+  if(!salvo){ alert('Responda as perguntas 1 e 2 antes de seguir.'); return; }
+  alert('Respostas do dia registradas. A AR continua ABERTA para o próximo dia.');
+  mostrarDurante();
+}
 
 // Lista de APRs aguardando validação (rascunhos) — exibida no PRÉ. Validação SÓ pela TST.
 function renderPendentesValidacao(){
