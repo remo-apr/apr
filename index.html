@@ -1663,6 +1663,28 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
   </div>
 </div>
 
+<!-- MODAL DE EDIÇÃO DE EPIs (por atividade) -->
+<div id="epi-overlay" style="display:none;position:fixed;inset:0;background:rgba(15,25,40,.62);z-index:9999;align-items:center;justify-content:center;padding:16px" onclick="fecharEditorEpis(event)">
+  <div style="background:#fff;border-radius:12px;max-width:480px;width:100%;box-shadow:0 18px 50px rgba(0,0,0,.35);overflow:hidden" onclick="event.stopPropagation()">
+    <div style="background:#0b6e34;color:#fff;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:.5px;font-size:16px;text-transform:uppercase">&#9937; Editar EPIs da Atividade</span>
+      <button onclick="fecharEditorEpis()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1">&times;</button>
+    </div>
+    <div style="padding:16px 18px">
+      <div id="epi-atv-nome" style="font-size:13px;color:#0b6e34;font-weight:700;margin-bottom:8px"></div>
+      <textarea id="epi-textarea" rows="9" style="width:100%;border:1px solid #cbd3dd;border-radius:8px;padding:10px 12px;font-family:inherit;font-size:13px;box-sizing:border-box" placeholder="Um EPI por linha"></textarea>
+      <div style="font-size:11px;color:#888;margin-top:7px;line-height:1.4">Um EPI por linha. Adicione ou remova conforme a necessidade real da atividade. Esta lista aparece no documento e na impress&atilde;o.</div>
+    </div>
+    <div style="padding:12px 18px;background:#f5f2ed;display:flex;gap:10px;justify-content:space-between;align-items:center">
+      <button onclick="restaurarEpisAuto()" style="background:#fff;border:1.5px solid #cbd3dd;color:#33475b;border-radius:7px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:12.5px">&#8634; Restaurar autom&aacute;tico</button>
+      <div style="display:flex;gap:8px">
+        <button onclick="fecharEditorEpis()" style="background:#fff;border:1.5px solid #cbd3dd;color:#7a8698;border-radius:7px;padding:9px 16px;font-weight:600;cursor:pointer;font-size:13px">Cancelar</button>
+        <button onclick="salvarEpis()" style="background:#0b6e34;border:none;color:#fff;border-radius:7px;padding:9px 20px;font-weight:800;cursor:pointer;font-size:13px">&#10003; Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL HISTÓRICO (Item 8) -->
 <div class="hist-overlay" id="hist-overlay" onclick="fecharHistorico(event)">
   <div class="hist-modal" onclick="event.stopPropagation()">
@@ -2950,6 +2972,9 @@ const editRiscosFase = new Map();
 // Medidas de controle EDITADAS por fase: Map(faseKey → texto). Quando existe, sobrescreve o
 // texto padrão da fase no documento. É a versão que a equipe ajusta para a necessidade real.
 const MEDIDAS_EDIT = new Map();
+// EPIs consolidados EDITADOS por atividade: Map(atvId → array de EPIs). Quando existe,
+// substitui a lista automática no box "EPIs que serão utilizados para esta atividade".
+const EPIS_EDIT = new Map();
 let _nextCId = 1000; // IDs de riscos customizados começam em 1000
 
 // Chave de fase
@@ -3698,7 +3723,7 @@ function abrirAssinatura(idx){
   const p = SIG_PEOPLE[idx]; if(!p) return;
   _sigAlvo = p;
   document.getElementById('sig-quem').innerHTML = '<strong>'+esc(p.nomeExib)+'</strong>';
-  document.getElementById('sig-dia').textContent = 'Assinatura do dia da AR · '+p.diaLabel;
+  document.getElementById('sig-dia').textContent = (p.dataISO==='RESP') ? 'Assinatura do Responsável Técnico (única na AR)' : ('Assinatura do dia da AR · '+p.diaLabel);
   document.getElementById('sig-overlay').style.display='flex';
   const cv=document.getElementById('sig-canvas');
   const rect=cv.getBoundingClientRect();
@@ -3747,6 +3772,7 @@ function snapshotEstadoAR(){
     customRiscosFase:[...customRiscosFase.entries()].map(([k,v])=>[k,v]),
     riscoPSFase:[...riscoPSFase.entries()],
     MEDIDAS_EDIT:[...MEDIDAS_EDIT.entries()],
+    EPIS_EDIT:[...EPIS_EDIT.entries()],
     form:{ data:gv('f-data'), elaborador:gv('f-elaborador'), pt:gv('f-pt'), obs:gv('f-obs'), obra:gv('f-obra'),
            etapa_apr:rc('etapa_apr'), clima:rc('clima'),
            maq:!!(document.getElementById('maq-sim')||{}).checked, ferr:!!(document.getElementById('ferr-sim')||{}).checked }
@@ -3755,7 +3781,7 @@ function snapshotEstadoAR(){
 function restaurarEstadoAR(snap){
   if(!snap) return;
   SEL.clear();SEL_L.clear();SEL_E.clear();SEL_M.clear();SEL_F.clear();SEL_ESC.clear();SEL_EQUIPE.clear();
-  SEL_M_QTD.clear();SEL_RISCOS.clear();editRiscosFase.clear();customRiscosFase.clear();riscoPSFase.clear();MEDIDAS_EDIT.clear();
+  SEL_M_QTD.clear();SEL_RISCOS.clear();editRiscosFase.clear();customRiscosFase.clear();riscoPSFase.clear();MEDIDAS_EDIT.clear();EPIS_EDIT.clear();
   (snap.SEL||[]).forEach(x=>SEL.add(x));
   (snap.SEL_L||[]).forEach(x=>SEL_L.add(x));
   (snap.SEL_E||[]).forEach(x=>SEL_E.add(x));
@@ -3769,6 +3795,7 @@ function restaurarEstadoAR(snap){
   (snap.customRiscosFase||[]).forEach(([k,vv])=>customRiscosFase.set(k,vv));
   (snap.riscoPSFase||[]).forEach(([k,vv])=>riscoPSFase.set(k,vv));
   (snap.MEDIDAS_EDIT||[]).forEach(([k,vv])=>MEDIDAS_EDIT.set(k,vv));
+  (snap.EPIS_EDIT||[]).forEach(([k,vv])=>EPIS_EDIT.set(k,vv));
   const f=snap.form||{};
   const sv=(id,val)=>{ const el=document.getElementById(id); if(el) el.value=val||''; };
   sv('f-data',f.data);sv('f-elaborador',f.elaborador);sv('f-pt',f.pt);sv('f-obs',f.obs);sv('f-obra',f.obra);
@@ -3862,6 +3889,45 @@ function irPosLista(){
     + '<div style="padding:14px;color:#8a6a00;background:#fff3cd;border-radius:8px;margin-top:8px;font-size:13px">🚧 Módulo PÓS (3 perguntas + campo do engenheiro) será ativado na próxima etapa (4.2).</div>';
   _mostrarView('step-pos');
 }
+// ── Editor de EPIs consolidados por atividade (lista editável no documento) ──
+let _epiAtvAtual = null;
+function _episAutoDaAtv(a){
+  const _seen=new Set();
+  const _n = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\([^)]*\)/g,'').replace(/[^a-z0-9]/g,'');
+  return a.fases.flatMap(f=>(f.e||'').split(',').map(x=>x.trim()).filter(Boolean))
+    .filter(x=>{ const k=_n(x); if(!k||_seen.has(k)) return false; _seen.add(k); return true; });
+}
+function abrirEditorEpis(atvId){
+  const a = ATIVIDADES.find(x=>x.id===+atvId); if(!a) return;
+  _epiAtvAtual = +atvId;
+  document.getElementById('epi-atv-nome').textContent = a.nome;
+  const lista = EPIS_EDIT.has(+atvId) ? EPIS_EDIT.get(+atvId) : _episAutoDaAtv(a);
+  document.getElementById('epi-textarea').value = lista.join('\n');
+  document.getElementById('epi-overlay').style.display='flex';
+}
+function fecharEditorEpis(e){ if(e && e.target && e.target.id!=='epi-overlay') return; document.getElementById('epi-overlay').style.display='none'; _epiAtvAtual=null; }
+function _persistirEpisNaInstancia(){
+  const inst = (typeof _instanciaAtual==='function') ? _instanciaAtual() : null;
+  if(inst){ inst.snap = snapshotEstadoAR(); salvarARs(); }
+}
+function salvarEpis(){
+  if(_epiAtvAtual==null) return;
+  const linhas = document.getElementById('epi-textarea').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const _seen=new Set(); const lista=[];
+  linhas.forEach(x=>{ const k=x.toLowerCase(); if(!_seen.has(k)){ _seen.add(k); lista.push(x); } });
+  EPIS_EDIT.set(_epiAtvAtual, lista);
+  _persistirEpisNaInstancia();
+  document.getElementById('epi-overlay').style.display='none';
+  gerarAPR();
+}
+function restaurarEpisAuto(){
+  if(_epiAtvAtual==null) return;
+  EPIS_EDIT.delete(_epiAtvAtual);
+  _persistirEpisNaInstancia();
+  document.getElementById('epi-overlay').style.display='none';
+  gerarAPR();
+}
+
 // ── Módulo PÓS-ATIVIDADE (Etapa 4.2): 3 perguntas do dia + campo opcional do engenheiro ──
 function _hojeISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function _posRevela(){
@@ -4017,6 +4083,9 @@ function gerarAPR(){
     const _epiSeenAll = new Set();
     const _todosEpisAtv = a.fases.flatMap(f => (f.e||'').split(',').map(x=>x.trim()).filter(Boolean))
       .filter(x => { const k=_normEpi(x); if(!k || _epiSeenAll.has(k)) return false; _epiSeenAll.add(k); return true; });
+    // Lista EDITÁVEL de EPIs da atividade: usa a edição manual se houver; senão, a automática.
+    const _episAtv = EPIS_EDIT.has(a.id) ? EPIS_EDIT.get(a.id) : _todosEpisAtv;
+    const _episEditado = EPIS_EDIT.has(a.id);
     return`
     <div class="apr-bloco">
       <div class="apr-bloco-title">
@@ -4052,15 +4121,11 @@ function gerarAPR(){
             ? _riscosDaFase.map(r=>`<span class="apr-risco-tag">${r.n<999?r.n+'. ':''}${esc(r.nome)}</span>`).join('')
             : `<span class="apr-risco-tag">—</span>`;
 
-          // Linha de EPIs: só os NOVOS EPIs desta etapa (não repete os já citados em etapas anteriores da mesma APR)
-          const _episFase = (f.e||'').split(',').map(x=>x.trim()).filter(Boolean);
-          const _novosEpis = _episFase.filter(x=>{ const k=_normEpi(x); if(!k || _seenEpis.has(k)) return false; _seenEpis.add(k); return true; });
-          const epiLinha = _novosEpis.length ? `<div class="apr-epi-linha"><strong>EPIs necessários para esta etapa:</strong> ${esc(_novosEpis.join(', '))}</div>` : '';
-          // Coluna MEDIDAS DE CONTROLE: texto da etapa (editado na Etapa 3, ou o padrão da fase).
-          // Os riscos deixaram de substituir o texto — servem de apoio para compor/editar as medidas.
+          // EPIs por etapa foram CENTRALIZADOS no box consolidado (editável) ao fim da atividade.
+          // Coluna MEDIDAS DE CONTROLE: só o texto da etapa (editado na Etapa 3, ou o padrão da fase).
           const _mkFase = faseKey(id, i);
           const _medFase = MEDIDAS_EDIT.has(_mkFase) ? MEDIDAS_EDIT.get(_mkFase) : (f.m||'');
-          const colunaMedidas = epiLinha + esc(_ordenarMedidas(_medFase));
+          const colunaMedidas = esc(_ordenarMedidas(_medFase));
 
           // Nível médio de risco da fase
           const faseRiscosNivel = riscosFase.length > 0 ? riscosFase : getRiscosFromFaseStr(f.p);
@@ -4083,7 +4148,12 @@ function gerarAPR(){
         }).join('')}
         </tbody>
       </table>
-      ${_todosEpisAtv.length ? `<div class="apr-epi-consolidado"><strong>⛑️ EPIs que serão utilizados para esta atividade:</strong> ${esc(_todosEpisAtv.join(', '))}</div>` : ''}
+      <div class="apr-epi-consolidado">
+        <strong>⛑️ EPIs que serão utilizados para esta atividade:</strong>
+        ${_episAtv.length ? esc(_episAtv.join(', ')) : '<span style="color:#999">— nenhum EPI listado</span>'}
+        ${_episEditado ? '<span style="font-size:9px;color:#0b6e34;font-weight:800;margin-left:6px">✏️ editado</span>' : ''}
+        <button class="no-print" onclick="abrirEditorEpis(${a.id})" style="margin-left:10px;background:#fff;border:1.5px solid #0b6e34;color:#0b6e34;border-radius:6px;padding:3px 10px;font-weight:700;font-size:11px;cursor:pointer">✏️ Editar EPIs</button>
+      </div>
     </div>`;
   }).join('');
   // Seção de riscos no rodapé: se houve seleção, mostra apenas os selecionados (com complemento destacado); senão, mostra todos
@@ -4182,12 +4252,27 @@ function gerarAPR(){
     };
 
     // Monta linha de responsável técnico (assinatura única — colspan 7)
-    var makeRowFixo = function(nome, cargo, bgRow){
+    // Responsável técnico: assinatura ÚNICA por AR (não diária) — também digital (canvas).
+    var makeRowFixo = function(nomeExib, cargo, bgRow, nomeKey){
+      var cellHtml;
+      if(nomeKey){
+        var sigF = SIGS_DIG.get(sigKey(_atvIdSig, 'RESP', nomeKey));
+        if(sigF){
+          cellHtml = '<td colspan="7" style="border:1px solid #ddd;height:42px;text-align:center;padding:1px 2px">' + _sigCellHtml(sigF) + '</td>';
+        } else {
+          var idxF = SIG_PEOPLE.length;
+          var cellIdF = 'sigcell-' + idxF;
+          SIG_PEOPLE.push({atvId:_atvIdSig, dataISO:'RESP', nome:nomeKey, nomeExib:nomeKey, diaLabel:'assinatura técnica', cellId:cellIdF});
+          cellHtml = '<td id="' + cellIdF + '" colspan="7" onclick="abrirAssinatura(' + idxF + ')" style="border:1px solid #ddd;height:42px;text-align:center;cursor:pointer">'
+                   + '<span class="sig-assinar-lbl" style="font-size:9px;color:#0b6e34;font-weight:700;letter-spacing:.3px">&#9997;&#65039; Assinar</span></td>';
+        }
+      } else {
+        cellHtml = '<td colspan="7" style="border:1px solid #ddd;height:42px;padding:2px 10px;font-size:9px;color:#bbb;font-style:italic;vertical-align:bottom;letter-spacing:.3px">Assinatura</td>';
+      }
       return '<tr style="' + bgRow + '">'
-           + '<td style="padding:5px 8px;border:1px solid #ddd;font-size:11px;font-weight:600;word-break:break-word">' + nome + '</td>'
+           + '<td style="padding:5px 8px;border:1px solid #ddd;font-size:11px;font-weight:600;word-break:break-word">' + nomeExib + '</td>'
            + '<td style="padding:5px 8px;border:1px solid #ddd;font-size:10px;color:#555;word-break:break-word">' + cargo + '</td>'
-           + '<td colspan="7" style="border:1px solid #ddd;height:42px;padding:2px 10px;'
-           + 'font-size:9px;color:#bbb;font-style:italic;vertical-align:bottom;letter-spacing:.3px">Assinatura</td>'
+           + cellHtml
            + '</tr>';
     };
 
@@ -4221,12 +4306,12 @@ function gerarAPR(){
     // Responsáveis Técnicos — assinatura única (sem colunas diárias)
     rowsHtml += makeSep('Responsáveis Técnicos', '#1B3E6B', '#e8eef5');
     rowsHtml += ASSINATURAS_FIXAS.map(function(f){
-      return makeRowFixo('<strong>' + f.nome + '</strong>', f.func, 'background:#f5f2ed');
+      return makeRowFixo('<strong>' + f.nome + '</strong>', f.func, 'background:#f5f2ed', f.nome);
     }).join('');
 
     sigUnificadoHtml = '<div class="apr-ass apr-sig-wrap">'
       + '<div class="apr-ass-title">Declaração de Ciência — Assinaturas Diárias da Equipe</div>'
-      + '<div class="sig-tap-hint" style="font-size:10.5px;color:#0b6e34;padding:2px 2px 8px;font-weight:600">&#9997;&#65039; Toque na célula verde do dia para assinar digitalmente na tela do tablet.</div>'
+      + '<div class="sig-tap-hint" style="font-size:10.5px;color:#0b6e34;padding:2px 2px 8px;font-weight:600">&#9997;&#65039; Toque em &quot;Assinar&quot; para assinar digitalmente na tela do tablet &mdash; equipe (dia atual) e responsáveis técnicos.</div>'
       + '<div class="apr-sig-scroll">'
       + '<table class="apr-sig-table" style="width:100%;border-collapse:collapse;table-layout:fixed">'
       + '<colgroup>'
@@ -4667,7 +4752,7 @@ function nova(){
   setTimeout(renderPendentesValidacao, 0);
   // Novas APRs são persistidas em localStorage — não removê-las ao iniciar nova APR
   SEL.clear(); SEL_L.clear(); SEL_E.clear(); SEL_M.clear(); SEL_ESC.clear(); SEL_EQUIPE.clear(); SEL_RISCOS.clear();
-  customRiscosFase.clear(); editRiscosFase.clear(); riscoPSFase.clear(); SEL_M_QTD.clear(); MEDIDAS_EDIT.clear(); _nextCId = 1000;
+  customRiscosFase.clear(); editRiscosFase.clear(); riscoPSFase.clear(); SEL_M_QTD.clear(); MEDIDAS_EDIT.clear(); EPIS_EDIT.clear(); _nextCId = 1000;
 
   // Limpar radio de atividade
   document.querySelectorAll('input[name="atv_sel"]').forEach(r=>r.checked=false);
