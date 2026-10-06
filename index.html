@@ -1783,7 +1783,7 @@ body.dark .drive-modal-btn.sec{border-color:#7ab3e0;color:#7ab3e0}
 // ═══════════════════════════════════════════════════
 // VERSÃO + CONSTANTES GLOBAIS
 // ═══════════════════════════════════════════════════
-const APP_VERSAO = 'v4.2';
+const APP_VERSAO = 'v4.3';
 
 // Item 11 – Favoritos de atividade (persistidos em localStorage)
 // try/catch: sem ele, um 'apr_favs' corrompido lançava exceção no top-level e
@@ -2027,7 +2027,7 @@ const SEL_EQUIPE = new Set(); // Set de nums dos colaboradores selecionados
 
 // Riscos completos do arquivo (35 riscos)
 // p = Probabilidade padrão (1=Baixa 2=Média 3=Alta)
-// s = Severidade padrão   (1=Leve  2=Moderada 3=Grave 4=Crítica)
+// s = Gravidade padrão     (1=Baixa 2=Média 3=Alta)  — alinhado ao PGR (matriz P×G 3×3)
 const RISCOS = [
   {n:1,  p:'2',s:'2', r:"Cansaço Físico/Mental",               c:"Verificar as condições físicas e emocionais da equipe pelo emociograma no DSS; quem não estiver bem deve avisar o encarregado."},
   {n:2,  p:'2',s:'3', r:"Uso de Adorno",                        c:"Proibido usar anéis, alianças, brincos, colares, correntes, relógios, pulseiras e celular junto ao corpo durante o serviço."},
@@ -2035,17 +2035,17 @@ const RISCOS = [
   {n:4,  p:'2',s:'3', r:"Uso de Ferramentas Inadequadas",       c:"Não improvisar ferramentas; fazer o checklist antes de usar e nunca usar ferramenta danificada."},
   {n:5,  p:'2',s:'3', r:"Procedimentos Técnicos Incorretos",    c:"Seguir os procedimentos corretos; em caso de dúvida, perguntar ao encarregado antes de executar."},
   {n:6,  p:'2',s:'2', r:"Picadas de Animais Peçonhentos",       c:"Antes de começar, verificar se há animais peçonhentos; não tentar capturar nem matar, avisar a supervisão."},
-  {n:7,  p:'3',s:'4', r:"Trabalho próximo a Circuitos Energizados",c:"Manter a distância de segurança dos pontos energizados: 345 kV — 3,5 m de aproximação e 8 m de trabalho; 138 kV — 1,5 m."},
-  {n:8,  p:'2',s:'4', r:"Retorno de Tensão",                    c:"Confirmar a liberação do equipamento; fazer aterramento provisório e teste de ausência de tensão; aplicar bloqueio e etiquetagem (LOTO)."},
+  {n:7,  p:'3',s:'3', r:"Trabalho próximo a Circuitos Energizados",c:"Manter a distância de segurança dos pontos energizados: 345 kV — 3,5 m de aproximação e 8 m de trabalho; 138 kV — 1,5 m."},
+  {n:8,  p:'2',s:'3', r:"Retorno de Tensão",                    c:"Confirmar a liberação do equipamento; fazer aterramento provisório e teste de ausência de tensão; aplicar bloqueio e etiquetagem (LOTO)."},
   {n:9,  p:'3',s:'3', r:"Indução Elétrica",                     c:"Usar aterramento provisório e inspecionar os cabos de aterramento; conferir se a malha de terra está eficiente (equipotencialização) e usar isolante para não tocar em partes energizadas."},
   {n:10, p:'2',s:'3', r:"Trip Acidental",                       c:"Seguir o procedimento de bloqueio e etiquetagem (LOTO) conforme a NR-10."},
-  {n:11, p:'2',s:'4', r:"Choque Elétrico",                      c:"Perto da rede elétrica é proibido usar materiais metálicos e trena metálica; inspecionar cabos e extensões antes de usar."},
+  {n:11, p:'2',s:'3', r:"Choque Elétrico",                      c:"Perto da rede elétrica é proibido usar materiais metálicos e trena metálica; inspecionar cabos e extensões antes de usar."},
   {n:12, p:'3',s:'2', r:"Exposição a Ruído",                    c:"Usar protetor auricular (tipo plug ou concha)."},
   {n:13, p:'3',s:'1', r:"Exposição à Radiação",                 c:"Passar protetor solar e reaplicar a cada 2 horas; beber água para se manter hidratado."},
-  {n:14, p:'2',s:'4', r:"Queda em Altura",                      c:"Trabalho em altura exige treinamento NR-35 e PT; usar cinturão paraquedista com talabarte de dupla trava acima de 2 m, sempre ancorado."},
+  {n:14, p:'2',s:'3', r:"Queda em Altura",                      c:"Trabalho em altura exige treinamento NR-35 e PT; usar cinturão paraquedista com talabarte de dupla trava acima de 2 m, sempre ancorado."},
   {n:15, p:'2',s:'2', r:"Exposição a Vibrações",                c:"Fazer rodízio (cerca de 25 min de trabalho / 10 min de descanso) e usar luvas antivibração."},
   {n:16, p:'2',s:'2', r:"Exposição a Fumos Metálicos",          c:"Usar máscara PFF2 e trabalhar em local ventilado."},
-  {n:17, p:'2',s:'4', r:"Incêndio / Explosões",                 c:"Manter extintor por perto e retirar da área todo material inflamável antes de começar."},
+  {n:17, p:'2',s:'3', r:"Incêndio / Explosões",                 c:"Manter extintor por perto e retirar da área todo material inflamável antes de começar."},
   {n:18, p:'3',s:'1', r:"Exposição a Poeiras",                  c:"Usar máscara PFF2 para proteção contra poeira; quando possível, umedecer para reduzir a poeira."},
   {n:19, p:'3',s:'2', r:"Levantamento Manual de Peso",          c:"Não levantar peso demais sozinho, pedir ajuda; levantar com a coluna ereta usando a força das pernas (máx. 23 kg)."},
   {n:20, p:'2',s:'3', r:"Prensamento de Membros",               c:"Manter o corpo e as mãos fora do raio de ação do equipamento e das partes que se movem."},
@@ -2055,7 +2055,7 @@ const RISCOS = [
   {n:24, p:'2',s:'3', r:"Atropelamento",                        c:"Atenção à circulação de veículos e máquinas; manter contato visual com o motorista e o sinaleiro."},
   {n:25, p:'2',s:'3', r:"Máquinas e Equipamentos sem Proteção", c:"Conferir as proteções da máquina (NR-12) antes de operar; nunca remover as proteções."},
   {n:26, p:'2',s:'2', r:"Contato com Produtos Químicos",        c:"Usar a luva adequada ao produto e máscara PFF2 quando preciso; seguir a FDS do produto e mantê-la por perto."},
-  {n:27, p:'2',s:'4', r:"Manobra ou Operação Indevida",         c:"Só profissional autorizado e habilitado pode operar; usar rádio e manter a área sinalizada e isolada."},
+  {n:27, p:'2',s:'3', r:"Manobra ou Operação Indevida",         c:"Só profissional autorizado e habilitado pode operar; usar rádio e manter a área sinalizada e isolada."},
   {n:28, p:'3',s:'2', r:"Escoriações / Cortes / Pancadas",      c:"Usar luvas de vaqueta e ter cuidado ao manusear materiais cortantes; isolar a área com cones e corda."},
   {n:29, p:'2',s:'2', r:"Projeção de Partículas",               c:"Usar óculos de segurança durante todo o serviço."},
   {n:30, p:'2',s:'3', r:"Falha / Falta de Comunicação",         c:"Repassar os perigos e as medidas de controle de forma clara; tirar as dúvidas antes de iniciar."},
@@ -3130,7 +3130,7 @@ function renderRiscosSel(){
                 onclick="event.stopPropagation()">${esc(comp)}</textarea>
               <!-- Item 5: Matriz P×S -->
               <div class="risco-ps" onclick="event.stopPropagation()">
-                <span class="risco-ps-label">Matriz P×S:</span>
+                <span class="risco-ps-label">Matriz P×G:</span>
                 <label class="risco-ps-label" style="margin-left:4px">Probabilidade</label>
                 <select onchange="atualizarPS('${atvId}',${fIdx},${r.n},'p',this.value)">
                   <option value="">—</option>
@@ -3138,13 +3138,12 @@ function renderRiscosSel(){
                   <option value="2"${psVal.p==='2'?' selected':''}>Média</option>
                   <option value="3"${psVal.p==='3'?' selected':''}>Alta</option>
                 </select>
-                <label class="risco-ps-label">Severidade</label>
+                <label class="risco-ps-label">Gravidade</label>
                 <select onchange="atualizarPS('${atvId}',${fIdx},${r.n},'s',this.value)">
                   <option value="">—</option>
-                  <option value="1"${psVal.s==='1'?' selected':''}>Leve</option>
-                  <option value="2"${psVal.s==='2'?' selected':''}>Moderada</option>
-                  <option value="3"${psVal.s==='3'?' selected':''}>Grave</option>
-                  <option value="4"${psVal.s==='4'?' selected':''}>Crítica</option>
+                  <option value="1"${psVal.s==='1'?' selected':''}>Baixa</option>
+                  <option value="2"${psVal.s==='2'?' selected':''}>Média</option>
+                  <option value="3"${psVal.s==='3'?' selected':''}>Alta</option>
                 </select>
                 <span id="ps-nivel-${atvId}-${fIdx}-${r.n}">${psNivelHtml}</span>
               </div>
@@ -5576,19 +5575,19 @@ function toggleFav(id, evt){
 function calcPS(p, s){
   if(!p || !s) return null;
   const nivel = +p * +s;
-  if(nivel <= 2) return {label:'Baixo',   cls:'baixo',   icon:'🟢', bg:'#d4edda', fg:'#155724'};
-  if(nivel <= 4) return {label:'Médio',   cls:'medio',   icon:'🟡', bg:'#fff3cd', fg:'#856404'};
-  if(nivel <= 8) return {label:'Alto',    cls:'alto',    icon:'🟠', bg:'#ffe0b2', fg:'#6d4c00'};
-               return {label:'Crítico', cls:'critico', icon:'🔴', bg:'#f8d7da', fg:'#721c24'};
+  if(nivel <= 2) return {label:'Reduzido',    cls:'baixo',   icon:'🟢', bg:'#d4edda', fg:'#155724'};
+  if(nivel <= 4) return {label:'Moderado',    cls:'medio',   icon:'🟡', bg:'#fff3cd', fg:'#856404'};
+  if(nivel <= 6) return {label:'Substancial', cls:'alto',    icon:'🟠', bg:'#ffe0b2', fg:'#6d4c00'};
+               return {label:'Inaceitável',  cls:'critico', icon:'🔴', bg:'#f8d7da', fg:'#721c24'};
 }
 
 // Converte valor numérico P×S direto para nível (para cálculo de média)
 function calcNivelFromNum(n){
   if(!n || n <= 0) return null;
-  if(n <= 2) return {label:'Baixo',   cls:'baixo',   icon:'🟢', bg:'#d4edda', fg:'#155724'};
-  if(n <= 4) return {label:'Médio',   cls:'medio',   icon:'🟡', bg:'#fff3cd', fg:'#856404'};
-  if(n <= 8) return {label:'Alto',    cls:'alto',    icon:'🟠', bg:'#ffe0b2', fg:'#6d4c00'};
-             return {label:'Crítico', cls:'critico', icon:'🔴', bg:'#f8d7da', fg:'#721c24'};
+  if(n <= 2) return {label:'Reduzido',    cls:'baixo',   icon:'🟢', bg:'#d4edda', fg:'#155724'};
+  if(n <= 4) return {label:'Moderado',    cls:'medio',   icon:'🟡', bg:'#fff3cd', fg:'#856404'};
+  if(n <= 6) return {label:'Substancial', cls:'alto',    icon:'🟠', bg:'#ffe0b2', fg:'#6d4c00'};
+             return {label:'Inaceitável',  cls:'critico', icon:'🔴', bg:'#f8d7da', fg:'#721c24'};
 }
 
 // Busca riscos correspondentes a uma fase pelo campo f.p (string com nomes).
